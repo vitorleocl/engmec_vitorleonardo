@@ -171,7 +171,7 @@ export default function LaudoManager() {
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
-          className="flex items-center gap-2 bg-[#07575B] hover:bg-[#003B46] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors cursor-pointer self-start disabled:opacity-50"
+          className="flex items-center gap-2 bg-[#134074] hover:bg-[#0B2545] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors cursor-pointer self-start disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
           <span>Emitir Laudo</span>
@@ -201,7 +201,7 @@ export default function LaudoManager() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
         {loading ? (
           <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2 animate-pulse">
-            <span className="w-5 h-5 border-2 border-[#07575B] border-t-transparent rounded-full animate-spin" />
+            <span className="w-5 h-5 border-2 border-[#134074] border-t-transparent rounded-full animate-spin" />
             <span>Processando dados...</span>
           </div>
         ) : filtered.length === 0 ? (
@@ -253,7 +253,7 @@ export default function LaudoManager() {
                     </td>
                     <td className="p-4 space-y-1">
                       {laudo.pdfUrl ? (
-                        <span className="flex items-center gap-1 text-[11px] font-semibold text-[#07575B] dark:text-[#41B3A3] hover:underline cursor-pointer">
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-[#134074] dark:text-[#4895EF] hover:underline cursor-pointer">
                           <FileText className="w-3.5 h-3.5 shrink-0" />
                           <span>Pristine.pdf</span>
                         </span>
@@ -299,7 +299,7 @@ export default function LaudoManager() {
         <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-y-auto relative">
             
-            <div className="bg-[#003B46] text-white p-6 flex justify-between items-center">
+            <div className="bg-[#0B2545] text-white p-6 flex justify-between items-center">
               <h3 className="text-lg font-bold">
                 {currentLaudo.id ? 'Modificar Parâmetros de Laudo' : 'Formular Novo Laudo de Vistoria'}
               </h3>
@@ -385,7 +385,7 @@ export default function LaudoManager() {
                   <select
                     value={currentLaudo.status || LaudoStatus.EM_ELABORACAO}
                     onChange={(e) => setCurrentLaudo({ ...currentLaudo, status: e.target.value as LaudoStatus })}
-                    className="w-[#100%] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#003B46] dark:text-white cursor-pointer"
+                    className="w-[#100%] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#0B2545] dark:text-white cursor-pointer"
                   >
                     <option value={LaudoStatus.EM_ELABORACAO}>Em Elaboração / Vistoriado</option>
                     <option value={LaudoStatus.EMITIDO}>Emitido / Liberado</option>
@@ -413,7 +413,7 @@ export default function LaudoManager() {
                     </button>
                     {uploading === 'pdf' && (
                       <div className="w-full bg-slate-200 rounded-full h-1">
-                        <div className="bg-[#07575B] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
+                        <div className="bg-[#134074] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
                       </div>
                     )}
                   </div>
@@ -432,7 +432,7 @@ export default function LaudoManager() {
                     </button>
                     {uploading === 'image' && (
                       <div className="w-full bg-slate-200 rounded-full h-1">
-                        <div className="bg-[#07575B] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
+                        <div className="bg-[#134074] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
                       </div>
                     )}
                   </div>
@@ -451,7 +451,7 @@ export default function LaudoManager() {
                     </button>
                     {uploading === 'video' && (
                       <div className="w-full bg-slate-200 rounded-full h-1">
-                        <div className="bg-[#07575B] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
+                        <div className="bg-[#134074] h-1 rounded-full" style={{ width: `${uploadProgress}%` }} />
                       </div>
                     )}
                   </div>
@@ -472,7 +472,7 @@ export default function LaudoManager() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#07575B] hover:bg-[#003B46] text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-[#134074] hover:bg-[#0B2545] text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Salvar laudo</span>

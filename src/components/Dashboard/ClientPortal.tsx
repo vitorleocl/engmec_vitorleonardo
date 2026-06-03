@@ -81,13 +81,13 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
       
       {/* Client header information */}
       {clientProfile && (
-        <div className="bg-gradient-to-br from-[#003B46] to-[#07575B] text-white p-6 md:p-8 rounded-3xl border border-[#003B46]/10 shadow-lg space-y-4">
+        <div className="bg-gradient-to-br from-[#0B2545] to-[#134074] text-white p-6 md:p-8 rounded-3xl border border-[#0B2545]/10 shadow-lg space-y-4">
           <div className="flex items-center gap-3">
             <span className="p-3 bg-white/10 rounded-2xl block">
-              <Building className="w-6 h-6 text-[#66A5AD]" />
+              <Building className="w-6 h-6 text-[#8DA9C4]" />
             </span>
             <div>
-              <span className="text-xs uppercase font-mono tracking-widest text-[#66A5AD] font-bold">Portal do Cliente</span>
+              <span className="text-xs uppercase font-mono tracking-widest text-[#8DA9C4] font-bold">Portal do Cliente</span>
               <h2 className="text-xl md:text-2xl font-bold font-sans tracking-tight">{clientProfile.company}</h2>
             </div>
           </div>
@@ -108,13 +108,13 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
             onClick={() => setActiveTab(tab)}
             className={`py-3 px-5 text-xs uppercase font-bold tracking-wider relative transition-all cursor-pointer ${
               activeTab === tab 
-                ? 'text-[#07575B] dark:text-[#41B3A3]' 
+                ? 'text-[#134074] dark:text-[#4895EF]' 
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
             }`}
           >
             <span>{tab === 'laudos' ? 'Meus Laudos' : tab === 'checklists' ? 'Checklists Anexados' : 'Equipamentos Cadastrados'}</span>
             {activeTab === tab && (
-              <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[#07575B] dark:bg-[#41B3A3]" />
+              <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[#134074] dark:bg-[#4895EF]" />
             )}
           </button>
         ))}
@@ -122,7 +122,7 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
 
       {loading ? (
         <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2 animate-pulse">
-          <span className="w-5 h-5 border-2 border-[#07575B] border-t-transparent rounded-full animate-spin" />
+          <span className="w-5 h-5 border-2 border-[#134074] border-t-transparent rounded-full animate-spin" />
           <span>Buscando seu acervo seguro...</span>
         </div>
       ) : (
@@ -177,7 +177,7 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
                               href={l.pdfUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 bg-[#07575B] hover:bg-[#003B46] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-colors cursor-pointer shadow-sm"
+                              className="inline-flex items-center gap-1.5 bg-[#134074] hover:bg-[#0B2545] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-colors cursor-pointer shadow-sm"
                             >
                               <Printer className="w-3.5 h-3.5" />
                               <span>DOWNLOAD PDF</span>
@@ -228,7 +228,7 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
                         <td className="p-4 text-right">
                           <button
                             onClick={() => window.print()}
-                            className="inline-flex items-center gap-1 hover:border-[#07575B] hover:text-[#07575B] text-slate-500 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all border border-slate-200 dark:border-slate-705 cursor-pointer"
+                            className="inline-flex items-center gap-1 hover:border-[#134074] hover:text-[#134074] text-slate-500 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all border border-slate-200 dark:border-slate-705 cursor-pointer"
                           >
                             <Printer className="w-3.5 h-3.5" />
                             <span>VISUALIZAR</span>

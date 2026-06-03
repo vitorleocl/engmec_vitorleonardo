@@ -46,7 +46,7 @@ export default function Contact() {
           {/* Left direct contact details */}
           <div className="lg:col-span-5 space-y-10">
             <div className="space-y-4">
-              <span className="text-sm font-semibold tracking-widest text-[#003B46] dark:text-[#07575B] uppercase block font-mono">
+              <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block font-mono">
                 Canais de Atendimento
               </span>
               <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none">
@@ -60,31 +60,31 @@ export default function Contact() {
             <div className="space-y-6">
               
               <div className="flex items-start gap-5">
-                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#07575B] dark:text-[#41B3A3] rounded-2xl block shrink-0">
+                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#134074] dark:text-[#4895EF] rounded-2xl block shrink-0">
                   <Mail className="w-6 h-6" />
                 </span>
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white text-base">E-mail Profissional</h4>
-                  <a href="mailto:vitorleonardocl@gmail.com" className="text-sm text-slate-500 dark:text-slate-400 hover:text-[#07575B] dark:hover:text-emerald-400 transition-colors font-mono">
+                  <a href="mailto:vitorleonardocl@gmail.com" className="text-sm text-slate-500 dark:text-slate-400 hover:text-[#134074] dark:hover:text-amber-400 transition-colors font-mono">
                     vitorleonardocl@gmail.com
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-5">
-                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#07575B] dark:text-[#41B3A3] rounded-2xl block shrink-0">
+                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#134074] dark:text-[#4895EF] rounded-2xl block shrink-0">
                   <Phone className="w-6 h-6" />
                 </span>
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white text-base">Contato WhatsApp</h4>
-                  <a href="https://wa.me/5581984442592" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 dark:text-slate-400 hover:text-[#07575B] transition-colors font-mono">
+                  <a href="https://wa.me/5581984442592" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 dark:text-slate-400 hover:text-[#134074] transition-colors font-mono">
                     (81) 98444-2592
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-5">
-                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#07575B] dark:text-[#41B3A3] rounded-2xl block shrink-0">
+                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#134074] dark:text-[#4895EF] rounded-2xl block shrink-0">
                   <MapPin className="w-6 h-6" />
                 </span>
                 <div>
@@ -96,7 +96,7 @@ export default function Contact() {
               </div>
 
               <div className="flex items-start gap-5">
-                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#07575B] dark:text-[#41B3A3] rounded-2xl block shrink-0">
+                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[#134074] dark:text-[#4895EF] rounded-2xl block shrink-0">
                   <Clock className="w-6 h-6" />
                 </span>
                 <div>
@@ -143,7 +143,7 @@ export default function Contact() {
                       required
                       value={formData.nome}
                       onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none active:border-[#07575B] transition-all"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none active:border-[#134074] transition-all"
                       placeholder="Ex: Vitor Silva"
                     />
                   </div>
@@ -157,7 +157,7 @@ export default function Contact() {
                       id="empresa"
                       value={formData.empresa}
                       onChange={(e) => setFormData({ ...formData, empresa: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none transition-all"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none transition-all"
                       placeholder="Ex: Condomínio Parque Sol"
                     />
                   </div>
@@ -174,7 +174,7 @@ export default function Contact() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none transition-all"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none transition-all"
                       placeholder="Ex: contato@empresa.com"
                     />
                   </div>
@@ -189,7 +189,7 @@ export default function Contact() {
                       required
                       value={formData.telefone}
                       onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none transition-all"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none transition-all"
                       placeholder="Ex: (81) 99999-9999"
                     />
                   </div>
@@ -203,7 +203,7 @@ export default function Contact() {
                     id="servico"
                     value={formData.servico}
                     onChange={(e) => setFormData({ ...formData, servico: e.target.value })}
-                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none transition-all cursor-pointer"
+                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none transition-all cursor-pointer"
                   >
                     <option value="PMOC">PMOC (Plano de Climatização)</option>
                     <option value="NR-12">Adequação Mecânica à NR-12</option>
@@ -226,7 +226,7 @@ export default function Contact() {
                     rows={4}
                     value={formData.mensagem}
                     onChange={(e) => setFormData({ ...formData, mensagem: e.target.value })}
-                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#07575B] text-slate-900 dark:text-white outline-none transition-all resize-none"
+                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#134074] text-slate-900 dark:text-white outline-none transition-all resize-none"
                     placeholder="Descreva brevemente a quantidade de equipamentos, restrições ou objetivos da vistoria mecânica..."
                   />
                 </div>
@@ -234,7 +234,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-[#003B46] hover:bg-[#07575B] disabled:bg-[#003B46]/60 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-[#003B46]/10 hover:shadow-[#07575B]/20 transition-all font-mono tracking-widest uppercase text-xs cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-[#134074] disabled:bg-[#0B2545]/60 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-[#0B2545]/10 hover:shadow-[#134074]/20 transition-all font-mono tracking-widest uppercase text-xs cursor-pointer"
                 >
                   {loading ? (
                     <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />

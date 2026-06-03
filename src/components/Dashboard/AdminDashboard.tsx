@@ -83,7 +83,7 @@ export default function AdminDashboard() {
 
       {loading ? (
         <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2 animate-pulse">
-          <span className="w-5 h-5 border-2 border-[#07575B] border-t-transparent rounded-full animate-spin" />
+          <span className="w-5 h-5 border-2 border-[#134074] border-t-transparent rounded-full animate-spin" />
           <span>Sincronizando estatísticas de voo...</span>
         </div>
       ) : (
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
             <div className="lg:col-span-8 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/60 pb-3">
                 <h3 className="font-bold font-sans text-slate-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-[#07575B]" />
+                  <TrendingUp className="w-4 h-4 text-[#134074]" />
                   Gráfico de Produtividade Mensal
                 </h3>
                 <span className="text-[10px] uppercase font-mono bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded text-slate-400 font-bold">Laudos vs Vistorias</span>
@@ -150,20 +150,20 @@ export default function AdminDashboard() {
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorLaudos" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#07575B" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#07575B" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#134074" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#134074" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorVistorias" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#41B3A3" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#41B3A3" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#4895EF" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#4895EF" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                     <XAxis dataKey="name" stroke="#9CA3AF" fontSize={10} fontStyle="mono" />
                     <YAxis stroke="#9CA3AF" fontSize={10} fontStyle="mono" />
                     <Tooltip contentStyle={{ fontSize: '11px', fontFamily: 'monospace' }} />
-                    <Area type="monotone" dataKey="laudos" stroke="#07575B" fillOpacity={1} fill="url(#colorLaudos)" strokeWidth={2} name="Laudos Emitidos" />
-                    <Area type="monotone" dataKey="vistorias" stroke="#41B3A3" fillOpacity={1} fill="url(#colorVistorias)" strokeWidth={2} name="Vistorias Totais" />
+                    <Area type="monotone" dataKey="laudos" stroke="#134074" fillOpacity={1} fill="url(#colorLaudos)" strokeWidth={2} name="Laudos Emitidos" />
+                    <Area type="monotone" dataKey="vistorias" stroke="#4895EF" fillOpacity={1} fill="url(#colorVistorias)" strokeWidth={2} name="Vistorias Totais" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

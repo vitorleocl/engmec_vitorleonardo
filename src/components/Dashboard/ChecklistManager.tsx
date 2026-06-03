@@ -150,7 +150,7 @@ export default function ChecklistManager() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.strokeStyle = '#07575B';
+    ctx.strokeStyle = '#134074';
     ctx.lineWidth = 2;
     const rect = canvas.getBoundingClientRect();
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
@@ -277,7 +277,7 @@ export default function ChecklistManager() {
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
-          className="flex items-center gap-2 bg-[#07575B] hover:bg-[#003B46] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors cursor-pointer self-start disabled:opacity-50"
+          className="flex items-center gap-2 bg-[#134074] hover:bg-[#0B2545] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors cursor-pointer self-start disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
           <span>Realizar Vistoria</span>
@@ -288,7 +288,7 @@ export default function ChecklistManager() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
         {loading ? (
           <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2 animate-pulse">
-            <span className="w-5 h-5 border-2 border-[#07575B] border-t-transparent rounded-full animate-spin" />
+            <span className="w-5 h-5 border-2 border-[#134074] border-t-transparent rounded-full animate-spin" />
             <span>Processando auditorias...</span>
           </div>
         ) : checklists.length === 0 ? (
@@ -341,7 +341,7 @@ export default function ChecklistManager() {
                     <td className="p-4 text-right space-x-2 shrink-0">
                       <button
                         onClick={() => triggerPrint(chk)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[#07575B] hover:text-[#003B46] hover:scale-105 transition-all inline-block cursor-pointer border border-[#07575B]/20"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[#134074] hover:text-[#0B2545] hover:scale-105 transition-all inline-block cursor-pointer border border-[#134074]/20"
                         title="Imprimir Checklist"
                       >
                         <Printer className="w-4 h-4" />
@@ -367,7 +367,7 @@ export default function ChecklistManager() {
         <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto relative">
             
-            <div className="bg-[#003B46] text-white p-6 flex justify-between items-center">
+            <div className="bg-[#0B2545] text-white p-6 flex justify-between items-center">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Shield className="w-5 h-5 text-emerald-400" />
                 <span>Nova Vistoria de Conformidade Mecânica</span>
@@ -431,7 +431,7 @@ export default function ChecklistManager() {
                       }}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
                         checklistType === type 
-                          ? 'bg-[#07575B] text-white border-[#07575B] shadow-md' 
+                          ? 'bg-[#134074] text-white border-[#134074] shadow-md' 
                           : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                       }`}
                     >
@@ -449,7 +449,7 @@ export default function ChecklistManager() {
                   {QUESTIONS_BY_TYPE[checklistType].map((q) => (
                     <div key={q.id} className="pt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div className="space-y-1 pr-4">
-                        <span className="text-[10px] font-mono tracking-wider font-bold text-[#07575B] dark:text-[#41B3A3] uppercase">{q.category}</span>
+                        <span className="text-[10px] font-mono tracking-wider font-bold text-[#134074] dark:text-[#4895EF] uppercase">{q.category}</span>
                         <p className="text-sm font-medium text-slate-800 dark:text-slate-300 leading-normal">{q.text}</p>
                       </div>
 
@@ -529,7 +529,7 @@ export default function ChecklistManager() {
                 <button
                   type="submit"
                   disabled={!signatureSaved || Object.keys(answers).length < QUESTIONS_BY_TYPE[checklistType].length}
-                  className="px-5 py-2 rounded-lg bg-[#07575B] hover:bg-[#003B46] disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Registrar Vistoria</span>
@@ -550,7 +550,7 @@ export default function ChecklistManager() {
           {/* Header */}
           <div className="border-b-4 border-slate-900 pb-6 flex justify-between items-start">
             <div className="space-y-1">
-              <h1 className="text-3xl font-black uppercase tracking-tight font-sans">Vitor Leonardo – Engenharia Mecânica</h1>
+              <h1 className="text-3xl font-black uppercase tracking-tight font-sans">VL Engenharia</h1>
               <p className="text-xs font-mono font-medium tracking-wide">Laudos Técnicos, Inspeções, Adequação à NR-12 e PMOC</p>
               <p className="text-sm font-semibold">CREA-PE: 1822299490 • Recife, Pernambuco</p>
             </div>
@@ -629,7 +629,7 @@ export default function ChecklistManager() {
           </div>
 
           <div className="fixed bottom-6 right-6 text-[10px] font-mono text-slate-400 print:block hidden">
-            Parâmetros impressos via Plataforma Integrada de Laudos Eng. Vitor Leonardo
+            Parâmetros impressos via Plataforma Integrada de Laudos VL Engenharia
           </div>
           
           <button 

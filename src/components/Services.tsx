@@ -181,7 +181,7 @@ export default function Services() {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-semibold tracking-widest text-[#003B46] dark:text-[#07575B] uppercase block mb-3 font-mono">
+          <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
             Especialidades Técnicas
           </span>
           <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
@@ -204,10 +204,10 @@ export default function Services() {
                 onClick={() => setSelectedService(service)}
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-[#07575B]/10 text-[#07575B] dark:bg-[#07575B]/20 dark:text-[#a8e6cf] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-[#134074]/10 text-[#134074] dark:bg-[#134074]/20 dark:text-[#8DA9C4] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <IconComponent className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-950 dark:text-white mb-3 tracking-tight group-hover:text-[#07575B] dark:group-hover:text-[#41B3A3] transition-colors">
+                  <h3 className="text-xl font-bold text-slate-950 dark:text-white mb-3 tracking-tight group-hover:text-[#134074] dark:group-hover:text-[#4895EF] transition-colors">
                     {service.title}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
@@ -215,7 +215,7 @@ export default function Services() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#07575B] dark:text-[#41B3A3] group-hover:gap-3 transition-all">
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#134074] dark:text-[#4895EF] group-hover:gap-3 transition-all">
                   <span>Saber mais</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
@@ -233,7 +233,7 @@ export default function Services() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header Box */}
-              <div className="bg-[#003B46] text-white p-8 relative">
+              <div className="bg-[#0B2545] text-white p-8 relative">
                 <button
                   onClick={() => setSelectedService(null)}
                   className="absolute right-6 top-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/25 p-2 rounded-full transition-all"
@@ -242,10 +242,10 @@ export default function Services() {
                   <X className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-4 mb-3">
-                  <span className="p-2 border border-white/20 bg-white/10 rounded-xl text-[#41B3A3]">
+                  <span className="p-2 border border-white/20 bg-white/10 rounded-xl text-[#4895EF]">
                     <selectedService.icon className="w-6 h-6" />
                   </span>
-                  <span className="text-xs tracking-widest font-mono uppercase text-[#41B3A3]">Engenharia Mecânica</span>
+                  <span className="text-xs tracking-widest font-mono uppercase text-[#4895EF]">Engenharia Mecânica</span>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-sans font-bold tracking-tight">
                   {selectedService.title}
@@ -257,7 +257,7 @@ export default function Services() {
                 
                 {/* Overview */}
                 <div className="space-y-3">
-                  <h4 className="text-sm tracking-wider uppercase font-mono text-[#07575B] dark:text-[#41B3A3] font-bold">
+                  <h4 className="text-sm tracking-wider uppercase font-mono text-[#134074] dark:text-[#4895EF] font-bold">
                     Visão Geral do Serviço
                   </h4>
                   <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base md:text-lg">
@@ -269,7 +269,7 @@ export default function Services() {
                   {/* Regulatory Norms */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <FileBadge className="w-5 h-5 text-[#07575B] dark:text-[#41B3A3]" />
+                       <FileBadge className="w-5 h-5 text-[#134074] dark:text-[#4895EF]" />
                       <h4 className="font-bold text-slate-900 dark:text-white font-sans text-base">
                         Normatização & Legislação Key
                       </h4>
@@ -287,7 +287,7 @@ export default function Services() {
                   {/* Operational Deliverables */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <FileText className="w-5 h-5 text-[#07575B] dark:text-[#41B3A3]" />
+                      <FileText className="w-5 h-5 text-[#134074] dark:text-[#4895EF]" />
                       <h4 className="font-bold text-slate-900 dark:text-white font-sans text-base">
                         Entregáveis do Projeto
                       </h4>
@@ -305,7 +305,7 @@ export default function Services() {
 
                 {/* Scope Workflow */}
                 <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-                  <h4 className="text-sm tracking-wider uppercase font-mono text-[#07575B] dark:text-[#41B3A3] font-bold">
+                  <h4 className="text-sm tracking-wider uppercase font-mono text-[#134074] dark:text-[#4895EF] font-bold">
                     Etapas de Execução do Diagnóstico
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -326,7 +326,7 @@ export default function Services() {
                 {selectedService.images && selectedService.images.length > 0 && (
                   <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm tracking-wider uppercase font-mono text-[#07575B] dark:text-[#41B3A3] font-bold">
+                      <h4 className="text-sm tracking-wider uppercase font-mono text-[#134074] dark:text-[#4895EF] font-bold">
                         Imagens & Evidências de Inspeção (Arraste para o lado)
                       </h4>
                       <span className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
@@ -343,7 +343,7 @@ export default function Services() {
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                          <div className="absolute bottom-3 left-3 bg-[#003B46]/90 backdrop-blur-md text-white text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-md tracking-wider">
+                          <div className="absolute bottom-3 left-3 bg-[#0B2545]/90 backdrop-blur-md text-white text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-md tracking-wider">
                             Evidência #{idx + 1}
                           </div>
                         </div>
@@ -366,7 +366,7 @@ export default function Services() {
                     <a
                       href="#contato"
                       onClick={() => setSelectedService(null)}
-                      className="px-6 py-2.5 rounded-xl bg-[#003B46] hover:bg-[#07575B] text-white text-sm font-medium transition-colors text-center"
+                      className="px-6 py-2.5 rounded-xl bg-[#0B2545] hover:bg-[#134074] text-white text-sm font-medium transition-colors text-center"
                     >
                       Solicitar Orçamento
                     </a>

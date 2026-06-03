@@ -84,7 +84,7 @@ export default function ExecutedServicesCarousel() {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-semibold tracking-widest text-[#003B46] dark:text-[#07575B] uppercase block mb-3 font-mono">
+          <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
             Evidências Técnicas
           </span>
           <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
@@ -111,14 +111,14 @@ export default function ExecutedServicesCarousel() {
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent pointer-events-none" />
               
               {/* Category tags over image */}
-              <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 bg-[#003B46] text-white rounded-full text-xs font-mono font-bold uppercase shadow-lg">
-                <Flame className="w-3.5 h-3.5 text-[#41B3A3] animate-pulse" />
+              <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 bg-[#0B2545] text-white rounded-full text-xs font-mono font-bold uppercase shadow-lg">
+                <Flame className="w-3.5 h-3.5 text-[#4895EF] animate-pulse" />
                 <span>{activeItem.category}</span>
               </div>
 
               {/* Detail action trigger inside photo */}
               <div className="absolute bottom-4 left-4 right-4 text-white p-2">
-                <span className="text-[10px] font-mono tracking-widest text-[#41B3A3] uppercase block font-semibold">Caso Real de Sucesso</span>
+                <span className="text-[10px] font-mono tracking-widest text-[#4895EF] uppercase block font-semibold">Caso Real de Sucesso</span>
                 <p className="text-sm font-semibold truncate text-white/95">{activeItem.subtitle}</p>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function ExecutedServicesCarousel() {
             <div className="lg:col-span-6 space-y-6 flex flex-col justify-between h-full py-2">
               
               <div className="space-y-4">
-                <div className="flex gap-2.5 items-center text-xs font-mono font-bold text-[#07575B] dark:text-[#41B3A3] uppercase">
+                <div className="flex gap-2.5 items-center text-xs font-mono font-bold text-[#134074] dark:text-[#4895EF] uppercase">
                   <span className="px-2.5 py-1 bg-slate-200/50 dark:bg-slate-800 rounded">EVIDÊNCIA 0{activeIndex + 1}</span>
                   <span>•</span>
                   <span>PE / Pernambuco</span>
@@ -164,7 +164,7 @@ export default function ExecutedServicesCarousel() {
                       onClick={() => setActiveIndex(idx)}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         activeIndex === idx 
-                          ? 'w-6 bg-[#003B46] dark:bg-[#41B3A3]' 
+                          ? 'w-6 bg-[#0B2545] dark:bg-[#4895EF]' 
                           : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-450'
                       }`}
                       title={`Ver slide ${idx + 1}`}

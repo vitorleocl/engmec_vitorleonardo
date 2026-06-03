@@ -114,7 +114,7 @@ export default function ClientManager() {
             setCurrentClient({});
             setModalOpen(true);
           }}
-          className="flex items-center gap-2 bg-[#07575B] hover:bg-[#003B46] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors self-start cursor-pointer"
+          className="flex items-center gap-2 bg-[#134074] hover:bg-[#0B2545] text-white px-5 py-2.5 rounded-xl font-bold font-mono tracking-wider text-xs transition-colors self-start cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Cliente</span>
@@ -137,7 +137,7 @@ export default function ClientManager() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
         {loading ? (
           <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2 animate-pulse">
-            <span className="w-5 h-5 border-2 border-[#07575B] border-t-transparent rounded-full animate-spin" />
+            <span className="w-5 h-5 border-2 border-[#134074] border-t-transparent rounded-full animate-spin" />
             <span>Processando dados...</span>
           </div>
         ) : filtered.length === 0 ? (
@@ -203,7 +203,7 @@ export default function ClientManager() {
         <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl overflow-y-auto relative">
             
-            <div className="bg-[#003B46] text-white p-6 flex justify-between items-center">
+            <div className="bg-[#0B2545] text-white p-6 flex justify-between items-center">
               <h3 className="text-lg font-bold">
                 {currentClient.id ? 'Editar Cadastro de Cliente' : 'Registrar Novo Cliente'}
               </h3>
@@ -296,7 +296,7 @@ export default function ClientManager() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#07575B] hover:bg-[#003B46] text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-[#134074] hover:bg-[#0B2545] text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Salvar Dados</span>

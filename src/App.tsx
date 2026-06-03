@@ -4,21 +4,22 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Shield, Sun, Moon, KeyRound, ArrowUp, Menu, X } from 'lucide-react';
+import { Shield, Sun, Moon, KeyRound, ArrowUp, Menu, X, ArrowLeft } from 'lucide-react';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
 import About from './components/About';
-import AreaAtuacao from './components/AreaAtuacao';
 import ExecutedServicesCarousel from './components/ExecutedServicesCarousel';
 import Contact from './components/Contact';
 import DashboardMain from './components/Dashboard/DashboardMain';
 import WhatsAppButton from './components/WhatsAppButton';
+import Logo from './components/Logo';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [view, setView] = useState<'home' | 'acervo'>('home');
 
   // Sync theme changes with DOM node
   useEffect(() => {
@@ -38,13 +39,93 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Listen for hash change to determine page routing
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash === '#acervo' || hash === '#login' || hash === '#restricted-area') {
+        setView('acervo');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        setView('home');
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    if (view !== 'home') {
+      // Return to homepage, then scroll to the specific element
+      window.location.hash = '';
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+    } else {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
+
+  if (view === 'acervo') {
+    return (
+      <div className="min-h-screen bg-[#F4F7F6] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 antialiased font-sans flex flex-col">
+        {/* Minimalized dedicated header for the portal/acervo */}
+        <header className="bg-white/90 dark:bg-slate-950/90 backdrop-blur-md shadow-md border-b border-slate-200 dark:border-slate-800 py-4.5 sticky top-0 z-40 transition-colors">
+          <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+            <div onClick={() => { window.location.hash = ''; }} className="cursor-pointer">
+              <Logo variant="light" />
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 transition-colors cursor-pointer"
+                title={darkMode ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+
+              <button
+                onClick={() => { window.location.hash = ''; }}
+                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider font-mono uppercase transition-all shadow-sm cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 animate-pulse" />
+                <span>Voltar ao Site</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Content Container */}
+        <main className="flex-grow py-8 bg-slate-100 dark:bg-slate-950 transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <DashboardMain />
+          </div>
+        </main>
+
+        {/* Dedicated Minimalist Footer */}
+        <footer className="bg-[#05162E] text-slate-300 py-10 border-t-2 border-[#134074] text-center font-mono text-xs mt-auto">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-slate-400">
+            <Logo variant="footer" />
+            <div className="text-right text-[11px] space-y-1 font-mono">
+              <p>© {new Date().getFullYear()} VL Engenharia. Todos os direitos reservados.</p>
+              <p>CREA-PE Ativo • Recife, Região Metropolitana e Interior de PE</p>
+            </div>
+          </div>
+        </footer>
+
+        <WhatsAppButton />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F7F6] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 antialiased font-sans">
@@ -63,29 +144,18 @@ export default function App() {
           {/* Brand Logo Identity */}
           <div 
             onClick={() => scrollToSection('inicio')} 
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="cursor-pointer"
           >
-            <span className="p-2.5 bg-[#003B46] text-white rounded-xl shadow-md group-hover:bg-[#07575B] transition-colors">
-              <Shield className="w-5 h-5 flex-shrink-0" />
-            </span>
-            <div className="text-left">
-              <h1 className="text-sm font-black tracking-wider uppercase font-sans text-slate-950 dark:text-white leading-none">
-                Vitor Leonardo
-              </h1>
-              <span className="text-[10px] font-mono tracking-widest text-[#07575B] dark:text-[#41B3A3] font-bold block pt-1">
-                ENGENHEIRO MECÂNICO • CREA-PE
-              </span>
-            </div>
+            <Logo variant="light" />
           </div>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 text-xs font-bold uppercase tracking-wider font-mono text-slate-500 dark:text-slate-400">
-            <button onClick={() => scrollToSection('inicio')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Início</button>
-            <button onClick={() => scrollToSection('servicos')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Serviços</button>
-            <button onClick={() => scrollToSection('sobre')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Sobre</button>
-            <button onClick={() => scrollToSection('atuacao')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Atuação</button>
-            <button onClick={() => scrollToSection('servicos-executados')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Casos de Sucesso</button>
-            <button onClick={() => scrollToSection('contato')} className="hover:text-[#003B46] dark:hover:text-[#41B3A3] transition-colors cursor-pointer text-left">Contato</button>
+            <button onClick={() => scrollToSection('inicio')} className="hover:text-[#0B2545] dark:hover:text-[#4895EF] transition-colors cursor-pointer text-left">Início</button>
+            <button onClick={() => scrollToSection('servicos')} className="hover:text-[#0B2545] dark:hover:text-[#4895EF] transition-colors cursor-pointer text-left">Serviços</button>
+            <button onClick={() => scrollToSection('sobre')} className="hover:text-[#0B2545] dark:hover:text-[#4895EF] transition-colors cursor-pointer text-left">Sobre</button>
+            <button onClick={() => scrollToSection('servicos-executados')} className="hover:text-[#0B2545] dark:hover:text-[#4895EF] transition-colors cursor-pointer text-left">Casos de Sucesso</button>
+            <button onClick={() => scrollToSection('contato')} className="hover:text-[#0B2545] dark:hover:text-[#4895EF] transition-colors cursor-pointer text-left">Contato</button>
           </nav>
 
           {/* Action Utility Controls */}
@@ -101,8 +171,8 @@ export default function App() {
 
             {/* Restricted Area shortcut button */}
             <button
-              onClick={() => scrollToSection('restricted-area')}
-              className="flex items-center gap-1.5 bg-[#003B46] hover:bg-[#07575B] text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider font-mono uppercase transition-all shadow-md hover:scale-102 cursor-pointer"
+              onClick={() => { window.location.hash = '#acervo'; }}
+              className="flex items-center gap-1.5 bg-[#0B2545] hover:bg-[#134074] text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider font-mono uppercase transition-all shadow-md hover:scale-102 cursor-pointer"
             >
               <KeyRound className="w-4 h-4" />
               <span>Área Restrita</span>
@@ -132,17 +202,19 @@ export default function App() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 py-4 px-6 space-y-3 shadow-xl absolute top-full inset-x-0">
             <nav className="flex flex-col gap-2.5 text-xs font-bold uppercase font-mono tracking-wider text-slate-500 dark:text-slate-400">
-              <button onClick={() => scrollToSection('inicio')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Início</button>
-              <button onClick={() => scrollToSection('servicos')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Serviços</button>
-              <button onClick={() => scrollToSection('sobre')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Sobre</button>
-              <button onClick={() => scrollToSection('atuacao')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Atuação</button>
-              <button onClick={() => scrollToSection('servicos-executados')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Casos de Sucesso</button>
-              <button onClick={() => scrollToSection('contato')} className="py-2 hover:text-[#003B46] dark:hover:text-[#41B3A3] text-left">Contato</button>
+              <button onClick={() => scrollToSection('inicio')} className="py-2 hover:text-[#0B2545] dark:hover:text-[#4895EF] text-left">Início</button>
+              <button onClick={() => scrollToSection('servicos')} className="py-2 hover:text-[#0B2545] dark:hover:text-[#4895EF] text-left">Serviços</button>
+              <button onClick={() => scrollToSection('sobre')} className="py-2 hover:text-[#0B2545] dark:hover:text-[#4895EF] text-left">Sobre</button>
+              <button onClick={() => scrollToSection('servicos-executados')} className="py-2 hover:text-[#0B2545] dark:hover:text-[#4895EF] text-left">Casos de Sucesso</button>
+              <button onClick={() => scrollToSection('contato')} className="py-2 hover:text-[#0B2545] dark:hover:text-[#4895EF] text-left">Contato</button>
             </nav>
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
-                onClick={() => scrollToSection('restricted-area')}
-                className="w-full text-center flex items-center justify-center gap-2 bg-[#003B46] hover:bg-[#07575B] text-white py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-wider cursor-pointer"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  window.location.hash = '#acervo';
+                }}
+                className="w-full text-center flex items-center justify-center gap-2 bg-[#0B2545] hover:bg-[#134074] text-white py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-wider cursor-pointer"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>Área Restrita (Login)</span>
@@ -157,24 +229,20 @@ export default function App() {
         <Hero />
         <Services />
         <About />
-        <AreaAtuacao />
         <ExecutedServicesCarousel />
         <Contact />
-        <DashboardMain />
       </main>
 
       {/* Professional Footer conforming with NR standards and LGPD disclosures */}
-      <footer className="bg-[#002B30] text-slate-300 py-16 border-t-4 border-[#07575B]">
+      <footer className="bg-[#05162E] text-slate-300 py-16 border-t-4 border-[#134074]">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12 text-sm">
           
           <div className="md:col-span-4 space-y-4">
-            <h3 className="font-sans font-black tracking-widest text-[#66A5AD] uppercase text-md">
-              Vitor Leonardo
-            </h3>
+            <Logo variant="footer" />
             <p className="text-slate-400 leading-relaxed font-light text-xs">
               Engenharia mecânica focada em conformidade, segurança de ativos térmicos PMOC, laudos NR-12 e responsabilidade jurídica em Pernambuco.
             </p>
-            <p className="text-[10px] font-mono text-[#41B3A3] font-semibold">
+            <p className="text-[10px] font-mono text-[#4895EF] font-semibold">
               Rigor de Engenharia e Agilidade Operacional.
             </p>
           </div>
@@ -199,7 +267,7 @@ export default function App() {
 
         <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] text-slate-500">
           <div>
-            © {new Date().getFullYear()} Vitor Leonardo Engenharia Mecânica. Todos os direitos reservados.
+            © {new Date().getFullYear()} VL Engenharia. Todos os direitos reservados.
           </div>
           <div>
             CREA-PE Ativo • Recife, Região Metropolitana e Interior de PE
@@ -215,7 +283,7 @@ export default function App() {
         onClick={() => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        className="fixed bottom-6 left-6 z-40 p-3 bg-[#07575B] hover:bg-[#003B46] text-white rounded-full shadow-lg hover:scale-110 transition-all cursor-pointer"
+        className="fixed bottom-6 left-6 z-40 p-3 bg-[#134074] hover:bg-[#0B2545] text-white rounded-full shadow-lg hover:scale-110 transition-all cursor-pointer"
         aria-label="Back to top"
       >
         <ArrowUp className="w-4 h-4" />
