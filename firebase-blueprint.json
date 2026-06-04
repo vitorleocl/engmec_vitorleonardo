@@ -103,6 +103,20 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "type", "clientId", "equipmentId", "createdAt"]
+    },
+    "ChecklistQuestion": {
+      "title": "Checklist Question",
+      "description": "Inspections template checklist item question",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["nr12", "pmoc", "munck", "guindaste", "maquinas_pesadas", "playground"] },
+        "category": { "type": "string" },
+        "text": { "type": "string" },
+        "responseType": { "type": "string", "enum": ["default", "text", "rating"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "type", "category", "text"]
     }
   },
   "firestore": {
@@ -129,6 +143,10 @@
     "checklists/{checklistId}": {
       "schema": "Checklist",
       "description": "Completed checklists and inspection reports"
+    },
+    "checklist_questions/{questionId}": {
+      "schema": "ChecklistQuestion",
+      "description": "Dynamic templates for editable checklist items"
     }
   }
 }

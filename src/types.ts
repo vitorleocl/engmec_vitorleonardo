@@ -66,9 +66,30 @@ export interface LaudoData {
   videoUrl?: string;
   createdAt: string;
   updatedAt: string;
+  categoria?: string; // Type of Report / Category (e.g., "Adequação à NR-12", "Reclassificação de Monta")
+  apreciacaoRisco?: {
+    hrnScore: number;
+    classificacao: string;
+    loValue: number;
+    feValue: number;
+    doValue: number;
+    npValue: number;
+    acoesRecomendadas?: string;
+    zonaPerigo?: string;
+  };
 }
 
 export type ChecklistType = 'nr12' | 'munck' | 'guindaste' | 'maquinas_pesadas' | 'playground' | 'pmoc';
+
+export type QuestionResponseType = 'default' | 'text' | 'rating';
+
+export interface ChecklistQuestion {
+  id: string;
+  type?: ChecklistType;
+  category: string;
+  text: string;
+  responseType?: QuestionResponseType;
+}
 
 export interface ChecklistData {
   id: string;
@@ -83,6 +104,27 @@ export interface ChecklistData {
   inspectorName: string;
   createdAt: string;
   updatedAt: string;
+  nr12Metadata?: {
+    empresa?: string;
+    maquina?: string;
+    fabricante?: string;
+    tag?: string;
+    qtd?: string;
+    qtdOperador?: string;
+    setor?: string;
+    responsavelServico?: string;
+    contato?: string;
+    dataChecklist?: string;
+  };
+  pmocMetadata?: {
+    obs01?: string;
+    obs02?: string;
+    obs03?: string;
+    obs04?: string;
+    anotacoes?: string;
+  };
+  questionPhotos?: Record<string, string[]>;
+  questionNotes?: Record<string, string>;
 }
 
 export interface BlogArticle {

@@ -82,6 +82,14 @@ service cloud.firestore {
              data.clientId is string && data.clientId.size() <= 128 &&
              data.equipmentId is string && data.equipmentId.size() <= 128;
     }
+    
+    function isValidChecklistQuestion(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.type is string && data.type.size() <= 100 &&
+             data.category is string && data.category.size() <= 200 &&
+             data.text is string && data.text.size() <= 1000 &&
+             (!('responseType' in data) || (data.responseType is string && data.responseType.size() <= 50));
+    }
 
     // MATCH BLOCKS FOR SYSTEM COLLECTIONS
     
@@ -120,6 +128,11 @@ service cloud.firestore {
       allow get: if isAdmin() || isClientOwner(resource.data.clientId);
       allow list: if isAdmin() || (isSignedIn() && isClientOwner(resource.data.clientId));
       allow create, update, delete: if isAdmin() && isValidChecklist(incoming());
+    }
+    
+    match /checklist_questions/{questionId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() && isValidChecklistQuestion(incoming());
     }
   }
 }

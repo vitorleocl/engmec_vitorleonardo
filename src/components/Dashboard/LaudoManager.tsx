@@ -8,7 +8,7 @@ import { LaudoData, ClientData, EquipmentData, LaudoStatus } from '../../types';
 import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye, Shield, Clipboard } from 'lucide-react';
 
 export default function LaudoManager() {
   const [laudos, setLaudos] = useState<LaudoData[]>([]);
@@ -18,6 +18,65 @@ export default function LaudoManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentLaudo, setCurrentLaudo] = useState<Partial<LaudoData> | null>(null);
+
+  const [categories, setCategories] = useState<string[]>([
+    'Adequação à NR-12',
+    'Reclassificação de Monta',
+    'PMOC (Climatização)',
+    'Laudo de Brinquedos e Playgrounds',
+    'Inspeção de Caminhão Munck e Guindaste',
+    'Vasos de Pressão e Caldeiras (NR-13)',
+    'Laudo de Máquinas Pesadas e Ruído'
+  ]);
+  const [newCategory, setNewCategory] = useState('');
+  const [showAddCategory, setShowAddCategory] = useState(false);
+
+  // Dynamic Risk Appreciation State variables for HRN
+  const [hrnLo, setHrnLo] = useState<number>(1.0);
+  const [hrnFe, setHrnFe] = useState<number>(5.0);
+  const [hrnDo, setHrnDo] = useState<number>(5.0);
+  const [hrnNp, setHrnNp] = useState<number>(1.0);
+  const [hrnAcoesText, setHrnAcoesText] = useState<string>('');
+
+  const getHrnScore = () => {
+    return Number((hrnLo * hrnFe * hrnDo * hrnNp).toFixed(2));
+  };
+
+  const getHrnDetails = (score: number) => {
+    if (score <= 1) return { label: 'Aceitável', color: 'text-green-600 bg-green-500/10 border-green-500/20', desc: 'Risco insignificante. Não requer intervenção urgente.' };
+    if (score <= 5) return { label: 'Mínimo', color: 'text-indigo-600 bg-indigo-500/10 border-indigo-500/20', desc: 'Muito baixo. Monitorar em manutenções programadas.' };
+    if (score <= 10) return { label: 'Baixo', color: 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20', desc: 'Médio-baixo. Adotar proteções coletivas leves.' };
+    if (score <= 50) return { label: 'Significativo', color: 'text-orange-600 bg-orange-500/10 border-orange-500/20', desc: 'Médio. Requer instalação de enclausuramentos ou travas mecânicas.' };
+    if (score <= 100) return { label: 'Alto', color: 'text-red-600 bg-red-500/10 border-red-500/20', desc: 'Alto risco. Implementar intertravamentos elétricos categoria 4.' };
+    if (score <= 500) return { label: 'Muito Alto', color: 'text-rose-700 bg-rose-500/10 border-rose-500/20', desc: 'Altíssimo risco. Paralisar se possível ou adequar imediatamente.' };
+    return { label: 'Extremo / Crítico', color: 'text-purple-700 bg-purple-500/15 border-purple-500/30 animate-pulse', desc: 'Risco catastrófico de morte! Interdição imediata exigida conforme NR-12!' };
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    const cleanCat = newCategory.trim();
+    if (categories.includes(cleanCat)) {
+      alert('Esta categoria já existe!');
+      return;
+    }
+
+    const updated = [...categories, cleanCat];
+    setCategories(updated);
+    setCurrentLaudo(curr => curr ? { ...curr, categoria: cleanCat } : null);
+    setNewCategory('');
+    setShowAddCategory(false);
+
+    try {
+      if (isRealFirebase) {
+        const catId = 'cat_' + Math.random().toString(36).substr(2, 9);
+        await setDoc(doc(db, 'laudo_categories', catId), { name: cleanCat, createdAt: new Date().toISOString() });
+      } else {
+        localStorage.setItem('laudo_categories', JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error('Error saving category to database:', err);
+    }
+  };
   
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null); // 'pdf' | 'image' | 'video' | null
@@ -45,10 +104,34 @@ export default function LaudoManager() {
         const eqArray: EquipmentData[] = [];
         eqSnap.forEach((docSnap) => eqArray.push(docSnap.data() as EquipmentData));
         setEquipments(eqArray);
+
+        // Load custom categories if stored
+        try {
+          const catSnap = await getDocs(collection(db, 'laudo_categories'));
+          const catArray: string[] = [];
+          catSnap.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.name) catArray.push(data.name);
+          });
+          if (catArray.length > 0) {
+            setCategories(prev => Array.from(new Set([...prev, ...catArray])));
+          }
+        } catch (catErr) {
+          console.warn('Could not load custom categories:', catErr);
+        }
       } else {
         setLaudos(mockDb.getLaudos());
         setClients(mockDb.getClients());
         setEquipments(mockDb.getEquipments());
+
+        // Load mock categories
+        const savedCats = localStorage.getItem('laudo_categories');
+        if (savedCats) {
+          try {
+            const parsed = JSON.parse(savedCats);
+            setCategories(prev => Array.from(new Set([...prev, ...parsed])));
+          } catch (_) {}
+        }
       }
     } catch (e) {
       if (isRealFirebase) {
@@ -68,6 +151,10 @@ export default function LaudoManager() {
     const matchedClient = clients.find(c => c.id === currentLaudo.clientId);
     const matchedEq = equipments.find(eq => eq.id === currentLaudo.equipmentId);
 
+    const isNr12 = currentLaudo.categoria?.toLowerCase().includes('nr-12') || currentLaudo.categoria?.toLowerCase().includes('nr12');
+    const hrnScore = getHrnScore();
+    const hrnDetails = getHrnDetails(hrnScore);
+
     const saveObj: LaudoData = {
       id: laudoId,
       numero: currentLaudo.numero,
@@ -83,7 +170,18 @@ export default function LaudoManager() {
       imageUrl: currentLaudo.imageUrl || '',
       videoUrl: currentLaudo.videoUrl || '',
       createdAt: currentLaudo.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      categoria: currentLaudo.categoria || 'Adequação à NR-12',
+      apreciacaoRisco: isNr12 ? {
+        hrnScore: hrnScore,
+        classificacao: hrnDetails.label,
+        loValue: hrnLo,
+        feValue: hrnFe,
+        doValue: hrnDo,
+        npValue: hrnNp,
+        acoesRecomendadas: hrnAcoesText,
+        zonaPerigo: hrnDetails.desc
+      } : undefined
     };
 
     try {
@@ -166,8 +264,14 @@ export default function LaudoManager() {
               equipmentId: equipments[0]?.id || '',
               status: LaudoStatus.EM_ELABORACAO,
               dateInspection: new Date().toISOString().split('T')[0],
-              art: `PE-18222994-${Math.floor(10 + Math.random() * 89)}`
+              art: `PE-18222994-${Math.floor(10 + Math.random() * 89)}`,
+              categoria: 'Adequação à NR-12'
             });
+            setHrnLo(1.0);
+            setHrnFe(5.0);
+            setHrnDo(5.0);
+            setHrnNp(1.0);
+            setHrnAcoesText('');
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
@@ -226,11 +330,23 @@ export default function LaudoManager() {
                   <tr key={laudo.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/35 transition-colors">
                     <td className="p-4">
                       <div className="font-bold font-mono text-slate-900 dark:text-white">{laudo.numero}</div>
-                      <div className="text-xs text-slate-500 font-medium">ART: {laudo.art || 'Não declarada'}</div>
+                      <div className="text-xs text-slate-500 font-medium pb-1">ART: {laudo.art || 'Não declarada'}</div>
+                      {laudo.categoria && (
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold font-sans bg-slate-100 dark:bg-slate-900 text-[#134074] dark:text-[#4895EF] border border-[#134074]/15">
+                          {laudo.categoria}
+                        </span>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="font-semibold text-slate-800 dark:text-slate-200">{laudo.clientName}</div>
-                      <div className="text-xs text-slate-500 font-sans">{laudo.equipmentModel}</div>
+                      <div className="text-xs text-slate-500 font-sans pb-1">{laudo.equipmentModel}</div>
+                      {laudo.apreciacaoRisco && (
+                        <div className="inline-flex items-center gap-1 text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono font-bold px-2 py-0.5 rounded border border-rose-500/20">
+                          <span>HRN: {laudo.apreciacaoRisco.hrnScore}</span>
+                          <span>•</span>
+                          <span className="uppercase">{laudo.apreciacaoRisco.classificacao}</span>
+                        </div>
+                      )}
                     </td>
                     <td className="p-4 space-y-0.5 text-slate-600 dark:text-slate-350 text-xs">
                       <div className="font-medium font-mono">{laudo.dateInspection}</div>
@@ -271,6 +387,19 @@ export default function LaudoManager() {
                       <button
                         onClick={() => {
                           setCurrentLaudo(laudo);
+                          if (laudo.apreciacaoRisco) {
+                            setHrnLo(laudo.apreciacaoRisco.loValue);
+                            setHrnFe(laudo.apreciacaoRisco.feValue);
+                            setHrnDo(laudo.apreciacaoRisco.doValue);
+                            setHrnNp(laudo.apreciacaoRisco.npValue);
+                            setHrnAcoesText(laudo.apreciacaoRisco.acoesRecomendadas || '');
+                          } else {
+                            setHrnLo(1.0);
+                            setHrnFe(5.0);
+                            setHrnDo(5.0);
+                            setHrnNp(1.0);
+                            setHrnAcoesText('');
+                          }
                           setModalOpen(true);
                         }}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
@@ -385,7 +514,7 @@ export default function LaudoManager() {
                   <select
                     value={currentLaudo.status || LaudoStatus.EM_ELABORACAO}
                     onChange={(e) => setCurrentLaudo({ ...currentLaudo, status: e.target.value as LaudoStatus })}
-                    className="w-[#100%] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#0B2545] dark:text-white cursor-pointer"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#0B2545] dark:text-white cursor-pointer"
                   >
                     <option value={LaudoStatus.EM_ELABORACAO}>Em Elaboração / Vistoriado</option>
                     <option value={LaudoStatus.EMITIDO}>Emitido / Liberado</option>
@@ -393,6 +522,166 @@ export default function LaudoManager() {
                   </select>
                 </div>
               </div>
+
+              <div className="space-y-1.5 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center pb-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Tipo / Categoria de Inspeção *</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCategory(!showAddCategory)}
+                    className="text-[#134074] dark:text-[#4895EF] hover:underline text-[10px] uppercase font-mono font-bold flex items-center gap-0.5"
+                  >
+                    {showAddCategory ? 'Selecionar de lista' : '+ Cadastrar Novo Tipo'}
+                  </button>
+                </div>
+                
+                {showAddCategory ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="Ex: Reclassificação de Monta"
+                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none text-slate-950 dark:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCategory}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-mono uppercase"
+                    >
+                      Gravar
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={currentLaudo.categoria || ''}
+                    required
+                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, categoria: e.target.value })}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer select-none"
+                  >
+                    <option value="">Selecione um Tipo do Catálogo...</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Dynamic Risk Appreciation section based on selected category (NR-12) */}
+              {(currentLaudo.categoria?.toLowerCase().includes('nr-12') || currentLaudo.categoria?.toLowerCase().includes('nr12')) && (
+                <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-2 border-b border-rose-500/10 pb-2 mb-2">
+                    <Shield className="w-4 h-4 text-rose-600" />
+                    <span className="text-xs font-bold uppercase font-mono text-rose-600 tracking-wider">Apreciação Dinâmica de Riscos (ISO 12100 / HRN)</span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded border border-slate-200/45">
+                    Método HRN (Hazard Rating Number) para estimativa de perigo na máquina: 
+                    <strong className="text-slate-800 dark:text-slate-200 font-mono ml-1">HRN = LO × FE × DO × NP</strong>
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    {/* Probabilidade */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono block">Probabilidade (LO)</label>
+                      <select
+                        value={hrnLo}
+                        onChange={(e) => setHrnLo(Number(e.target.value))}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
+                      >
+                        <option value={0.03}>0.03 (Quase impossível)</option>
+                        <option value={1.0}>1.0 (Insignificante/Improvável)</option>
+                        <option value={5.0}>5.0 (Possível)</option>
+                        <option value={15.0}>15.0 (Provável)</option>
+                      </select>
+                    </div>
+
+                    {/* Frequência */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono block">Frequência (FE)</label>
+                      <select
+                        value={hrnFe}
+                        onChange={(e) => setHrnFe(Number(e.target.value))}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
+                      >
+                        <option value={0.1}>0.1 (Anual / Rara)</option>
+                        <option value={2.0}>2.0 (Mensal)</option>
+                        <option value={5.0}>5.0 (Diária)</option>
+                        <option value={15.0}>15.0 (Constante/Multi-turno)</option>
+                      </select>
+                    </div>
+
+                    {/* Gravidade */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono block">Gravidade Dano (DO)</label>
+                      <select
+                        value={hrnDo}
+                        onChange={(e) => setHrnDo(Number(e.target.value))}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
+                      >
+                        <option value={0.1}>0.1 (Contusão leve)</option>
+                        <option value={1.0}>1.0 (Corte com afastamento)</option>
+                        <option value={5.0}>5.0 (Amputação pequena)</option>
+                        <option value={15.0}>15.0 (Morte individual)</option>
+                        <option value={50.0}>50.0 (Múltiplas mortes)</option>
+                      </select>
+                    </div>
+
+                    {/* Pessoas Expostas */}
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono block">Expostos (NP)</label>
+                      <select
+                        value={hrnNp}
+                        onChange={(e) => setHrnNp(Number(e.target.value))}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
+                      >
+                        <option value={1.0}>1.0 (1-2 pessoas)</option>
+                        <option value={2.0}>2.0 (3-7 pessoas)</option>
+                        <option value={4.0}>4.0 (8-15 pessoas)</option>
+                        <option value={8.0}>8.0 (16-50 pessoas)</option>
+                        <option value={12.0}>12.0 (Mais de 50 pessoas)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Calculations Widget */}
+                  {(() => {
+                    const score = getHrnScore();
+                    const details = getHrnDetails(score);
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-white dark:bg-slate-950 p-4 rounded-xl border border-rose-500/10 shadow-sm">
+                        {/* Gauge Score Widget */}
+                        <div className="text-center md:border-r border-slate-100 dark:border-slate-800 p-2 leading-tight">
+                          <span className="text-[9px] font-bold text-slate-400 font-mono uppercase block">Pontuação HRN</span>
+                          <span className="text-3xl font-black font-mono tracking-tight text-[#134074] dark:text-[#4895EF]">{score}</span>
+                          <span className={`block mx-auto max-w-[140px] text-[10px] font-black uppercase tracking-wider py-1 mt-1 rounded border ${details.color}`}>
+                            {details.label}
+                          </span>
+                        </div>
+
+                        {/* Explanation description */}
+                        <div className="col-span-1 md:col-span-2 space-y-2 text-xs">
+                          <div>
+                            <span className="block text-[9px] font-bold uppercase font-mono text-slate-400">Análise de Risco:</span>
+                            <p className="text-slate-600 dark:text-slate-350">{details.desc}</p>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold uppercase font-mono text-slate-400 block">Medidas de Proteção / Salvaguardas Sugeridas:</label>
+                            <input
+                              type="text"
+                              value={hrnAcoesText}
+                              onChange={(e) => setHrnAcoesText(e.target.value)}
+                              placeholder="Ex: Instalar cortina de luz intertravada cat 4 e bimanual."
+                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-700 rounded px-2.5 py-1.5 outline-none font-medium text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               {/* Uploads Panel Section */}
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
