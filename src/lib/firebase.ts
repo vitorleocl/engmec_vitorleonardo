@@ -73,18 +73,8 @@ if (getApps().length === 0) {
 
 export const auth = getAuth(app);
 
-// Initialize Firestore with robust local persistent cache for offline capabilities
-export let db;
-try {
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager()
-    })
-  }, firebaseConfig.firestoreDatabaseId || '(default)');
-} catch (e) {
-  console.warn("Could not initialize firestore with persistent cache, falling back to standard getFirestore.", e);
-  db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
-}
+// Initialize Firestore with standard getFirestore to prevent iframe sandbox database hangs
+export let db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
 
 // Test connection strictly as requested by Firebase Integration Guidelines, enhanced with low timeout
 async function testConnection() {
