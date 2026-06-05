@@ -17,6 +17,7 @@ export default function ClientManager() {
   const [currentClient, setCurrentClient] = useState<Partial<ClientData> | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadClients();
@@ -46,7 +47,11 @@ export default function ClientManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentClient?.name || !currentClient?.email || !currentClient?.cnpj_cpf) return;
+    setError(null);
+    if (!currentClient?.name || !currentClient?.email || !currentClient?.cnpj_cpf) {
+      setError('Por favor, preencha todos os campos obrigatórios (*).');
+      return;
+    }
 
     setLoading(true);
     const clientId = currentClient.id || 'cli_' + Math.random().toString(36).substr(2, 9);
@@ -70,8 +75,18 @@ export default function ClientManager() {
       }
       setModalOpen(false);
       loadClients();
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `clients/${clientId}`);
+    } catch (err: any) {
+      console.error(err);
+      let errMsg = 'Erro de permissão ou conexão ao gravar os dados no Firestore.';
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed?.error) {
+          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros com nível 'GESTÃO' podem cadastrar clientes no Firestore.`;
+        }
+      } catch (_) {
+        if (err.message) errMsg = err.message;
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -111,6 +126,7 @@ export default function ClientManager() {
         
         <button
           onClick={() => {
+            setError(null);
             setCurrentClient({});
             setModalOpen(true);
           }}
@@ -195,6 +211,7 @@ export default function ClientManager() {
                         <>
                           <button
                             onClick={() => {
+                              setError(null);
                               setCurrentClient(client);
                               setModalOpen(true);
                             }}
@@ -236,6 +253,15 @@ export default function ClientManager() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {error && (
+                <div id="client-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono">
+                  <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
+                  <div>
+                    <strong className="block font-sans uppercase font-black tracking-wider text-[10px] mb-0.5">Pendência de Permissão / Conexão</strong>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-400 uppercase font-mono">Nome do Contato Principal *</label>

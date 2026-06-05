@@ -15,7 +15,8 @@ import {
   User as UserIcon, 
   Shield, 
   KeyRound, 
-  AlertCircle 
+  AlertCircle,
+  Layers
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
 import ClientManager from './ClientManager';

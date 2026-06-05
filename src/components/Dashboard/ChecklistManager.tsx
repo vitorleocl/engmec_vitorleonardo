@@ -1431,6 +1431,7 @@ export default function ChecklistManager() {
   
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [printingChecklist, setPrintingChecklist] = useState<ChecklistData | null>(null);
 
   // Custom confirmation modal state to prevent iframe window.confirm blocks
@@ -1697,7 +1698,11 @@ export default function ChecklistManager() {
 
   const handleCreateChecklist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClient || !selectedEq) return;
+    setError(null);
+    if (!selectedClient || !selectedEq) {
+      setError('Por favor, selecione um Cliente Real e um Ativo correspondente.');
+      return;
+    }
 
     setLoading(true);
     const matchedClient = clients.find(c => c.id === selectedClient);
@@ -1761,8 +1766,18 @@ export default function ChecklistManager() {
       setModalOpen(false);
       clearForm();
       loadData();
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `checklists/${chkId}`);
+    } catch (err: any) {
+      console.error(err);
+      let errMsg = 'Erro de permissão ou conexão ao salvar seu checklist de vistoria no Firestore.';
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed?.error) {
+          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros do nível 'GESTÃO' podem cadastrar vistorias no Firestore.`;
+        }
+      } catch (_) {
+        if (err.message) errMsg = err.message;
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -2018,6 +2033,7 @@ export default function ChecklistManager() {
         <button
           onClick={() => {
             clearForm();
+            setError(null);
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
@@ -2408,6 +2424,15 @@ export default function ChecklistManager() {
             </div>
 
             <form onSubmit={handleCreateChecklist} className="p-6 space-y-6">
+              {error && (
+                <div id="checklist-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono font-bold">
+                  <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
+                  <div>
+                    <strong className="block font-sans uppercase font-black tracking-wider text-[10px] mb-0.5">Pendência de Permissão / Conexão</strong>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
               
               {/* Client & Device select */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">

@@ -18,6 +18,7 @@ export default function EquipmentManager() {
   const [currentEq, setCurrentEq] = useState<Partial<EquipmentData> | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -51,7 +52,11 @@ export default function EquipmentManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentEq?.type || !currentEq?.brand || !currentEq?.clientId || !currentEq?.model) return;
+    setError(null);
+    if (!currentEq?.type || !currentEq?.brand || !currentEq?.clientId || !currentEq?.model) {
+      setError('Por favor, preencha todos os campos obrigatórios (*).');
+      return;
+    }
 
     setLoading(true);
     const eqId = currentEq.id || 'eq_' + Math.random().toString(36).substr(2, 9);
@@ -77,8 +82,18 @@ export default function EquipmentManager() {
       }
       setModalOpen(false);
       loadData();
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `equipments/${eqId}`);
+    } catch (err: any) {
+      console.error(err);
+      let errMsg = 'Erro de permissão ou conexão ao salvar seu ativo de engenharia.';
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed?.error) {
+          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros do nível 'GESTÃO' podem cadastrar ativos no Firestore.`;
+        }
+      } catch (_) {
+        if (err.message) errMsg = err.message;
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -120,6 +135,7 @@ export default function EquipmentManager() {
         
         <button
           onClick={() => {
+            setError(null);
             setCurrentEq({
               clientId: clients[0]?.id || ''
             });
@@ -218,6 +234,7 @@ export default function EquipmentManager() {
                         <>
                           <button
                             onClick={() => {
+                              setError(null);
                               setCurrentEq(eq);
                               setModalOpen(true);
                             }}
@@ -259,6 +276,15 @@ export default function EquipmentManager() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {error && (
+                <div id="equipment-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono font-bold">
+                  <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
+                  <div>
+                    <strong className="block font-sans uppercase font-black tracking-wider text-[10px] mb-0.5">Pendência de Permissão / Conexão</strong>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-400 uppercase font-mono">Vincular Cliente Responsável *</label>
                 <select

@@ -31,8 +31,10 @@ service cloud.firestore {
     
     function isAdmin() {
       return isSignedIn() && (
+        request.auth.token.email == 'vitorleonardocl@gmail.com' ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'vitorleonardocl@gmail.com'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
     
@@ -97,7 +99,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwnerOfUserDoc(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isSignedIn() && isValidUser(incoming()) && isOwnerOfUserDoc(userId);
+      allow create: if isSignedIn() && isValidUser(incoming()) && (isOwnerOfUserDoc(userId) || isAdmin());
       allow update: if isSignedIn() && isValidUser(incoming()) && (isAdmin() || (isOwnerOfUserDoc(userId) && !incoming().keys().hasAny(['role'])));
       allow delete: if isAdmin();
     }

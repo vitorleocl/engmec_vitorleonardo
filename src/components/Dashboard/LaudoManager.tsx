@@ -142,6 +142,7 @@ export default function LaudoManager() {
   
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null); // 'pdf' | 'image' | 'video' | null
+  const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
@@ -206,7 +207,11 @@ export default function LaudoManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentLaudo?.numero || !currentLaudo?.clientId || !currentLaudo?.equipmentId) return;
+    setError(null);
+    if (!currentLaudo?.numero || !currentLaudo?.clientId || !currentLaudo?.equipmentId) {
+      setError('Por favor, preencha todos os campos obrigatórios (*): Número do Documento, Cliente Responsável, e Ativo Tecnológico.');
+      return;
+    }
 
     setLoading(true);
     const laudoId = currentLaudo.id || 'laudo_' + Math.random().toString(36).substr(2, 9);
@@ -255,8 +260,18 @@ export default function LaudoManager() {
       }
       setModalOpen(false);
       loadData();
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `laudos/${laudoId}`);
+    } catch (err: any) {
+      console.error(err);
+      let errMsg = 'Erro de permissão ou conexão ao salvar seu laudo de engenharia no Firestore.';
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed?.error) {
+          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros do nível 'GESTÃO' podem emitir laudos técnicos no Firestore.`;
+        }
+      } catch (_) {
+        if (err.message) errMsg = err.message;
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -329,6 +344,7 @@ export default function LaudoManager() {
               art: `PE-18222994-${Math.floor(10 + Math.random() * 89)}`,
               categoria: 'Adequação à NR-12'
             });
+            setError(null);
             setHrnLo(1.0);
             setHrnFe(5.0);
             setHrnDo(5.0);
@@ -471,6 +487,7 @@ export default function LaudoManager() {
                             <button
                               type="button"
                               onClick={() => {
+                                setError(null);
                                 setCurrentLaudo(laudo);
                                 setModalOpen(true);
                               }}
@@ -482,6 +499,7 @@ export default function LaudoManager() {
                           )}
                           <button
                             onClick={() => {
+                              setError(null);
                               setCurrentLaudo(laudo);
                               if (laudo.apreciacaoRisco) {
                                 setHrnLo(laudo.apreciacaoRisco.loValue);
@@ -538,6 +556,15 @@ export default function LaudoManager() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {error && (
+                <div id="laudo-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono font-bold">
+                  <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
+                  <div>
+                    <strong className="block font-sans uppercase font-black tracking-wider text-[10px] mb-0.5">Pendência de Permissão / Conexão</strong>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
               
               {currentLaudo.categoria === 'PMOC (Climatização)' ? (
                 /* Compact Top Bar for PMOC + Complete Spreadsheet Planning Editor */
