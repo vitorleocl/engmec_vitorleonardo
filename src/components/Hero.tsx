@@ -28,7 +28,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg leading-relaxed max-w-2xl">
-            Soluções completas para Adequação à NR-12, PMOC, Laudos de Playground e Inspeções de Carga em Recife, Região Metropolitana e todo o estado de Pernambuco. Proteja seus ativos e garanta conformidade legal.
+            Soluções completas para Adequação à NR-12, PMOC, Laudos de Playground, Máquinas e Equipamentos Pesados, Inspeções Veiculares em Recife, Região Metropolitana e todo o estado de Pernambuco. Proteja seus ativos e garanta conformidade legal.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2">

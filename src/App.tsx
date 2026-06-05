@@ -16,7 +16,7 @@ import WhatsAppButton from './components/WhatsAppButton';
 import Logo from './components/Logo';
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [view, setView] = useState<'home' | 'acervo'>('home');
