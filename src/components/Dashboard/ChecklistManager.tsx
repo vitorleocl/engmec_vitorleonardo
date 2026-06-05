@@ -8,7 +8,7 @@ import { ChecklistData, ClientData, EquipmentData, ChecklistType, ChecklistQuest
 import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Plus, Trash2, CheckCircle2, Clipboard, Save, HelpCircle, Printer, Check, X, Shield, Lock, Edit2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Clipboard, Save, HelpCircle, Printer, Check, X, Shield, Lock, Edit2, RotateCcw, AlertTriangle, Camera, Image, Upload } from 'lucide-react';
 
 const QUESTIONS_BY_TYPE: Record<ChecklistType, ChecklistQuestion[]> = {
   nr12: [
@@ -1491,6 +1491,96 @@ export default function ChecklistManager() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureSaved, setSignatureSaved] = useState(false);
 
+  // Camera stream and frame capturing states
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [cameraTarget, setCameraTarget] = useState<{ questionId: string; isSupplementary: boolean } | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+      videoRef.current.play().catch(err => console.error("Error playing video stream:", err));
+    }
+  }, [cameraModalOpen, cameraStream]);
+
+  const startCamera = async (questionId: string, isSupplementary: boolean) => {
+    setCameraTarget({ questionId, isSupplementary });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+      setCameraStream(stream);
+      setCameraModalOpen(true);
+    } catch (err: any) {
+      console.warn("Retrying camera with generic constraints:", err);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+        setCameraStream(stream);
+        setCameraModalOpen(true);
+      } catch (camErr: any) {
+        console.error(camErr);
+        alert("Não foi possível acessar a câmera do dispositivo. Por favor, libere a permissão de câmera nas configurações do seu navegador para este site.");
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    setCameraStream(null);
+    setCameraModalOpen(false);
+    setCameraTarget(null);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !cameraTarget) return;
+    const video = videoRef.current;
+    try {
+      const canvas = document.createElement('canvas');
+      const width = video.videoWidth || 640;
+      const height = video.videoHeight || 480;
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        if (cameraTarget.isSupplementary) {
+          const currentPhotos = questionPhotos[cameraTarget.questionId] || [];
+          if (currentPhotos.length >= 3) {
+            alert("Máximo de 3 fotos de evidência alcançado.");
+          } else {
+            setQuestionPhotos(prev => ({
+              ...prev,
+              [cameraTarget.questionId]: [...(prev[cameraTarget.questionId] || []), dataUrl]
+            }));
+          }
+        } else {
+          handleAnswerChange(cameraTarget.questionId, dataUrl);
+        }
+      }
+      stopCamera();
+    } catch (err) {
+      console.error("Erro ao capturar foto pela câmera:", err);
+      alert("Erro ao capturar e processar imagem da câmera.");
+    }
+  };
+
   const loadCustomQuestions = async () => {
     try {
       // Start with a clean deep copy of the modern, code-defined QUESTIONS_BY_TYPE
@@ -2856,25 +2946,39 @@ export default function ChecklistManager() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="border border-dashed border-slate-300 hover:border-[#134074] dark:hover:border-sky-500 rounded-lg cursor-pointer bg-white dark:bg-slate-900 p-2 text-center text-[11px] font-bold text-slate-500 transition-all flex items-center justify-center gap-1">
-                                    <span>+ Adicionar Foto</span>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      className="hidden"
-                                      onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                          const reader = new FileReader();
-                                          reader.onload = (ev) => {
-                                            if (ev.target?.result) {
-                                              handleAnswerChange(q.id, String(ev.target.result));
-                                            }
-                                          };
-                                          reader.readAsDataURL(e.target.files[0]);
-                                        }
-                                      }}
-                                    />
-                                  </label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {/* Action 1: Take Photo via Camera */}
+                                    <button
+                                      type="button"
+                                      onClick={() => startCamera(q.id, false)}
+                                      className="flex items-center justify-center gap-1 border border-slate-250 dark:border-slate-800 hover:border-[#134074] dark:hover:border-sky-500 rounded-xl bg-slate-50 dark:bg-slate-900 shadow-sm p-2 text-center text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-350 hover:bg-slate-100 transition-all cursor-pointer"
+                                    >
+                                      <Camera className="w-3.5 h-3.5 text-[#134074] dark:text-sky-400 shrink-0" />
+                                      <span>Tirar Foto</span>
+                                    </button>
+
+                                    {/* Action 2: Pick from Album */}
+                                    <label className="flex items-center justify-center gap-1 border border-dashed border-slate-250 dark:border-slate-800 hover:border-[#134074] dark:hover:border-sky-500 rounded-xl bg-slate-50 dark:bg-slate-900 shadow-sm p-2 text-center text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-350 hover:bg-slate-100 transition-all cursor-pointer">
+                                      <Image className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                                      <span>Do Álbum</span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          if (e.target.files && e.target.files[0]) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                              if (ev.target?.result) {
+                                                handleAnswerChange(q.id, String(ev.target.result));
+                                              }
+                                            };
+                                            reader.readAsDataURL(e.target.files[0]);
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -3062,16 +3166,34 @@ export default function ChecklistManager() {
                               ))}
 
                               {photos.length < 3 && (
-                                <label className="w-12 h-12 flex flex-col items-center justify-center border border-dashed border-slate-300 hover:border-sky-500 rounded cursor-pointer bg-white dark:bg-slate-900 text-slate-450 hover:text-sky-500 transition-all">
-                                  <span className="text-xl font-bold font-mono">+</span>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={(e) => handlePhotoUpload(q.id, e.target.files)}
-                                  />
-                                </label>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {/* Camera choice */}
+                                  <button
+                                    type="button"
+                                    onClick={() => startCamera(q.id, true)}
+                                    title="Tirar foto com câmera"
+                                    className="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800 hover:border-[#134074] dark:hover:border-sky-500 rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-slate-650 hover:text-[#134074] transition-all shrink-0"
+                                  >
+                                    <Camera className="w-4 h-4 text-[#134074] dark:text-sky-400" />
+                                    <span className="text-[7px] font-sans font-bold leading-none mt-1 uppercase text-slate-500 dark:text-slate-400">Câmera</span>
+                                  </button>
+
+                                  {/* Album Upload Choice */}
+                                  <label
+                                    title="Escolher do Álbum / Arquivo"
+                                    className="w-11 h-11 flex flex-col items-center justify-center border border-dashed border-slate-250 dark:border-slate-800 hover:border-emerald-500 rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-slate-450 hover:text-emerald-500 transition-all shrink-0"
+                                  >
+                                    <Image className="w-4 h-4 text-emerald-500" />
+                                    <span className="text-[7px] font-sans font-bold leading-none mt-1 uppercase text-slate-500 dark:text-slate-400">Álbum</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      className="hidden"
+                                      onChange={(e) => handlePhotoUpload(q.id, e.target.files)}
+                                    />
+                                  </label>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -3514,6 +3636,66 @@ export default function ChecklistManager() {
                 className="px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-black cursor-pointer transition-colors"
               >
                 Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Camera Capture Modal */}
+      {cameraModalOpen && (
+        <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4">
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-sky-500/10 rounded-xl">
+                  <Camera className="w-5 h-5 text-[#134074] dark:text-sky-400 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider font-mono">Câmera de Inspeção</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold font-mono">REGISTRO DE EVIDÊNCIA EM TEMPO REAL</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+                aria-label="Minimizar câmera"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Video container */}
+            <div className="aspect-video w-full bg-black rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800 shadow-inner flex items-center justify-center">
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                className="w-full h-full object-cover min-h-[220px]"
+              />
+              <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/60 backdrop-blur-sm text-[9px] text-emerald-400 font-mono font-black uppercase rounded shadow-sm tracking-widest flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                <span>AO VIVO</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-350 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer shadow-md shadow-emerald-500/10 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Capturar Foto</span>
               </button>
             </div>
           </div>
