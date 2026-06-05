@@ -18,6 +18,7 @@ export default function ClientManager() {
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadClients();
@@ -74,6 +75,8 @@ export default function ClientManager() {
         mockDb.saveClient(saveObj);
       }
       setModalOpen(false);
+      setSuccess(currentClient.id ? 'Dados do cliente atualizados com sucesso!' : 'Novo cliente cadastrado com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
       loadClients();
     } catch (err: any) {
       console.error(err);
@@ -100,6 +103,8 @@ export default function ClientManager() {
       } else {
         mockDb.deleteClient(id);
       }
+      setSuccess('Cliente removido com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
       loadClients();
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `clients/${id}`);
@@ -117,6 +122,13 @@ export default function ClientManager() {
   return (
     <div className="space-y-6">
       
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl flex items-center gap-2.5 text-xs font-bold font-mono tracking-wide uppercase shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+          <span>{success}</span>
+        </div>
+      )}
+
       {/* Header operations */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

@@ -1432,6 +1432,7 @@ export default function ChecklistManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [printingChecklist, setPrintingChecklist] = useState<ChecklistData | null>(null);
 
   // Custom confirmation modal state to prevent iframe window.confirm blocks
@@ -1764,6 +1765,8 @@ export default function ChecklistManager() {
         mockDb.saveChecklist(saveObj);
       }
       setModalOpen(false);
+      setSuccess('Vistoria técnica cadastrada com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
       clearForm();
       loadData();
     } catch (err: any) {
@@ -2003,6 +2006,8 @@ export default function ChecklistManager() {
           } else {
             mockDb.deleteChecklist(id);
           }
+          setSuccess('Checklist de vistoria removido com sucesso!');
+          setTimeout(() => setSuccess(null), 4500);
           loadData();
         } catch (err) {
           handleFirestoreError(err, OperationType.DELETE, `checklists/${id}`);
@@ -2023,6 +2028,13 @@ export default function ChecklistManager() {
   return (
     <div className="space-y-6">
       
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl flex items-center gap-2.5 text-xs font-bold font-mono tracking-wide uppercase shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+          <span>{success}</span>
+        </div>
+      )}
+
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

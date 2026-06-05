@@ -143,6 +143,7 @@ export default function LaudoManager() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null); // 'pdf' | 'image' | 'video' | null
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
@@ -259,7 +260,9 @@ export default function LaudoManager() {
         mockDb.saveLaudo(saveObj);
       }
       setModalOpen(false);
-      loadData();
+      setSuccess(currentLaudo.id ? 'Laudo técnico atualizado com sucesso!' : 'Novo laudo técnico emitido com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
+      loadLaudoAndSync();
     } catch (err: any) {
       console.error(err);
       let errMsg = 'Erro de permissão ou conexão ao salvar seu laudo de engenharia no Firestore.';
@@ -277,6 +280,10 @@ export default function LaudoManager() {
     }
   };
 
+  const loadLaudoAndSync = () => {
+    loadData();
+  };
+
   const handleDelete = async (id: string) => {
     setLoading(true);
     try {
@@ -285,6 +292,8 @@ export default function LaudoManager() {
       } else {
         mockDb.deleteLaudo(id);
       }
+      setSuccess('Laudo técnico removido com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
       loadData();
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `laudos/${id}`);
@@ -326,6 +335,13 @@ export default function LaudoManager() {
   return (
     <div className="space-y-6">
       
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl flex items-center gap-2.5 text-xs font-bold font-mono tracking-wide uppercase shadow-sm animate-fadeIn">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+          <span>{success}</span>
+        </div>
+      )}
+
       {/* Header Panel */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

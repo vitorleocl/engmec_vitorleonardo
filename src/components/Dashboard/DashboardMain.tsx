@@ -28,7 +28,9 @@ import {
   auth, 
   loginWithGoogle, 
   logoutUser, 
-  isRealFirebase
+  isRealFirebase,
+  onModeChange,
+  setRealFirebaseEnabled
 } from '../../lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -39,20 +41,35 @@ export default function DashboardMain() {
   const [authLoading, setAuthLoading] = useState(true);
   const [bypassAuth, setBypassAuth] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [realFirebase, setRealFirebase] = useState(isRealFirebase);
 
   const [role, setRole] = useState<SystemRole>('admin');
   const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'portal'>('indicators');
 
-  // Monitor Auth state changes
+  // Monitor Auth state changes and Base mode alterations
   useEffect(() => {
-    // If Firebase isn't set up yet, bypass auth automatically
+    const unsubscribeMode = onModeChange((enabled) => {
+      setRealFirebase(enabled);
+      if (!enabled) {
+        setBypassAuth(true);
+        setAuthLoading(false);
+        setRole('admin');
+        setActiveTab('indicators');
+      } else {
+        setBypassAuth(false);
+        if (!auth.currentUser) {
+          setCurrentUser(null);
+        }
+      }
+    });
+
     if (!isRealFirebase) {
       setBypassAuth(true);
       setAuthLoading(false);
-      return;
+      return () => unsubscribeMode();
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setAuthLoading(false);
       
@@ -70,8 +87,11 @@ export default function DashboardMain() {
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribeAuth();
+      unsubscribeMode();
+    };
+  }, [realFirebase]);
 
   // Google Authentication trigger
   const handleGoogleLogin = async () => {
@@ -102,9 +122,17 @@ export default function DashboardMain() {
   if (authLoading) {
     return (
       <section id="restricted-area" className="py-24 bg-slate-100 dark:bg-slate-950 min-h-[500px] flex items-center justify-center">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 max-w-sm px-6">
           <div className="w-10 h-10 border-4 border-[#134074] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs font-mono text-slate-500 uppercase tracking-widest font-black">Conectando ao sistema seguro...</p>
+          <div className="pt-6">
+            <button
+              onClick={() => setRealFirebaseEnabled(false)}
+              className="text-xs text-[#134074] dark:text-[#4895EF] border border-[#134074]/30 dark:border-[#4895EF]/30 hover:bg-[#134074]/10 px-4 py-2 rounded-xl font-bold font-mono tracking-wide uppercase transition-all cursor-pointer"
+            >
+              Forçar Modo Sandbox Offline
+            </button>
+          </div>
         </div>
       </section>
     );
@@ -115,7 +143,7 @@ export default function DashboardMain() {
     return (
       <section id="restricted-area" className="py-16 bg-slate-100 dark:bg-slate-950 min-h-screen transition-colors duration-300 scroll-mt-16 flex items-center justify-center">
         <div className="max-w-md w-full px-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 space-y-8 text-center">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 space-y-8 text-center font-sans">
             
             {/* Custom security badge header */}
             <div className="inline-flex items-center gap-1.5 p-2 bg-slate-100 dark:bg-slate-950 rounded-2xl mx-auto shadow-inner">
@@ -146,7 +174,7 @@ export default function DashboardMain() {
               {/* Google Sign-in primary action */}
               <button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 bg-[#0B2545] hover:bg-[#134074] text-white p-3.5 rounded-xl text-xs font-black font-mono uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-3 bg-[#0B2545] hover:bg-[#134074] text-white p-3.5 rounded-xl text-xs font-black font-mono uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all cursor-pointer font-sans"
               >
                 <svg className="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -156,11 +184,20 @@ export default function DashboardMain() {
                 </svg>
                 <span>Entrar com o Google</span>
               </button>
+
+              {/* Sandbox toggle fallback for cookie blockers / iframe sandbox previews */}
+              <button
+                onClick={() => setRealFirebaseEnabled(false)}
+                className="w-full flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 p-3 rounded-xl text-[11px] font-bold font-mono uppercase tracking-wide transition-all cursor-pointer"
+              >
+                <Layers className="w-4 h-4 text-[#134074]" />
+                <span>Usar Modo Sandbox Offline (Banco Local)</span>
+              </button>
             </div>
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center gap-1.5 text-[10px] font-mono text-slate-400">
               <Shield className="w-3.5 h-3.5 text-[#134074]" />
-              <span>Painel Audidado em Conformidade com a LGPD</span>
+              <span>Painel Auditado em Conformidade com a LGPD</span>
             </div>
 
           </div>
@@ -179,24 +216,43 @@ export default function DashboardMain() {
           {/* Dashboard Lateral Navigation Rail */}
           <div className="lg:col-span-3 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between">
             
-            <div className="space-y-8">
+            <div className="space-y-6">
               {/* Authenticated identity card */}
               <div className="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2.5">
                   <span className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
                     <ShieldCheck className="w-5 h-5" />
                   </span>
-                  <div className="max-w-[70%]">
-                    <h4 className="text-xs font-bold text-slate-400 font-mono tracking-wider uppercase">LOGADO COM SUCESSO</h4>
+                  <div className="max-w-[70%] text-left">
+                    <h4 className="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase">LOGADO COM SUCESSO</h4>
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={currentUser?.displayName || currentUser?.email || 'Vitor Leonardo C.'}>
                       {currentUser?.displayName || currentUser?.email || (role === 'admin' ? 'Vitor Leonardo C.' : 'Metalúrgica PE S.A.')}
                     </p>
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-1 text-[10px] font-mono tracking-wider font-bold text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded">
-                  <UserIcon className="w-3 h-3 text-[#134074]" />
-                  <span>Cargo: {role === 'admin' ? 'ENGENHEIRO (ADMIN)' : 'CLIENTE'}</span>
+                <div className="flex flex-col gap-2">
+                  <div className="inline-flex items-center justify-center gap-1 text-[10px] font-mono tracking-wider font-bold text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded">
+                    <UserIcon className="w-3 h-3 text-[#134074]" />
+                    <span>Cargo: {role === 'admin' ? 'ENGENHEIRO (ADMIN)' : 'CLIENTE'}</span>
+                  </div>
+
+                  {/* Environment Switcher */}
+                  <div className="space-y-1 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-left">
+                    <span className="text-[9px] uppercase font-mono tracking-widest text-slate-400 font-black block leading-none mb-1">Operando em:</span>
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className={`text-[10px] font-bold ${realFirebase ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {realFirebase ? 'Google Firestore' : 'Sandbox (Offline)'}
+                      </span>
+                      <button
+                        onClick={() => setRealFirebaseEnabled(!realFirebase)}
+                        className="text-[9px] font-extrabold font-mono uppercase bg-[#134074]/10 dark:bg-[#4895EF]/10 text-[#134074] dark:text-[#4895EF] border border-[#134074]/30 dark:border-[#4895EF]/30 px-1.5 py-0.5 rounded hover:bg-[#134074]/20 cursor-pointer"
+                        title="Alternar entre banco Firestore em Nuvem ou Local"
+                      >
+                        Trocar
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

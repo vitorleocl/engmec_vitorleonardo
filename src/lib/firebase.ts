@@ -36,7 +36,9 @@ import { UserRole, UserProfile } from '../types';
 // Check if we are running with mocked settings
 const hasConfig = firebaseConfig.apiKey !== 'MOCK_API_KEY' && !firebaseConfig.apiKey.includes('YOUR_');
 
-export let isRealFirebase = hasConfig;
+// Persistent DB Preference
+const savedPref = localStorage.getItem('vitor_engmec_db_mode');
+export let isRealFirebase = savedPref === 'firestore' || (savedPref === null && hasConfig);
 
 // Setup live connection state bindings
 export let isFirebaseUnreachable = false;
@@ -55,13 +57,25 @@ export function setFirebaseUnreachable(unreachable: boolean) {
   unreachableListeners.forEach(cb => cb(unreachable));
 }
 
+export type ModeChangeListener = (enabled: boolean) => void;
+let modeListeners: ModeChangeListener[] = [];
+
+export function onModeChange(cb: ModeChangeListener) {
+  modeListeners.push(cb);
+  return () => {
+    modeListeners = modeListeners.filter(l => l !== cb);
+  };
+}
+
 export function setRealFirebaseEnabled(enabled: boolean) {
   isRealFirebase = hasConfig && enabled;
+  localStorage.setItem('vitor_engmec_db_mode', enabled ? 'firestore' : 'local');
   if (!enabled) {
     setFirebaseUnreachable(false);
   } else {
     testConnection();
   }
+  modeListeners.forEach(cb => cb(isRealFirebase));
 }
 
 let app;
