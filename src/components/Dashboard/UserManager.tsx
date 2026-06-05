@@ -17,6 +17,8 @@ export default function UserManager() {
   const [currentUserProfile, setCurrentUserProfile] = useState<Partial<UserProfile> | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -88,7 +90,11 @@ export default function UserManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUserProfile?.email || !currentUserProfile?.name || !currentUserProfile?.role) return;
+    setError(null);
+    if (!currentUserProfile?.email || !currentUserProfile?.name || !currentUserProfile?.role) {
+      setError('Por favor, preencha todos os campos obrigatórios (*).');
+      return;
+    }
 
     setLoading(true);
     const userId = currentUserProfile.uid || 'usr_' + Math.random().toString(36).substr(2, 9);
@@ -103,9 +109,16 @@ export default function UserManager() {
       createdAt: currentUserProfile.createdAt || new Date().toISOString()
     };
 
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('timeout_error')), 5000)
+    );
+
     try {
       if (isRealFirebase) {
-        await setDoc(doc(db, 'users', userId), saveObj);
+        await Promise.race([
+          setDoc(doc(db, 'users', userId), saveObj),
+          timeoutPromise
+        ]);
       } else {
         setUsers(prev => {
           const index = prev.findIndex(u => u.uid === userId);
@@ -118,9 +131,25 @@ export default function UserManager() {
         });
       }
       setModalOpen(false);
+      setSuccess(currentUserProfile.uid ? 'Permissões do usuário atualizadas!' : 'Novo usuário convidado/cadastrado com sucesso!');
+      setTimeout(() => setSuccess(null), 4500);
       loadData();
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `users/${userId}`);
+    } catch (err: any) {
+      console.error(err);
+      let errMsg = 'Erro de permissão ou conexão ao salvar seu usuário.';
+      if (err.message === 'timeout_error') {
+        errMsg = 'A gravação de dados expirou (Timeout de 5s). O Google Firestore parece estar inacessível ou bloqueado por cookies de terceiros neste iFrame. Ative o "Modo Sandbox Offline" no menu lateral para salvar localmente sem restrições.';
+      } else {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed?.error) {
+            errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}`;
+          }
+        } catch (_) {
+          if (err.message) errMsg = err.message;
+        }
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -155,6 +184,14 @@ export default function UserManager() {
 
   return (
     <div className="space-y-6">
+      
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl flex items-center gap-2.5 text-xs font-bold font-mono tracking-wide uppercase shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+          <span>{success}</span>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold font-sans text-slate-900 dark:text-white">Gerenciamento de Usuários e Acessos</h2>
@@ -327,6 +364,15 @@ export default function UserManager() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {error && (
+                <div id="user-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono">
+                  <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
+                  <div>
+                    <strong className="block font-sans uppercase font-black tracking-wider text-[10px] mb-0.5">Pendência de Permissão / Conexão</strong>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-400 uppercase font-mono">Nome do Colaborador *</label>

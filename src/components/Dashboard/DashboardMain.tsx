@@ -24,13 +24,15 @@ import EquipmentManager from './EquipmentManager';
 import LaudoManager from './LaudoManager';
 import ChecklistManager from './ChecklistManager';
 import ClientPortal from './ClientPortal';
+import UserManager from './UserManager';
 import { 
   auth, 
   loginWithGoogle, 
   logoutUser, 
   isRealFirebase,
   onModeChange,
-  setRealFirebaseEnabled
+  setRealFirebaseEnabled,
+  onFirebaseUnreachableChange
 } from '../../lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -42,9 +44,10 @@ export default function DashboardMain() {
   const [bypassAuth, setBypassAuth] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [realFirebase, setRealFirebase] = useState(isRealFirebase);
+  const [firebaseUnreachable, setFirebaseUnreachable] = useState(false);
 
   const [role, setRole] = useState<SystemRole>('admin');
-  const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'portal'>('indicators');
+  const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'users' | 'portal'>('indicators');
 
   // Monitor Auth state changes and Base mode alterations
   useEffect(() => {
@@ -63,10 +66,17 @@ export default function DashboardMain() {
       }
     });
 
+    const unsubscribeUnreachable = onFirebaseUnreachableChange((unreachable) => {
+      setFirebaseUnreachable(unreachable);
+    });
+
     if (!isRealFirebase) {
       setBypassAuth(true);
       setAuthLoading(false);
-      return () => unsubscribeMode();
+      return () => {
+        unsubscribeMode();
+        unsubscribeUnreachable();
+      };
     }
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -90,6 +100,7 @@ export default function DashboardMain() {
     return () => {
       unsubscribeAuth();
       unsubscribeMode();
+      unsubscribeUnreachable();
     };
   }, [realFirebase]);
 
@@ -319,6 +330,21 @@ export default function DashboardMain() {
                       <CheckSquare className="w-4 h-4 shrink-0" />
                       <span>Checklists Vistorias</span>
                     </button>
+
+                    <button
+                      onClick={() => setActiveTab('users')}
+                      className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                        activeTab === 'users' 
+                          ? 'bg-[#0B2545] text-white' 
+                          : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900'
+                      }`}
+                    >
+                      <KeyRound className="w-4 h-4 shrink-0 text-amber-500" />
+                      <span className="flex items-center gap-1.5">
+                        <span>Contas / Acessos</span>
+                        <span className="text-[8px] bg-amber-500/10 text-amber-500 px-1 py-0.2 rounded font-mono font-black animate-pulse">NOVO</span>
+                      </span>
+                    </button>
                   </>
                 ) : (
                   <button
@@ -352,11 +378,33 @@ export default function DashboardMain() {
           {/* Core Content Area */}
           <div className="lg:col-span-9 p-8 md:p-10 text-slate-950 dark:text-white bg-slate-50 dark:bg-slate-900 scrollbar-thin">
             <div className="animate-fade-in max-w-full">
+              
+              {realFirebase && firebaseUnreachable && (
+                <div className="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-850 dark:text-amber-400 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-mono shadow-sm">
+                  <div className="flex gap-2.5 items-start">
+                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <strong className="block font-sans uppercase font-black text-[10px] tracking-wide mb-0.5">Nuvem Firebase Inacessível</strong>
+                      <span className="font-sans text-slate-600 dark:text-slate-300">
+                        O Firebase foi bloqueado pelo iFrame do navegador (comum devido a bloqueio de Cookies de Terceiros). Clique ao lado para alternar para o <strong>Modo Sandbox Offline</strong> e operar instantaneamente com salvamento local instantâneo!
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setRealFirebaseEnabled(false)}
+                    className="shrink-0 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl transition-all font-sans cursor-pointer uppercase text-[9px] tracking-wider whitespace-nowrap shadow-md"
+                  >
+                    Ativar Sandbox Offline
+                  </button>
+                </div>
+              )}
+
               {activeTab === 'indicators' && role === 'admin' && <AdminDashboard />}
               {activeTab === 'clients' && role === 'admin' && <ClientManager />}
               {activeTab === 'equipments' && role === 'admin' && <EquipmentManager />}
               {activeTab === 'laudos' && role === 'admin' && <LaudoManager />}
               {activeTab === 'checklists' && role === 'admin' && <ChecklistManager />}
+              {activeTab === 'users' && role === 'admin' && <UserManager />}
               {activeTab === 'portal' && <ClientPortal />}
             </div>
           </div>

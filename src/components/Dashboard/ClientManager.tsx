@@ -68,9 +68,16 @@ export default function ClientManager() {
       updatedAt: new Date().toISOString()
     };
 
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('timeout_error')), 5000)
+    );
+
     try {
       if (isRealFirebase) {
-        await setDoc(doc(db, 'clients', clientId), saveObj);
+        await Promise.race([
+          setDoc(doc(db, 'clients', clientId), saveObj),
+          timeoutPromise
+        ]);
       } else {
         mockDb.saveClient(saveObj);
       }
@@ -81,13 +88,17 @@ export default function ClientManager() {
     } catch (err: any) {
       console.error(err);
       let errMsg = 'Erro de permissão ou conexão ao gravar os dados no Firestore.';
-      try {
-        const parsed = JSON.parse(err.message);
-        if (parsed?.error) {
-          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros com nível 'GESTÃO' podem cadastrar clientes no Firestore.`;
+      if (err.message === 'timeout_error') {
+        errMsg = 'A gravação de dados expirou (Timeout de 5s). O Google Firestore parece estar inacessível ou bloqueado por cookies de terceiros neste iFrame. Ative o "Modo Sandbox Offline" no menu lateral para salvar localmente sem restrições.';
+      } else {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed?.error) {
+            errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros com nível 'GESTÃO' podem cadastrar clientes no Firestore.`;
+          }
+        } catch (_) {
+          if (err.message) errMsg = err.message;
         }
-      } catch (_) {
-        if (err.message) errMsg = err.message;
       }
       setError(errMsg);
     } finally {

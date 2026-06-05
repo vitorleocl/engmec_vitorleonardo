@@ -1758,9 +1758,16 @@ export default function ChecklistManager() {
       questionNotes: questionNotes
     };
 
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('timeout_error')), 5000)
+    );
+
     try {
       if (isRealFirebase) {
-        await setDoc(doc(db, 'checklists', chkId), saveObj);
+        await Promise.race([
+          setDoc(doc(db, 'checklists', chkId), saveObj),
+          timeoutPromise
+        ]);
       } else {
         mockDb.saveChecklist(saveObj);
       }
@@ -1772,13 +1779,17 @@ export default function ChecklistManager() {
     } catch (err: any) {
       console.error(err);
       let errMsg = 'Erro de permissão ou conexão ao salvar seu checklist de vistoria no Firestore.';
-      try {
-        const parsed = JSON.parse(err.message);
-        if (parsed?.error) {
-          errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros do nível 'GESTÃO' podem cadastrar vistorias no Firestore.`;
+      if (err.message === 'timeout_error') {
+        errMsg = 'A gravação de dados expirou (Timeout de 5s). O Google Firestore parece estar inacessível ou bloqueado por cookies de terceiros neste iFrame. Ative o "Modo Sandbox Offline" no menu lateral para salvar localmente sem restrições.';
+      } else {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed?.error) {
+            errMsg = `Erro de Permissão (${parsed.operationType}): ${parsed.error}. Apenas engenheiros do nível 'GESTÃO' podem cadastrar vistorias no Firestore.`;
+          }
+        } catch (_) {
+          if (err.message) errMsg = err.message;
         }
-      } catch (_) {
-        if (err.message) errMsg = err.message;
       }
       setError(errMsg);
     } finally {
