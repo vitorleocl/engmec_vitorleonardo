@@ -8,7 +8,8 @@ import { LaudoData, ClientData, EquipmentData, LaudoStatus } from '../../types';
 import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye, Shield, Clipboard } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye, Shield, Clipboard, Printer } from 'lucide-react';
+import PMOCEditor from './PMOCEditor';
 
 export default function LaudoManager() {
   const [laudos, setLaudos] = useState<LaudoData[]>([]);
@@ -16,8 +17,70 @@ export default function LaudoManager() {
   const [equipments, setEquipments] = useState<EquipmentData[]>([]);
   
   const [searchQuery, setSearchQuery] = useState('');
+
+  const getInitialPmocData = (clientId?: string) => {
+    const matchedClient = clients.find(c => c.id === clientId);
+    return {
+      empreendimento: {
+        nome: matchedClient ? matchedClient.company : '',
+        endereco: matchedClient ? matchedClient.address || '' : '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        uf: '',
+        telefone: matchedClient ? matchedClient.phone || '' : '',
+        email: matchedClient ? matchedClient.email || '' : '',
+      },
+      proprietario: {
+        nomeRazao: matchedClient ? matchedClient.company : '',
+        cnpj: matchedClient ? matchedClient.cnpj || '' : '',
+      },
+      responsavelTecnico: {
+        nomeRazao: 'Vitor Leonardo Cordeiro Linhares',
+        cpfCnpj: '182.229.949-01',
+        enderecoCompleto: 'Recife, Pernambuco',
+        responsavelTecnico: 'Vitor Leonardo Cordeiro Linhares',
+        profissao: 'Engenheiro Mecânico',
+        crea: '18222994-PE',
+        cpf: '182.229.949-01',
+        art: currentLaudo?.art || '',
+      },
+      ambientesClimatizados: [
+        { id: 'env_1', identificacao: 'Diretoria Sede', numOcupantesFixo: '5', numOcupantesFlutuante: '15', areaM2: '45', cargaTermica: '36000 BTU/h', tagEquipamento: 'AC-DIR-01' }
+      ],
+      aparelhos: [
+        {
+          id: 'ap_1',
+          tag: 'AC-DIR-01',
+          marca: 'Springer Midea',
+          modelo: 'Split Hi-Wall',
+          capacidade: '36000 BTU/h',
+          localizacao: 'Diretoria Sede',
+          tipo: 'Split',
+          atividades: [
+            { id: 'act_1', descricao: 'Limpar e higienizar os filtros de ar (regulação sanitária)', periodicidade: 'Mensal', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' },
+            { id: 'act_2', descricao: 'Substituir filtros descartáveis avariados/colmatados', periodicidade: 'Trimestral', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' },
+            { id: 'act_3', descricao: 'Eliminar sujidade e biofilme nas serpentinas de resfriamento', periodicidade: 'Semestral', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' },
+            { id: 'act_4', descricao: 'Limpar dreno e higienizar bandeja de condensado', periodicidade: 'Mensal', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' },
+            { id: 'act_5', descricao: 'Verificar rotor, rolamentos e hélice de ventilação', periodicidade: 'Trimestral', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' },
+            { id: 'act_6', descricao: 'Inspecionar contatos elétricos e ligações de comando', periodicidade: 'Semestral', statusJan: 'P', statusFev: 'P', statusMar: 'P', statusAbr: 'P', statusMai: 'P', statusJun: 'P', statusJul: 'P', statusAgo: 'P', statusSet: 'P', statusOut: 'P', statusNov: 'P', statusDez: 'P' }
+          ]
+        }
+      ],
+      finalDocumento: {
+        anotacoesGerais: 'Sistema de climatização opera em conformidade com as diretrizes da ANVISA RE 09 e Portaria 3523.',
+        recomendacoesRt: 'Agendar manutenções periódicas regulares e manter o livro de ocorrências atualizado mensalmente.',
+        respManutencaoNome: 'Técnico de Refrigeração Residente',
+        respManutencaoAssinatura: 'Assinado Eletronicamente',
+        respPhNome: 'Vitor Leonardo Cordeiro Linhares',
+        respPhAssinatura: 'Assinado Eletronicamente (Engenheiro Mecânico)',
+      }
+    };
+  };
   const [modalOpen, setModalOpen] = useState(false);
   const [currentLaudo, setCurrentLaudo] = useState<Partial<LaudoData> | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const [categories, setCategories] = useState<string[]>([
     'Adequação à NR-12',
@@ -25,7 +88,6 @@ export default function LaudoManager() {
     'PMOC (Climatização)',
     'Laudo de Brinquedos e Playgrounds',
     'Inspeção de Caminhão Munck e Guindaste',
-    'Vasos de Pressão e Caldeiras (NR-13)',
     'Laudo de Máquinas Pesadas e Ruído'
   ]);
   const [newCategory, setNewCategory] = useState('');
@@ -181,7 +243,8 @@ export default function LaudoManager() {
         npValue: hrnNp,
         acoesRecomendadas: hrnAcoesText,
         zonaPerigo: hrnDetails.desc
-      } : undefined
+      } : undefined,
+      pmocData: currentLaudo.categoria === 'PMOC (Climatização)' ? (currentLaudo.pmocData || getInitialPmocData(currentLaudo.clientId)) : undefined
     };
 
     try {
@@ -200,7 +263,6 @@ export default function LaudoManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Deseja realmente excluir este laudo perpétuo?')) return;
     setLoading(true);
     try {
       if (isRealFirebase) {
@@ -384,36 +446,72 @@ export default function LaudoManager() {
                       )}
                     </td>
                     <td className="p-4 text-right space-x-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          setCurrentLaudo(laudo);
-                          if (laudo.apreciacaoRisco) {
-                            setHrnLo(laudo.apreciacaoRisco.loValue);
-                            setHrnFe(laudo.apreciacaoRisco.feValue);
-                            setHrnDo(laudo.apreciacaoRisco.doValue);
-                            setHrnNp(laudo.apreciacaoRisco.npValue);
-                            setHrnAcoesText(laudo.apreciacaoRisco.acoesRecomendadas || '');
-                          } else {
-                            setHrnLo(1.0);
-                            setHrnFe(5.0);
-                            setHrnDo(5.0);
-                            setHrnNp(1.0);
-                            setHrnAcoesText('');
-                          }
-                          setModalOpen(true);
-                        }}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Modificar laudo"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(laudo.id)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Deletar laudo"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {deleteConfirmId === laudo.id ? (
+                        <div className="flex items-center justify-end gap-1.5 inline-flex">
+                          <span className="text-[10px] text-rose-500 font-bold font-mono uppercase">Excluir?</span>
+                          <button
+                            onClick={() => {
+                              handleDelete(laudo.id);
+                              setDeleteConfirmId(null);
+                            }}
+                            className="px-2 py-1 text-[10px] font-black bg-rose-500 hover:bg-rose-600 text-white rounded transition-colors cursor-pointer"
+                          >
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-2 py-1 text-[10px] font-black bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-750 dark:text-slate-300 rounded transition-colors cursor-pointer"
+                          >
+                            Não
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {laudo.categoria === 'PMOC (Climatização)' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCurrentLaudo(laudo);
+                                setModalOpen(true);
+                              }}
+                              className="p-1.5 hover:bg-[#1D3557]/10 dark:hover:bg-[#1D3557]/20 rounded text-[#1D3557] dark:text-[#4895EF] hover:scale-110 transition-all inline-block cursor-pointer"
+                              title="Visualizar Planilha PMOC e Imprimir"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setCurrentLaudo(laudo);
+                              if (laudo.apreciacaoRisco) {
+                                setHrnLo(laudo.apreciacaoRisco.loValue);
+                                setHrnFe(laudo.apreciacaoRisco.feValue);
+                                setHrnDo(laudo.apreciacaoRisco.doValue);
+                                setHrnNp(laudo.apreciacaoRisco.npValue);
+                                setHrnAcoesText(laudo.apreciacaoRisco.acoesRecomendadas || '');
+                              } else {
+                                setHrnLo(1.0);
+                                setHrnFe(5.0);
+                                setHrnDo(5.0);
+                                setHrnNp(1.0);
+                                setHrnAcoesText('');
+                              }
+                              setModalOpen(true);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Modificar laudo"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(laudo.id)}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Deletar laudo"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -426,7 +524,9 @@ export default function LaudoManager() {
       {/* Editor Modal Container */}
       {modalOpen && currentLaudo && (
         <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-y-auto relative">
+          <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full shadow-2xl overflow-y-auto relative transition-all ${
+            currentLaudo.categoria === 'PMOC (Climatização)' ? 'max-w-6xl' : 'max-w-2xl'
+          }`}>
             
             <div className="bg-[#0B2545] text-white p-6 flex justify-between items-center">
               <h3 className="text-lg font-bold">
@@ -439,133 +539,239 @@ export default function LaudoManager() {
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Número Identificador *</label>
-                  <input
-                    type="text"
-                    required
-                    value={currentLaudo.numero || ''}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, numero: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
-                    placeholder="Ex: LT-2026-X"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Registro ART Vinculada</label>
-                  <input
-                    type="text"
-                    value={currentLaudo.art || ''}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, art: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
-                    placeholder="Ex: PE-18222994-11"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Selecionar Cliente Proprietário *</label>
-                  <select
-                    required
-                    value={currentLaudo.clientId || ''}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, clientId: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer"
-                  >
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.company}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Vincular Ativo / Equipamento *</label>
-                  <select
-                    required
-                    value={currentLaudo.equipmentId || ''}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, equipmentId: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer"
-                  >
-                    {equipments.filter(eq => eq.clientId === currentLaudo.clientId).map(e => (
-                      <option key={e.id} value={e.id}>{e.type} ({e.model})</option>
-                    ))}
-                    {equipments.filter(eq => eq.clientId === currentLaudo.clientId).length === 0 && (
-                      <option value="">Nenhum ativo associado a este cliente</option>
-                    )}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Data Oficial da Vistoria *</label>
-                  <input
-                    type="date"
-                    required
-                    value={currentLaudo.dateInspection || ''}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, dateInspection: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Status do Processamento *</label>
-                  <select
-                    value={currentLaudo.status || LaudoStatus.EM_ELABORACAO}
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, status: e.target.value as LaudoStatus })}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#0B2545] dark:text-white cursor-pointer"
-                  >
-                    <option value={LaudoStatus.EM_ELABORACAO}>Em Elaboração / Vistoriado</option>
-                    <option value={LaudoStatus.EMITIDO}>Emitido / Liberado</option>
-                    <option value={LaudoStatus.VENCIDO}>Vencido / Expirado</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div className="flex justify-between items-center pb-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Tipo / Categoria de Inspeção *</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddCategory(!showAddCategory)}
-                    className="text-[#134074] dark:text-[#4895EF] hover:underline text-[10px] uppercase font-mono font-bold flex items-center gap-0.5"
-                  >
-                    {showAddCategory ? 'Selecionar de lista' : '+ Cadastrar Novo Tipo'}
-                  </button>
-                </div>
-                
-                {showAddCategory ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="Ex: Reclassificação de Monta"
-                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none text-slate-950 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddCategory}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-mono uppercase"
-                    >
-                      Gravar
-                    </button>
+              {currentLaudo.categoria === 'PMOC (Climatização)' ? (
+                /* Compact Top Bar for PMOC + Complete Spreadsheet Planning Editor */
+                <div className="space-y-4 animate-fade-in">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">Nº ID *</label>
+                      <input
+                        type="text"
+                        required
+                        value={currentLaudo.numero || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, numero: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">ART Vinculada</label>
+                      <input
+                        type="text"
+                        value={currentLaudo.art || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, art: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-205 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">Cliente Proprietário *</label>
+                      <select
+                        required
+                        value={currentLaudo.clientId || ''}
+                        onChange={(e) => {
+                          const cId = e.target.value;
+                          setCurrentLaudo({ 
+                            ...currentLaudo, 
+                            clientId: cId, 
+                            pmocData: getInitialPmocData(cId) 
+                          });
+                        }}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-205 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.company}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">Ativo Vinculado *</label>
+                      <select
+                        required
+                        value={currentLaudo.equipmentId || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, equipmentId: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-205 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        {equipments.filter(eq => eq.clientId === currentLaudo.clientId).map(e => (
+                          <option key={e.id} value={e.id}>{e.type} ({e.model})</option>
+                        ))}
+                        {equipments.filter(eq => eq.clientId === currentLaudo.clientId).length === 0 && (
+                          <option value="">Sem ativos cadastrados</option>
+                        )}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">Data da Vistoria *</label>
+                      <input
+                        type="date"
+                        required
+                        value={currentLaudo.dateInspection || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, dateInspection: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-205 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase font-mono">Status do Termo *</label>
+                      <select
+                        value={currentLaudo.status || LaudoStatus.EM_ELABORACAO}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, status: e.target.value as LaudoStatus })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-205 rounded px-2.5 py-1.5 text-xs outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        <option value={LaudoStatus.EM_ELABORACAO}>Em Elaboração</option>
+                        <option value={LaudoStatus.EMITIDO}>Emitido / Liberado</option>
+                        <option value={LaudoStatus.VENCIDO}>Vencido</option>
+                      </select>
+                    </div>
                   </div>
-                ) : (
-                  <select
-                    value={currentLaudo.categoria || ''}
-                    required
-                    onChange={(e) => setCurrentLaudo({ ...currentLaudo, categoria: e.target.value })}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer select-none"
-                  >
-                    <option value="">Selecione um Tipo do Catálogo...</option>
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
+
+                  {/* Complete PMOC editor */}
+                  <PMOCEditor 
+                    data={currentLaudo.pmocData || getInitialPmocData(currentLaudo.clientId)} 
+                    onChange={(newPmocData) => setCurrentLaudo({ ...currentLaudo, pmocData: newPmocData })} 
+                    clientName={clients.find(c => c.id === currentLaudo.clientId)?.company} 
+                  />
+                </div>
+              ) : (
+                /* Standard Narrow Form for non-PMOC categories */
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Número Identificador *</label>
+                      <input
+                        type="text"
+                        required
+                        value={currentLaudo.numero || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, numero: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
+                        placeholder="Ex: LT-2026-X"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Registro ART Vinculada</label>
+                      <input
+                        type="text"
+                        value={currentLaudo.art || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, art: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
+                        placeholder="Ex: PE-18222994-11"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Selecionar Cliente Proprietário *</label>
+                      <select
+                        required
+                        value={currentLaudo.clientId || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, clientId: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.company}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Vincular Ativo / Equipamento *</label>
+                      <select
+                        required
+                        value={currentLaudo.equipmentId || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, equipmentId: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        {equipments.filter(eq => eq.clientId === currentLaudo.clientId).map(e => (
+                          <option key={e.id} value={e.id}>{e.type} ({e.model})</option>
+                        ))}
+                        {equipments.filter(eq => eq.clientId === currentLaudo.clientId).length === 0 && (
+                          <option value="">Nenhum ativo associado a este cliente</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Data Oficial da Vistoria *</label>
+                      <input
+                        type="date"
+                        required
+                        value={currentLaudo.dateInspection || ''}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, dateInspection: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Status do Processamento *</label>
+                      <select
+                        value={currentLaudo.status || LaudoStatus.EM_ELABORACAO}
+                        onChange={(e) => setCurrentLaudo({ ...currentLaudo, status: e.target.value as LaudoStatus })}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-[#0B2545] dark:text-white cursor-pointer"
+                      >
+                        <option value={LaudoStatus.EM_ELABORACAO}>Em Elaboração / Vistoriado</option>
+                        <option value={LaudoStatus.EMITIDO}>Emitido / Liberado</option>
+                        <option value={LaudoStatus.VENCIDO}>Vencido / Expirado</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 animate-fade-in">
+                    <div className="flex justify-between items-center pb-1">
+                      <label className="text-xs font-bold text-slate-400 uppercase font-mono">Tipo / Categoria de Inspeção *</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddCategory(!showAddCategory)}
+                        className="text-[#134074] dark:text-[#4895EF] hover:underline text-[10px] uppercase font-mono font-bold flex items-center gap-0.5"
+                      >
+                        {showAddCategory ? 'Selecionar de lista' : '+ Cadastrar Novo Tipo'}
+                      </button>
+                    </div>
+                    
+                    {showAddCategory ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="Ex: Reclassificação de Monta"
+                          className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none text-slate-950 dark:text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCategory}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-mono uppercase"
+                        >
+                          Gravar
+                        </button>
+                      </div>
+                    ) : (
+                      <select
+                        value={currentLaudo.categoria || ''}
+                        required
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'PMOC (Climatização)' && !currentLaudo.pmocData) {
+                            setCurrentLaudo({
+                              ...currentLaudo,
+                              categoria: val,
+                              pmocData: getInitialPmocData(currentLaudo.clientId)
+                            });
+                          } else {
+                            setCurrentLaudo({ ...currentLaudo, categoria: val });
+                          }
+                        }}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white cursor-pointer select-none"
+                      >
+                        <option value="">Selecione um Tipo do Catálogo...</option>
+                        {categories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </>
+              )}
 
               {/* Dynamic Risk Appreciation section based on selected category (NR-12) */}
               {(currentLaudo.categoria?.toLowerCase().includes('nr-12') || currentLaudo.categoria?.toLowerCase().includes('nr12')) && (

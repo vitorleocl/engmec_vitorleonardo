@@ -17,6 +17,7 @@ export default function EquipmentManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentEq, setCurrentEq] = useState<Partial<EquipmentData> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -84,7 +85,6 @@ export default function EquipmentManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Excluir este equipamento do registro?')) return;
     setLoading(true);
     try {
       if (isRealFirebase) {
@@ -195,23 +195,46 @@ export default function EquipmentManager() {
                       <div className="text-slate-400">Ano: {eq.year || 'N/D'}</div>
                     </td>
                     <td className="p-4 text-right space-x-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          setCurrentEq(eq);
-                          setModalOpen(true);
-                        }}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Editar equipamento"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(eq.id)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Excluir equipamento"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {deleteConfirmId === eq.id ? (
+                        <div className="flex items-center justify-end gap-1.5 inline-flex">
+                          <span className="text-[10px] text-rose-500 font-bold font-mono uppercase">Excluir?</span>
+                          <button
+                            onClick={() => {
+                              handleDelete(eq.id);
+                              setDeleteConfirmId(null);
+                            }}
+                            className="px-2 py-1 text-[10px] font-black bg-rose-500 hover:bg-rose-600 text-white rounded transition-colors cursor-pointer"
+                          >
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-2 py-1 text-[10px] font-black bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-750 dark:text-slate-300 rounded transition-colors cursor-pointer"
+                          >
+                            Não
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setCurrentEq(eq);
+                              setModalOpen(true);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Editar equipamento"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(eq.id)}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Excluir equipamento"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -130,7 +130,7 @@ export default function Hero() {
 
                 {/* Portal Link */}
                 <a
-                  href="#login"
+                  href="#acervo"
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-[#0B2545] hover:text-white dark:hover:bg-[#134074] dark:hover:text-white border border-slate-200 dark:border-slate-800 text-[#0B2545] dark:text-slate-350 text-xs font-bold transition-all uppercase tracking-widest font-mono cursor-pointer text-center"
                 >
                   <NotebookTabs className="w-3.5 h-3.5" />

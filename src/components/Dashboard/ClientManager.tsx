@@ -16,6 +16,7 @@ export default function ClientManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentClient, setCurrentClient] = useState<Partial<ClientData> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     loadClients();
@@ -77,7 +78,6 @@ export default function ClientManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Deseja realmente excluir este cliente?')) return;
     setLoading(true);
     try {
       if (isRealFirebase) {
@@ -172,23 +172,46 @@ export default function ClientManager() {
                       {client.address}
                     </td>
                     <td className="p-4 text-right space-x-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          setCurrentClient(client);
-                          setModalOpen(true);
-                        }}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Editar cliente"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(client.id)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
-                        title="Excluir cliente"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {deleteConfirmId === client.id ? (
+                        <div className="flex items-center justify-end gap-1.5 inline-flex">
+                          <span className="text-[10px] text-rose-500 font-bold font-mono uppercase">Excluir?</span>
+                          <button
+                            onClick={() => {
+                              handleDelete(client.id);
+                              setDeleteConfirmId(null);
+                            }}
+                            className="px-2 py-1 text-[10px] font-black bg-rose-500 hover:bg-rose-600 text-white rounded transition-colors cursor-pointer"
+                          >
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-2 py-1 text-[10px] font-black bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-750 dark:text-slate-300 rounded transition-colors cursor-pointer"
+                          >
+                            Não
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setCurrentClient(client);
+                              setModalOpen(true);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Editar cliente"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(client.id)}
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-red-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                            title="Excluir cliente"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

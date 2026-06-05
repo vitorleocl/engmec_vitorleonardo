@@ -110,30 +110,35 @@ service cloud.firestore {
     match /clients/{clientId} {
       allow get: if isAdmin() || isClientOwner(clientId);
       allow list: if isAdmin() || (isSignedIn() && isClientOwner(clientId));
-      allow create, update, delete: if isAdmin() && isValidClient(incoming());
+      allow create, update: if isAdmin() && isValidClient(incoming());
+      allow delete: if isAdmin();
     }
     
     match /equipments/{equipmentId} {
       allow get: if isAdmin() || isClientOwner(resource.data.clientId);
       allow list: if isAdmin() || (isSignedIn() && isClientOwner(resource.data.clientId));
-      allow create, update, delete: if isAdmin() && isValidEquipment(incoming());
+      allow create, update: if isAdmin() && isValidEquipment(incoming());
+      allow delete: if isAdmin();
     }
     
     match /laudos/{laudoId} {
       allow get: if isAdmin() || isClientOwner(resource.data.clientId);
       allow list: if isAdmin() || (isSignedIn() && isClientOwner(resource.data.clientId));
-      allow create, update, delete: if isAdmin() && isValidLaudo(incoming());
+      allow create, update: if isAdmin() && isValidLaudo(incoming());
+      allow delete: if isAdmin();
     }
     
     match /checklists/{checklistId} {
       allow get: if isAdmin() || isClientOwner(resource.data.clientId);
       allow list: if isAdmin() || (isSignedIn() && isClientOwner(resource.data.clientId));
-      allow create, update, delete: if isAdmin() && isValidChecklist(incoming());
+      allow create, update: if isAdmin() && isValidChecklist(incoming());
+      allow delete: if isAdmin();
     }
     
     match /checklist_questions/{questionId} {
       allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin() && isValidChecklistQuestion(incoming());
+      allow create, update: if isAdmin() && isValidChecklistQuestion(incoming());
+      allow delete: if isAdmin();
     }
   }
 }

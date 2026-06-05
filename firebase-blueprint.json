@@ -110,7 +110,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "type": { "type": "string", "enum": ["nr12", "pmoc", "munck", "guindaste", "maquinas_pesadas", "playground"] },
+        "type": { "type": "string", "enum": ["nr12", "pmoc", "munck", "guindaste", "maquinas_pesadas", "playground", "reclassificacao_monta", "integridade_fisica"] },
         "category": { "type": "string" },
         "text": { "type": "string" },
         "responseType": { "type": "string", "enum": ["default", "text", "rating"] },

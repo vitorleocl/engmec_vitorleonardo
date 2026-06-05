@@ -43,7 +43,7 @@ export default function App() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash;
-      if (hash === '#acervo' || hash === '#login' || hash === '#restricted-area') {
+      if (hash === '#acervo') {
         setView('acervo');
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else {

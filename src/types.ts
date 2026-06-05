@@ -50,6 +50,83 @@ export enum LaudoStatus {
   VENCIDO = 'vencido',
 }
 
+export interface PMOCActivity {
+  id: string;
+  descricao: string;
+  periodicidade: string;
+  statusJan?: string;
+  statusFev?: string;
+  statusMar?: string;
+  statusAbr?: string;
+  statusMai?: string;
+  statusJun?: string;
+  statusJul?: string;
+  statusAgo?: string;
+  statusSet?: string;
+  statusOut?: string;
+  statusNov?: string;
+  statusDez?: string;
+}
+
+export interface PMOCAppliance {
+  id: string;
+  tag: string;
+  marca: string;
+  modelo: string;
+  capacidade: string;
+  localizacao: string;
+  tipo: string;
+  atividades: PMOCActivity[];
+}
+
+export interface PMAirEnvironment {
+  id: string;
+  identificacao: string;
+  numOcupantesFixo: string;
+  numOcupantesFlutuante: string;
+  areaM2: string;
+  cargaTermica: string;
+  tagEquipamento: string;
+}
+
+export interface PMOCData {
+  empreendimento: {
+    nome: string;
+    endereco: string;
+    numero: string;
+    complemento: string;
+    bairro: string;
+    cidade: string;
+    uf: string;
+    telefone: string;
+    email: string;
+  };
+  proprietario: {
+    nomeRazao: string;
+    cnpj: string;
+  };
+  responsavelTecnico: {
+    nomeRazao: string;
+    cpfCnpj: string;
+    enderecoCompleto: string;
+    responsavelTecnico: string;
+    profissao: string;
+    crea: string;
+    cpf: string;
+    art: string;
+  };
+  ambientesClimatizados: PMAirEnvironment[];
+  aparelhos: PMOCAppliance[];
+  finalDocumento: {
+    anotacoesGerais: string;
+    recomendacoesRt: string;
+    respManutencaoNome: string;
+    respManutencaoAssinatura: string;
+    respPhNome: string;
+    respPhAssinatura: string;
+  };
+}
+
 export interface LaudoData {
   id: string;
   numero: string;
@@ -77,11 +154,12 @@ export interface LaudoData {
     acoesRecomendadas?: string;
     zonaPerigo?: string;
   };
+  pmocData?: PMOCData;
 }
 
-export type ChecklistType = 'nr12' | 'munck' | 'guindaste' | 'maquinas_pesadas' | 'playground' | 'pmoc';
+export type ChecklistType = 'nr12' | 'munck' | 'guindaste' | 'maquinas_pesadas' | 'playground' | 'pmoc' | 'reclassificacao_monta' | 'integridade_fisica' | 'frota_escolar';
 
-export type QuestionResponseType = 'default' | 'text' | 'rating';
+export type QuestionResponseType = 'default' | 'ok_nok' | 'ok_nok_na' | 'bom_reg_ruim' | 'bom_reg_ruim_na' | 'text' | 'number' | 'date' | 'photo' | 'sim_nao' | 'aprovado_reprovado' | 'c_nc' | 'c_nc_na' | 'tipo_ar_condicionado' | 'tipo_veiculo_reclassificacao' | 'tipo_veiculo_integridade' | 'classificacao_monta' | 'condicao_fisica_geral' | 'text_long' | 'ambiente_playground';
 
 export interface ChecklistQuestion {
   id: string;
