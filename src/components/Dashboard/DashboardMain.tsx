@@ -13,8 +13,6 @@ import {
   CheckSquare, 
   BarChart3, 
   User as UserIcon, 
-  RefreshCw, 
-  Layers, 
   Shield, 
   KeyRound, 
   AlertCircle 
@@ -29,9 +27,7 @@ import {
   auth, 
   loginWithGoogle, 
   logoutUser, 
-  isRealFirebase, 
-  setRealFirebaseEnabled,
-  onFirebaseUnreachableChange
+  isRealFirebase
 } from '../../lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -42,21 +38,9 @@ export default function DashboardMain() {
   const [authLoading, setAuthLoading] = useState(true);
   const [bypassAuth, setBypassAuth] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [firebaseUnreachable, setFirebaseUnreachable] = useState(false);
 
   const [role, setRole] = useState<SystemRole>('admin');
   const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'portal'>('indicators');
-  
-  // Simulation warning helper
-  const [showSandboxNotice, setShowSandboxNotice] = useState(true);
-
-  // Monitor connection health state changes
-  useEffect(() => {
-    const unsubscribeHealth = onFirebaseUnreachableChange((unreachable) => {
-      setFirebaseUnreachable(unreachable);
-    });
-    return () => unsubscribeHealth();
-  }, []);
 
   // Monitor Auth state changes
   useEffect(() => {
@@ -72,8 +56,6 @@ export default function DashboardMain() {
       setAuthLoading(false);
       
       if (user) {
-        // Active firebase login: use real DB integration
-        setRealFirebaseEnabled(true);
         setBypassAuth(false);
         
         // Vitor Leonardo gets assigned admin; other addresses map to clients
@@ -100,17 +82,6 @@ export default function DashboardMain() {
     }
   };
 
-  // Switch role helper
-  const handleRoleToggle = () => {
-    if (role === 'admin') {
-      setRole('client');
-      setActiveTab('portal');
-    } else {
-      setRole('admin');
-      setActiveTab('indicators');
-    }
-  };
-
   // Sign out trigger
   const handleSignOut = async () => {
     try {
@@ -124,14 +95,6 @@ export default function DashboardMain() {
     } catch (err) {
       console.error('Logout error:', err);
     }
-  };
-
-  // Enter mock demonstration bypass
-  const handleEnterSimulator = () => {
-    setRealFirebaseEnabled(false);
-    setBypassAuth(true);
-    setRole('admin');
-    setActiveTab('indicators');
   };
 
   // Authing spinner loader
@@ -178,24 +141,6 @@ export default function DashboardMain() {
               </div>
             )}
 
-            {firebaseUnreachable && (
-              <div className="flex flex-col gap-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-400 p-4 rounded-xl text-left text-xs leading-relaxed font-sans">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4.5 h-4.5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-bold">Instabilidade com Banco Integrado (offline)</p>
-                    <p className="text-slate-500 dark:text-slate-300">Não foi possível estabelecer contato com os servidores em nuvem do Firebase Firestore (Timeout). Você pode prosseguir normalmente ativando a Simulação Local segura sem lentidão.</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleEnterSimulator}
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white p-2 rounded-lg text-[10px] font-black font-mono uppercase tracking-wider transition-all cursor-pointer"
-                >
-                  Entrar no Modo de Simulação Local
-                </button>
-              </div>
-            )}
-
             <div className="space-y-4 pt-2">
               {/* Google Sign-in primary action */}
               <button
@@ -209,14 +154,6 @@ export default function DashboardMain() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                 </svg>
                 <span>Entrar com o Google</span>
-              </button>
-
-              {/* Simulated demo mode secondary action */}
-              <button
-                onClick={handleEnterSimulator}
-                className="w-full flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 p-3.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer"
-              >
-                <span>Acessar Modo Demonstrativo</span>
               </button>
             </div>
 
@@ -235,73 +172,6 @@ export default function DashboardMain() {
     <section id="restricted-area" className="py-16 bg-slate-100 dark:bg-slate-950 min-h-screen transition-colors duration-300 scroll-mt-16">
       <div className="max-w-7xl mx-auto px-6 space-y-8">
         
-        {/* Sandbox Simulation Widget Callout */}
-        {showSandboxNotice && (
-          <div className="bg-gradient-to-r from-[#0B2545] via-[#134074] to-[#4895EF] text-white p-4 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
-            <div className="flex items-center gap-3">
-              <span className="p-2 bg-white/20 rounded-lg text-white font-black animate-spin duration-3000">
-                <RefreshCw className="w-5 h-5" />
-              </span>
-              <div className="space-y-0.5 text-left">
-                <p className="text-xs font-mono font-bold uppercase tracking-wider text-[#8DA9C4]">Ambiente de Controle Ativo</p>
-                <p className="text-sm">
-                  {bypassAuth 
-                    ? 'Você está visualizando a plataforma no modo de visualização rápida (Mock).' 
-                    : 'Você está conectado com sucesso no portal de engenharia integrado em nuvem.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleRoleToggle}
-                className="bg-white hover:bg-slate-100 text-[#0B2545] px-4 py-2 rounded-xl text-xs font-black font-mono tracking-wider uppercase shadow transition-all cursor-pointer flex items-center gap-1"
-                title="Trocar Perfil"
-              >
-                <Layers className="w-4 h-4" />
-                <span>Simular {role === 'admin' ? 'Área do Cliente' : 'Painel de Administrador'}</span>
-              </button>
-              
-              <button 
-                onClick={() => setShowSandboxNotice(false)}
-                className="text-white hover:text-white/80 p-1 text-xs font-mono cursor-pointer"
-                title="Fechar"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Firebase Unreachable Notice */}
-        {firebaseUnreachable && !bypassAuth && (
-          <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 text-white p-4.5 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
-            <div className="flex items-start gap-3">
-              <span className="p-2 bg-white/20 rounded-lg text-white font-black mt-0.5 shrink-0">
-                <AlertCircle className="w-5 h-5 animate-pulse" />
-              </span>
-              <div className="space-y-0.5 text-left">
-                <p className="text-xs font-mono font-bold uppercase tracking-wider text-amber-200">Aviso do Sistema (Banco de Dados Offline)</p>
-                <p className="text-sm">
-                  Detectamos instabilidade de conexão com os servidores Firebase Firestore (Timeout). Você pode prosseguir normalmente ativando a Simulação Local segura para testar todas as funcionalidades instantaneamente.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                setRealFirebaseEnabled(false);
-                setBypassAuth(true);
-                setRole('admin');
-                setActiveTab('indicators');
-              }}
-              className="bg-white hover:bg-amber-50 text-amber-950 px-4 py-2.5 rounded-xl text-xs font-black font-mono tracking-wider uppercase shadow transition-all cursor-pointer whitespace-nowrap self-stretch sm:self-center text-center"
-            >
-              Ativar Simulação Local
-            </button>
-          </div>
-        )}
-
         {/* Master layout block */}
         <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
           
