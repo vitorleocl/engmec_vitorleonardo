@@ -20,6 +20,7 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [view, setView] = useState<'home' | 'acervo'>('home');
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   // Sync theme changes with DOM node
   useEffect(() => {
@@ -30,10 +31,17 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // Handle header background on scrolling
+  // Handle header background and scroll progress tracking
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
+      
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress((window.scrollY / totalHeight) * 100);
+      } else {
+        setScrollProgress(0);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -45,9 +53,17 @@ export default function App() {
       const hash = window.location.hash;
       if (hash === '#acervo') {
         setView('acervo');
+        setScrollProgress(0);
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else {
         setView('home');
+        // Small delay to allow home content page measurement updates
+        setTimeout(() => {
+          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+          if (totalHeight > 0) {
+            setScrollProgress((window.scrollY / totalHeight) * 100);
+          }
+        }, 50);
       }
     };
     handleHash();
@@ -77,6 +93,14 @@ export default function App() {
   if (view === 'acervo') {
     return (
       <div className="min-h-screen bg-[#F4F7F6] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 antialiased font-sans flex flex-col">
+        {/* Subtle Scroll Progress Bar */}
+        <div className="fixed top-0 left-0 w-full h-[3px] z-[100] pointer-events-none bg-transparent">
+          <div 
+            className="h-full bg-gradient-to-r from-[#0B2545] via-[#134074] to-[#4895EF] transition-all duration-75 ease-out"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
+
         {/* Minimalized dedicated header for the portal/acervo */}
         <header className="bg-white/90 dark:bg-slate-950/90 backdrop-blur-md shadow-md border-b border-slate-200 dark:border-slate-800 py-4.5 sticky top-0 z-40 transition-colors">
           <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -130,6 +154,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F4F7F6] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 antialiased font-sans">
       
+      {/* Subtle Scroll Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-[3px] z-[100] pointer-events-none bg-transparent">
+        <div 
+          className="h-full bg-gradient-to-r from-[#0B2545] via-[#134074] to-[#4895EF] transition-all duration-75 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       {/* Premium Header / Navigation Bar */}
       <header 
         id="navbar"

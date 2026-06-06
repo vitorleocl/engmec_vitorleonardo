@@ -4,6 +4,7 @@
  */
 
 import ScrollReveal from './ScrollReveal';
+import Typewriter from './Typewriter';
 import { ArrowRight, NotebookTabs } from 'lucide-react';
 
 export default function Hero() {
@@ -18,8 +19,19 @@ export default function Hero() {
         
         {/* Left copy column */}
         <ScrollReveal className="lg:col-span-7 flex flex-col justify-center space-y-6 md:space-y-8" delay={0.1} direction="left">
-          <h1 className="text-4xl md:text-6xl font-sans font-black text-slate-950 dark:text-white tracking-tight leading-tighter">
-            Pareceres Técnicos, <span className="bg-gradient-to-r from-[#0B2545] to-[#134074] dark:from-[#3A86C8] dark:to-[#4895EF] bg-clip-text text-transparent">Laudos e ART</span> com Rigor e Segurança.
+          <h1 className="text-4xl md:text-6xl font-sans font-black text-slate-950 dark:text-white tracking-tight leading-tighter min-h-[3.5em] md:min-h-[2.5em]">
+            Pareceres Técnicos,{' '}
+            <span className="inline-block md:inline">
+              <Typewriter words={[
+                "Laudos e ART",
+                "Planos PMOC",
+                "Projetos NR-12",
+                "Laudos de Playground",
+                "Inspeções de Frotas",
+                "Segurança de Máquinas"
+              ]} />
+            </span>{' '}
+            com Rigor e Segurança.
           </h1>
 
           <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg leading-relaxed max-w-2xl">
