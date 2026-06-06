@@ -116,7 +116,7 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-slate-400">
             <Logo variant="footer" />
             <div className="text-right text-[11px] space-y-1 font-mono">
-              <p>© {new Date().getFullYear()} VL Engenharia. Todos os direitos reservados.</p>
+              <p>© {new Date().getFullYear()} VL ENGENHARIA. Todos os direitos reservados.</p>
               <p>CREA-PE Ativo • Recife, Região Metropolitana e Interior de PE</p>
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function App() {
 
         <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] text-slate-500">
           <div>
-            © {new Date().getFullYear()} VL Engenharia. Todos os direitos reservados.
+            © {new Date().getFullYear()} VL ENGENHARIA. Todos os direitos reservados.
           </div>
           <div>
             CREA-PE Ativo • Recife, Região Metropolitana e Interior de PE

@@ -17,7 +17,7 @@ export default function About() {
 
         <div className="space-y-6 text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed text-justify md:text-center max-w-3xl mx-auto">
           <p>
-            Oferecemos consultoria técnica especializada em Pernambuco para atender à demanda por laudos de conformidade, planos de manutenção corporativa (PMOC) e segurança operacional de ativos mecânicos e térmicos.
+            Oferecemos consultoria técnica especializada em Pernambuco para atender à demanda por laudos de conformidade, Plano de Manutenção, Operação e Controle (PMOC) e segurança operacional de ativos mecânicos e térmicos.
           </p>
           <p>
             Trabalhamos em estreita parceria com locadoras de equipamentos, indústrias, condomínios e administradoras comerciais, oferecendo soluções que neutralizam riscos trabalhistas (NR-12, NR-11), asseguram responsabilidade técnica em frotas e ar-condicionado de forma ágil e descomplicada.

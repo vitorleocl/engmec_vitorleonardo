@@ -102,7 +102,7 @@ export default function Contact() {
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white text-base">Disponibilidade Operacional</h4>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Segunda a Sexta: 08:00h às 18:00h. Suporte emergencial 24h via portal associado.
+                    Agendamento para vistorias e visitas técnicas.
                   </p>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../l
 import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Plus, Trash2, CheckCircle2, Clipboard, Save, HelpCircle, Printer, Check, X, Shield, Lock, Edit2, RotateCcw, AlertTriangle, Camera, Image, Upload } from 'lucide-react';
+import Logo from '../Logo';
 
 const QUESTIONS_BY_TYPE: Record<ChecklistType, ChecklistQuestion[]> = {
   nr12: [
@@ -3279,10 +3280,9 @@ export default function ChecklistManager() {
         >
           {/* Header */}
           <div className="border-b-4 border-slate-900 pb-6 flex justify-between items-start">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-black uppercase tracking-tight font-sans">VL Engenharia</h1>
-              <p className="text-xs font-mono font-medium tracking-wide">Laudos Técnicos, Inspeções, Adequação à NR-12 e PMOC</p>
-              <p className="text-sm font-semibold">CREA-PE: 1822299490 • Recife, Pernambuco</p>
+            <div className="space-y-2">
+              <Logo variant="light" className="h-20" />
+              <p className="text-[10px] font-bold font-mono tracking-wide text-slate-500 uppercase mt-2">Registro Profissional: CREA-PE 1822299490 • Recife, Pernambuco</p>
             </div>
             <div className="text-right space-y-1 text-xs font-mono">
               <div className="font-bold">DOCUMENTO: CHECKLIST TÉCNICO</div>
@@ -3595,7 +3595,7 @@ export default function ChecklistManager() {
           </div>
 
           <div className="fixed bottom-6 right-6 text-[10px] font-mono text-slate-400 print:block hidden">
-            Parâmetros impressos via Plataforma Integrada de Laudos VL Engenharia
+            Parâmetros impressos via Plataforma Integrada de Laudos • VL ENGENHARIA
           </div>
           
           <button 
