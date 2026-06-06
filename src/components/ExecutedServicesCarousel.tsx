@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import ScrollReveal from './ScrollReveal';
 import { ChevronLeft, ChevronRight, CheckCircle, Flame, Eye, ArrowRight } from 'lucide-react';
 
 const carouselItems = [
@@ -83,22 +84,25 @@ export default function ExecutedServicesCarousel() {
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
-            Evidências Técnicas
-          </span>
-          <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
-            Serviços Executados em Destaque
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Veja as intervenções técnicas de engenharia mecânica lideradas pelo Eng. Vitor Leonardo, documentando segurança, conformidade de leis e aumento de custos operacionais.
-          </p>
-        </div>
+        <ScrollReveal delay={0.1}>
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
+              Evidências Técnicas
+            </span>
+            <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
+              Serviços Executados em Destaque
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">
+              Veja as intervenções técnicas de engenharia mecânica lideradas pelo Eng. Vitor Leonardo, documentando segurança, conformidade de leis e aumento de custos operacionais.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* Carousel Master Frame */}
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl p-6 md:p-10 relative overflow-hidden">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <ScrollReveal delay={0.2} direction="up">
+          <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl p-6 md:p-10 relative overflow-hidden">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Visual Screen Carousel Column */}
             <div className="lg:col-span-6 relative aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-950 shadow-inner group">
@@ -197,6 +201,7 @@ export default function ExecutedServicesCarousel() {
           </div>
 
         </div>
+      </ScrollReveal>
 
       </div>
     </section>

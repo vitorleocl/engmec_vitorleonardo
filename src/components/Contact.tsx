@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import ScrollReveal from './ScrollReveal';
 import { Mail, Phone, MapPin, Send, CheckCircle, Clock } from 'lucide-react';
 
 export default function Contact() {
@@ -44,7 +45,7 @@ export default function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           
           {/* Left direct contact details */}
-          <div className="lg:col-span-5 space-y-10">
+          <ScrollReveal className="lg:col-span-5 space-y-10" delay={0.1} direction="left">
             <div className="space-y-4">
               <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block font-mono">
                 Canais de Atendimento
@@ -108,10 +109,10 @@ export default function Contact() {
               </div>
 
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Right form container */}
-          <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 shadow-xl relative">
+          <ScrollReveal className="lg:col-span-7 bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 shadow-xl relative" delay={0.2} direction="right">
             {submitted ? (
               <div id="contato-sucesso-container" className="py-12 text-center space-y-4 animate-fade-in">
                 <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-800/20 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-6">
@@ -247,7 +248,7 @@ export default function Contact() {
                 </button>
               </form>
             )}
-          </div>
+          </ScrollReveal>
 
         </div>
 

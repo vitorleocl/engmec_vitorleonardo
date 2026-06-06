@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import ScrollReveal from './ScrollReveal';
 import { 
   ShieldAlert, 
   Construction, 
@@ -180,46 +181,54 @@ export default function Services() {
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
-            Especialidades Técnicas
-          </span>
-          <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
-            Nossos Serviços de Engenharia
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Atuação técnica especializada orientada à segurança legal, aumento de disponibilidade, conformidade normativa e alta confiabilidade mecânica.
-          </p>
-        </div>
+        <ScrollReveal delay={0.1}>
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-sm font-semibold tracking-widest text-[#0B2545] dark:text-[#134074] uppercase block mb-3 font-mono">
+              Especialidades Técnicas
+            </span>
+            <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
+              Nossos Serviços de Engenharia
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">
+              Atuação técnica especializada orientada à segurança legal, aumento de disponibilidade, conformidade normativa e alta confiabilidade mecânica.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {servicesList.map((service) => {
+          {servicesList.map((service, index) => {
             const IconComponent = service.icon;
             return (
-              <div
-                key={service.id}
-                id={`card-servico-${service.id}`}
-                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-6 flex flex-col justify-between hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group cursor-pointer relative"
-                onClick={() => setSelectedService(service)}
+              <ScrollReveal 
+                key={service.id} 
+                delay={(index % 4) * 0.1} 
+                direction="up"
+                className="h-full"
               >
-                <div>
-                  <div className="w-12 h-12 rounded-xl bg-[#134074]/10 text-[#134074] dark:bg-[#134074]/20 dark:text-[#8DA9C4] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <IconComponent className="w-6 h-6" />
+                <div
+                  id={`card-servico-${service.id}`}
+                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-6 flex flex-col justify-between hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] active:scale-[0.99] group cursor-pointer relative h-full"
+                  onClick={() => setSelectedService(service)}
+                >
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-[#134074]/10 text-[#134074] dark:bg-[#134074]/20 dark:text-[#8DA9C4] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-950 dark:text-white mb-3 tracking-tight group-hover:text-[#134074] dark:group-hover:text-[#4895EF] transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
+                      {service.shortDesc}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-950 dark:text-white mb-3 tracking-tight group-hover:text-[#134074] dark:group-hover:text-[#4895EF] transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                    {service.shortDesc}
-                  </p>
-                </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#134074] dark:text-[#4895EF] group-hover:gap-3 transition-all">
-                  <span>Saber mais</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#134074] dark:text-[#4895EF] group-hover:gap-3 transition-all">
+                    <span>Saber mais</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>

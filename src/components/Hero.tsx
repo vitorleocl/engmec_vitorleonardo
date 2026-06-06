@@ -3,26 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ShieldCheck, ArrowRight, NotebookTabs, MessageSquareCode } from 'lucide-react';
+import ScrollReveal from './ScrollReveal';
+import { ArrowRight, NotebookTabs } from 'lucide-react';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center bg-slate-50 dark:bg-slate-900 overflow-hidden pt-20 transition-colors duration-300">
+    <section className="relative min-h-[80vh] flex items-center bg-slate-50 dark:bg-slate-900 overflow-hidden pt-12 transition-colors duration-300">
       
       {/* Abstract Design Elements */}
       <div className="absolute top-[20%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-blue-700/5 dark:bg-blue-500/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-slate-400/10 dark:bg-slate-700/10 blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10 py-16">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10 pt-4 pb-12">
         
         {/* Left copy column */}
-        <div className="lg:col-span-7 flex flex-col justify-center space-y-6 md:space-y-8">
-          
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0B2545]/10 text-[#0B2545] dark:bg-[#134074]/30 dark:text-[#4895EF] text-xs font-mono font-medium max-w-fit align-middle">
-            <ShieldCheck className="w-4 h-4 text-[#134074] dark:text-[#4895EF]" />
-            <span>Engenheiro Mecânico Certificado • CREA-PE 1822299490</span>
-          </div>
-
+        <ScrollReveal className="lg:col-span-7 flex flex-col justify-center space-y-6 md:space-y-8" delay={0.1} direction="left">
           <h1 className="text-4xl md:text-6xl font-sans font-black text-slate-950 dark:text-white tracking-tight leading-tighter">
             Pareceres Técnicos, <span className="bg-gradient-to-r from-[#0B2545] to-[#134074] dark:from-[#3A86C8] dark:to-[#4895EF] bg-clip-text text-transparent">Laudos e ART</span> com Rigor e Segurança.
           </h1>
@@ -64,11 +59,10 @@ export default function Hero() {
               <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest font-semibold font-sans">Anotação CREA</span>
             </div>
           </div>
-
-        </div>
+        </ScrollReveal>
 
         {/* Right column with prominent engineer portrait */}
-        <div className="lg:col-span-5 flex flex-col justify-center">
+        <ScrollReveal className="lg:col-span-5 flex flex-col justify-center" delay={0.2} direction="right">
           <div className="relative group w-full max-w-sm mx-auto lg:max-w-none">
             
             {/* Background design glow */}
@@ -141,8 +135,7 @@ export default function Hero() {
             </div>
 
           </div>
-        </div>
-
+        </ScrollReveal>
       </div>
     </section>
   );
