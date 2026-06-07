@@ -9,49 +9,53 @@ import { ChevronLeft, ChevronRight, CheckCircle, Flame, Eye, ArrowRight } from '
 
 const carouselItems = [
   {
-    title: 'Adequação à NR-12 em Prensa Hidráulica',
-    subtitle: 'Parceiro Industrial • Cabo de Santo Agostinho, PE',
-    image: '/src/assets/images/adequacao_nr12_1780250819354.png',
+    title: 'Adequação à NR-12 Torno Universal',
+    subtitle: 'Indústrias, Oficinas, Serviços em Geral',
+    image: '/src/assets/images/nr12.jpg',
     description: 'Apreciação de riscos de prensas, blindagem metálica contra acesso a partes móveis, chaves de intertravamento RFID categoria 4 e certificação legal com emissão de ART via CREA-PE.',
     highlights: ['Enquadramento completo na NR-12', 'Dispositivos de segurança à prova de falhas', 'Retorno operacional legalizado imediato'],
     category: 'Segurança NR-12'
   },
   {
-    title: 'Laudo de Estabilidade de Escavadeira Hidráulica',
-    subtitle: 'Indústria Mineral de Calcário • Caruaru, PE',
-    image: '/src/assets/images/maquinas_pesadas_1780250836786.png',
-    description: 'Vistoria minuciosa de soldas estruturais, monitoramento de flexão por ultrassom, verificação de cilindros sob pressão hidrostática extrema e emissão de laudo com validade jurídica.',
+    title: 'Laudo de Não-Cormidade Retroescavadeira',
+    subtitle: 'Locadoras, Mineradoras, Construtoras em Geral',
+    image: '/src/assets/images/hidraulico.jpg',
+    description: 'Identificação de vazamentos hidráulicos, que comprometem o funcionamento e atestado operacional de máquinas pesadas.',
     highlights: ['Fadiga mecânica monitorada', 'Análise de integridade de chassi (ROPS)', 'Inspeção rápida em pátio operacional'],
     category: 'Máquinas Pesadas'
   },
   {
-    title: 'Certificação de Içamento Caminhão Munck de 12t',
-    subtitle: 'Complexo Industrial Portuário de Suape, PE',
-    image: '/src/assets/images/munck_guindaste_1780250856059.png',
-    description: 'Teste de carga controlado, ensaio de estanqueidade em válvulas tipo hold-valve, checagem operacional do torque do rolamento de giro e emissão de laudo técnico para liberação em canteiro.',
-    highlights: ['Testado sob carga nominal de segurança', 'Válvulas críticas calibradas', 'Emissão rápida em 24 horas'],
+    title: 'Identificação de Não-Conformidades: Caminhão Munck',
+    subtitle: 'Locadoras, Construtoras',
+    image: '/src/assets/images/munck.png',
+    description: 'Adequação dos adesivos de sinalização e operação, que a sua falta põem em risco a vida do operador e de terceiros, conforme NR-11 e NR-12.',
+    highlights: [
+      'Laudos e adequações necessárias para uso',
+      'Equipamento vistoriado periodicamente',
+      'Orientações para uso'
+    ],
     category: 'Içamento / Munck'
   },
   {
     title: 'Vistoria e Regularização de Playground de Madeira',
-    subtitle: 'Condomínio Residencial Parque Verde • Recife, PE',
-    image: '/src/assets/images/playground_vistoria_1780250875380.png',
+    subtitle: 'Condomínios, Restaurantes, Parques de Diversões',
+    image: '/src/assets/images/playground.jpg',
     description: 'Mapeamento dimensional preventivo em brinquedos infantis sob a norma ABNT NBR 16071. Detecção de cantos vivos, risco de aprisionamento e integridade de cabos/fixação.',
     highlights: ['Conformidade total ABNT NBR 16071', 'Ambiente infantil 100% livre de acidentes', 'Relatório gráfico ilustrado enviado ao síndico'],
     category: 'Playgrounds'
   },
   {
     title: 'Gerenciamento do PMOC e Qualidade de Ar Semestral',
-    subtitle: 'Complexo Empresarial Ilha do Leite • Recife, PE',
-    image: '/src/assets/images/pmoc_climatizacao_1780250892380.png',
-    description: 'Implementação global de cronograma de higienização de dutos, substituição contínua de barreiras de ar-filtragem, controle biológico-químico da água sanitária.',
+    subtitle: 'Restauranes, Hospitais, Sistemas HVAC e Residenciais',
+    image: '/src/assets/images/pmoc.webp',
+    description: 'Realização de inspeções, manutenções preventivas e corretivas, limpeza, monitoramento e emissão de relatórios técnicos para garantir a qualidade do ar interior, a eficiência dos sistemas de climatização e a conformidade com a legislação vigente.',
     highlights: ['Emissão integral Lei Federal 13.589/2018', 'Prevenção de riscos respiratórios (ANVISA)', 'Ficha cadastral de climatizadores atualizada'],
     category: 'PMOC Climatização'
   },
   {
     title: 'Laudo de Reclassificação para Média/Baixa Monta',
-    subtitle: 'Seguradora Nordeste Autopeças • DETRAN-PE',
-    image: '/src/assets/images/reclassificacao_monta_1780250911530.png',
+    subtitle: 'Locadoras, Seguradoras, Frotas de Empresas em Geral',
+    image: '/src/assets/images/monta.avif',
     description: 'Dossiê veicular analítico de conformidade mecânica de longarinas pós-colisão, aferição eletrônica de suspensão ativa, laudo estrutural aceito formalmente pelo DETRAN.',
     highlights: ['Redução drástica em custos de sinistros', 'Dossiê dimensional chancelado por ART', 'Desimpedimento rápido de restrições de trânsito'],
     category: 'Regularização Veicular'
@@ -122,7 +126,7 @@ export default function ExecutedServicesCarousel() {
 
               {/* Detail action trigger inside photo */}
               <div className="absolute bottom-4 left-4 right-4 text-white p-2">
-                <span className="text-[10px] font-mono tracking-widest text-[#4895EF] uppercase block font-semibold">Caso Real de Sucesso</span>
+                <span className="text-[10px] font-mono tracking-widest text-[#4895EF] uppercase block font-semibold">Nossos Clientes</span>
                 <p className="text-sm font-semibold truncate text-white/95">{activeItem.subtitle}</p>
               </div>
             </div>
