@@ -7,11 +7,18 @@ import { useState, useEffect } from 'react';
 import ScrollReveal from './ScrollReveal';
 import { ChevronLeft, ChevronRight, CheckCircle, Flame, Eye, ArrowRight } from 'lucide-react';
 
+import nr12Img from '../assets/images/nr12.jpg';
+import hidraulicoImg from '../assets/images/hidraulico.jpg';
+import munckImg from '../assets/images/munck.png';
+import playgroundImg from '../assets/images/playground.jpg';
+import pmocImg from '../assets/images/pmoc.webp';
+import montaImg from '../assets/images/monta.avif';
+
 const carouselItems = [
   {
     title: 'Adequação à NR-12 Torno Universal',
     subtitle: 'Indústrias, Oficinas, Serviços em Geral',
-    image: '/src/assets/images/nr12.jpg',
+    image: nr12Img,
     description: 'Apreciação de riscos de prensas, blindagem metálica contra acesso a partes móveis, chaves de intertravamento RFID categoria 4 e certificação legal com emissão de ART via CREA-PE.',
     highlights: ['Enquadramento completo na NR-12', 'Dispositivos de segurança à prova de falhas', 'Retorno operacional legalizado imediato'],
     category: 'Segurança NR-12'
@@ -19,7 +26,7 @@ const carouselItems = [
   {
     title: 'Laudo de Não-Cormidade Retroescavadeira',
     subtitle: 'Locadoras, Mineradoras, Construtoras em Geral',
-    image: '/src/assets/images/hidraulico.jpg',
+    image: hidraulicoImg,
     description: 'Identificação de vazamentos hidráulicos, que comprometem o funcionamento e atestado operacional de máquinas pesadas.',
     highlights: ['Fadiga mecânica monitorada', 'Análise de integridade de chassi (ROPS)', 'Inspeção rápida em pátio operacional'],
     category: 'Máquinas Pesadas'
@@ -27,7 +34,7 @@ const carouselItems = [
   {
     title: 'Identificação de Não-Conformidades: Caminhão Munck',
     subtitle: 'Locadoras, Construtoras',
-    image: '/src/assets/images/munck.png',
+    image: munckImg,
     description: 'Adequação dos adesivos de sinalização e operação, que a sua falta põem em risco a vida do operador e de terceiros, conforme NR-11 e NR-12.',
     highlights: [
       'Laudos e adequações necessárias para uso',
@@ -39,7 +46,7 @@ const carouselItems = [
   {
     title: 'Vistoria e Regularização de Playground de Madeira',
     subtitle: 'Condomínios, Restaurantes, Parques de Diversões',
-    image: '/src/assets/images/playground.jpg',
+    image: playgroundImg,
     description: 'Mapeamento dimensional preventivo em brinquedos infantis sob a norma ABNT NBR 16071. Detecção de cantos vivos, risco de aprisionamento e integridade de cabos/fixação.',
     highlights: ['Conformidade total ABNT NBR 16071', 'Ambiente infantil 100% livre de acidentes', 'Relatório gráfico ilustrado enviado ao síndico'],
     category: 'Playgrounds'
@@ -47,7 +54,7 @@ const carouselItems = [
   {
     title: 'Gerenciamento do PMOC e Qualidade de Ar Semestral',
     subtitle: 'Restauranes, Hospitais, Sistemas HVAC e Residenciais',
-    image: '/src/assets/images/pmoc.webp',
+    image: pmocImg,
     description: 'Realização de inspeções, manutenções preventivas e corretivas, limpeza, monitoramento e emissão de relatórios técnicos para garantir a qualidade do ar interior, a eficiência dos sistemas de climatização e a conformidade com a legislação vigente.',
     highlights: ['Emissão integral Lei Federal 13.589/2018', 'Prevenção de riscos respiratórios (ANVISA)', 'Ficha cadastral de climatizadores atualizada'],
     category: 'PMOC Climatização'
@@ -55,7 +62,7 @@ const carouselItems = [
   {
     title: 'Laudo de Reclassificação para Média/Baixa Monta',
     subtitle: 'Locadoras, Seguradoras, Frotas de Empresas em Geral',
-    image: '/src/assets/images/monta.avif',
+    image: montaImg,
     description: 'Dossiê veicular analítico de conformidade mecânica de longarinas pós-colisão, aferição eletrônica de suspensão ativa, laudo estrutural aceito formalmente pelo DETRAN.',
     highlights: ['Redução drástica em custos de sinistros', 'Dossiê dimensional chancelado por ART', 'Desimpedimento rápido de restrições de trânsito'],
     category: 'Regularização Veicular'
