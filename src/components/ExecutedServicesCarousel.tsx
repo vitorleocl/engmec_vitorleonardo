@@ -90,10 +90,10 @@ export default function ExecutedServicesCarousel() {
               Evidências Técnicas
             </span>
             <h2 className="text-3xl md:text-5xl font-sans font-bold text-slate-950 dark:text-white tracking-tight leading-none mb-6">
-              Serviços Executados em Destaque
+              Detalhamento de Serviços
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Veja as intervenções técnicas de engenharia mecânica lideradas pelo Eng. Vitor Leonardo, documentando segurança, conformidade de leis e aumento de custos operacionais.
+              Detalhamento das ativididades realizadas em conformidade com as leias e normas regulamentadoras.
             </p>
           </div>
         </ScrollReveal>

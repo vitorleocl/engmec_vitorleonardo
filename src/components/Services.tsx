@@ -75,9 +75,9 @@ export const servicesList: ServiceItem[] = [
     title: 'Inspeções em Caminhões Munck e Guindastes',
     shortDesc: 'Inspeções periódicas preventivas, avaliação estrutural, testes de carga hidráulicos e laudos de içamento.',
     images: [
-      '/src/assets/images/munck_guindaste_1780250856059.png',
-      '/src/assets/images/maquinas_pesadas_1780250836786.png',
-      '/src/assets/images/adequacao_nr12_1780250819354.png'
+      '/src/assets/images/munck_evidencia_1.png',
+      '/src/assets/images/munck_evidencia_2.png',
+      '/src/assets/images/munck_evidencia_3.png'
     ],
     details: {
       overview: 'Verificação periódica preventiva essencial de caminhões com braço hidráulico articulado (Munck) e guindastes telescópicos para assegurar içamentos seguros contra riscos de fadiga e tombamento.',
@@ -330,36 +330,6 @@ export default function Services() {
                     ))}
                   </div>
                 </div>
-
-                {/* Carousel/Scrollable images inside the Service detail popup */}
-                {selectedService.images && selectedService.images.length > 0 && (
-                  <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm tracking-wider uppercase font-mono text-[#134074] dark:text-[#4895EF] font-bold">
-                        Imagens & Evidências de Inspeção (Arraste para o lado)
-                      </h4>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                        Role para a direita →
-                      </span>
-                    </div>
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 snap-x">
-                      {selectedService.images.map((img, idx) => (
-                        <div key={idx} className="min-w-[280px] md:min-w-[340px] aspect-[16/10] rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-900 snap-align-start shrink-0 relative group shadow-sm">
-                          <img
-                            src={img}
-                            alt={`Evidência de ${selectedService.title} ${idx + 1}`}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                          <div className="absolute bottom-3 left-3 bg-[#0B2545]/90 backdrop-blur-md text-white text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-md tracking-wider">
-                            Evidência #{idx + 1}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-4 items-center justify-between">
                   <div className="text-slate-500 text-xs dark:text-slate-400 font-mono text-center md:text-left">
