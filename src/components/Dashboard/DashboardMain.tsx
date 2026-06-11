@@ -68,6 +68,9 @@ export default function DashboardMain() {
 
     const unsubscribeUnreachable = onFirebaseUnreachableChange((unreachable) => {
       setFirebaseUnreachable(unreachable);
+      if (unreachable) {
+        setAuthLoading(false);
+      }
     });
 
     if (!isRealFirebase) {

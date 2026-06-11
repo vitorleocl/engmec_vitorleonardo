@@ -87,8 +87,15 @@ if (getApps().length === 0) {
 
 export const auth = getAuth(app);
 
-// Initialize Firestore with standard getFirestore to prevent iframe sandbox database hangs
-export let db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
+// Initialize Firestore with experimentalForceLongPolling to bypass websocket blocks/iframe sandbox connection hangs
+export let db;
+try {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+} catch (error) {
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
+}
 
 // Test connection strictly as requested by Firebase Integration Guidelines, enhanced with low timeout
 async function testConnection() {

@@ -3,14 +3,42 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useRef, useEffect } from 'react';
 import ScrollReveal from './ScrollReveal';
 import Typewriter from './Typewriter';
 import { ArrowRight, NotebookTabs } from 'lucide-react';
 
 export default function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch((err) => {
+        console.log("Autoplay blocked or video error:", err);
+      });
+    }
+  }, []);
+
   return (
     <section id="inicio" className="relative min-h-[80vh] flex items-center bg-slate-50 dark:bg-slate-900 overflow-hidden pt-12 transition-colors duration-300 scroll-mt-16">
       
+      {/* Background Video Layer */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover opacity-35 dark:opacity-25 blur-[3px] scale-103 transition-opacity duration-1000"
+        >
+          <source src="/video.mp4" type="video/mp4" />
+        </video>
+        {/* Soft atmospheric gradient masks for elegant blending */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/40 via-transparent to-slate-50 dark:from-slate-900/45 dark:to-slate-900 pointer-events-none" />
+        <div className="absolute inset-0 bg-slate-50/5 dark:bg-[#0B2545]/10 mix-blend-color pointer-events-none" />
+      </div>
+
       {/* Abstract Design Elements */}
       <div className="absolute top-[20%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-blue-700/5 dark:bg-blue-500/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-slate-400/10 dark:bg-slate-700/10 blur-3xl pointer-events-none" />
