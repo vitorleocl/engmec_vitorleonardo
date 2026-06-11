@@ -14,6 +14,7 @@ import Contact from './components/Contact';
 import DashboardMain from './components/Dashboard/DashboardMain';
 import WhatsAppButton from './components/WhatsAppButton';
 import Logo from './components/Logo';
+import ScrollReveal from './components/ScrollReveal';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -258,11 +259,21 @@ export default function App() {
 
       {/* Full Core sections stack */}
       <main className="pt-20">
-        <Hero />
-        <Services />
-        <About />
-        <ExecutedServicesCarousel />
-        <Contact />
+        <ScrollReveal direction="subtle-up" duration={0.8} delay={0.05}>
+          <Hero />
+        </ScrollReveal>
+        <ScrollReveal direction="subtle-up" duration={1.0}>
+          <Services />
+        </ScrollReveal>
+        <ScrollReveal direction="subtle-up" duration={1.0}>
+          <About />
+        </ScrollReveal>
+        <ScrollReveal direction="subtle-up" duration={1.0}>
+          <ExecutedServicesCarousel />
+        </ScrollReveal>
+        <ScrollReveal direction="subtle-up" duration={1.0}>
+          <Contact />
+        </ScrollReveal>
       </main>
 
       {/* Professional Footer conforming with NR standards and LGPD disclosures */}

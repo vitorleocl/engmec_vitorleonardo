@@ -9,7 +9,7 @@ import { ArrowRight, NotebookTabs } from 'lucide-react';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[80vh] flex items-center bg-slate-50 dark:bg-slate-900 overflow-hidden pt-12 transition-colors duration-300">
+    <section id="inicio" className="relative min-h-[80vh] flex items-center bg-slate-50 dark:bg-slate-900 overflow-hidden pt-12 transition-colors duration-300 scroll-mt-16">
       
       {/* Abstract Design Elements */}
       <div className="absolute top-[20%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-blue-700/5 dark:bg-blue-500/5 blur-3xl pointer-events-none" />

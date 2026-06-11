@@ -9,7 +9,7 @@ import { ReactNode } from 'react';
 interface ScrollRevealProps {
   children: ReactNode;
   delay?: number;
-  direction?: 'up' | 'down' | 'left' | 'right' | 'none';
+  direction?: 'up' | 'subtle-up' | 'down' | 'left' | 'right' | 'none';
   duration?: number;
   className?: string;
   key?: string | number;
@@ -24,6 +24,7 @@ export default function ScrollReveal({
 }: ScrollRevealProps) {
   const directions = {
     up: { y: 50, x: 0 },
+    'subtle-up': { y: 20, x: 0 },
     down: { y: -50, x: 0 },
     left: { x: 50, y: 0 },
     right: { x: -50, y: 0 },
