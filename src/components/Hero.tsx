@@ -30,8 +30,11 @@ export default function Hero() {
           loop
           muted
           playsInline
+          src="https://vitorleonardo-engmec.netlify.app/hero-teaser.mp4"
           className="w-full h-full object-cover opacity-35 dark:opacity-25 blur-[3px] scale-103 transition-opacity duration-1000"
         >
+          <source src="https://vitorleonardo-engmec.netlify.app/hero-teaser.mp4" type="video/mp4" />
+          <source src="/hero-teaser.mp4" type="video/mp4" />
           <source src="/video.mp4" type="video/mp4" />
         </video>
         {/* Soft atmospheric gradient masks for elegant blending */}

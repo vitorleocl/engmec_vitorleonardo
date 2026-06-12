@@ -105,7 +105,7 @@ async function testConnection() {
   }
   
   const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('timeout')), 3500)
+    setTimeout(() => reject(new Error('timeout')), 4500)
   );
 
   try {
@@ -114,9 +114,14 @@ async function testConnection() {
       timeoutPromise
     ]);
     setFirebaseUnreachable(false);
-  } catch (error) {
-    console.warn("Please check your Firebase configuration: Firestore backend is currently unreachable.");
-    setFirebaseUnreachable(true);
+  } catch (error: any) {
+    // If the server answered 'permission-denied', it is reachable! That is a success confirmation of server response.
+    if (error && (error.code === 'permission-denied' || error.message?.includes('permission-denied') || error.message?.includes('PERMISSION_DENIED'))) {
+      setFirebaseUnreachable(false);
+    } else {
+      console.warn("Please check your Firebase configuration: Firestore backend is currently unreachable. Error details:", error);
+      setFirebaseUnreachable(true);
+    }
   }
 }
 testConnection();
