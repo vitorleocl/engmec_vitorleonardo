@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Shield, Sun, Moon, KeyRound, ArrowUp, Menu, X, ArrowLeft } from 'lucide-react';
+import { Shield, Sun, Moon, KeyRound, ArrowUp, Menu, X, ArrowLeft, Instagram } from 'lucide-react';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -140,6 +140,15 @@ export default function App() {
         <footer className="bg-[#05162E] text-slate-300 py-10 border-t-2 border-[#134074] text-center font-mono text-xs mt-auto">
           <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-slate-400">
             <Logo variant="footer" />
+            <a 
+              href="https://www.instagram.com/vlengenharia.mec" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-pink-500 transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/10"
+            >
+              <Instagram className="w-4 h-4 text-pink-500" />
+              <span>@vlengenharia.mec</span>
+            </a>
             <div className="text-right text-[11px] space-y-1 font-mono">
               <p>© {new Date().getFullYear()} VL ENGENHARIA. Todos os direitos reservados.</p>
               <p>CREA-PE Ativo • Recife, Região Metropolitana e Interior de PE</p>
@@ -288,6 +297,17 @@ export default function App() {
             <p className="text-[10px] font-mono text-[#4895EF] font-semibold">
               Rigor de Engenharia e Agilidade Operacional.
             </p>
+            <div className="pt-1">
+              <a 
+                href="https://www.instagram.com/vlengenharia.mec" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 text-xs font-mono text-slate-300 hover:text-pink-400 transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 shadow-sm"
+              >
+                <Instagram className="w-4 h-4 text-pink-400" />
+                <span>@vlengenharia.mec</span>
+              </a>
+            </div>
           </div>
 
           <div className="md:col-span-4 space-y-3 font-mono text-xs">

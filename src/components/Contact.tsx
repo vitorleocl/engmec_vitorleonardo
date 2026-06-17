@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import ScrollReveal from './ScrollReveal';
-import { Mail, Phone, MapPin, Send, CheckCircle, Clock } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, Clock, Instagram } from 'lucide-react';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -80,6 +80,18 @@ export default function Contact() {
                   <h4 className="font-bold text-slate-900 dark:text-white text-base">Contato WhatsApp</h4>
                   <a href="https://wa.me/5581984442592" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 dark:text-slate-400 hover:text-[#134074] transition-colors font-mono">
                     (81) 98444-2592
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-5">
+                <span className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-pink-500 rounded-2xl block shrink-0">
+                  <Instagram className="w-6 h-6" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-base">Siga no Instagram</h4>
+                  <a href="https://www.instagram.com/vlengenharia.mec" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 dark:text-slate-400 hover:text-pink-500 transition-colors font-mono">
+                    @vlengenharia.mec
                   </a>
                 </div>
               </div>
