@@ -1425,13 +1425,27 @@ const CHECKLIST_GROUPS = [
   }
 ];
 
-export default function ChecklistManager() {
-  const [checklists, setChecklists] = useState<ChecklistData[]>([]);
-  const [clients, setClients] = useState<ClientData[]>([]);
-  const [equipments, setEquipments] = useState<EquipmentData[]>([]);
+interface ChecklistManagerProps {
+  checklists?: ChecklistData[];
+  clients?: ClientData[];
+  equipments?: EquipmentData[];
+  loading?: boolean;
+  onDataChanged?: () => void;
+}
+
+export default function ChecklistManager({
+  checklists: propChecklists,
+  clients: propClients,
+  equipments: propEquipments,
+  loading: propLoading,
+  onDataChanged
+}: ChecklistManagerProps = {}) {
+  const [checklists, setChecklists] = useState<ChecklistData[]>(propChecklists || []);
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
+  const [equipments, setEquipments] = useState<EquipmentData[]>(propEquipments || []);
   
   const [modalOpen, setModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [printingChecklist, setPrintingChecklist] = useState<ChecklistData | null>(null);
@@ -1690,9 +1704,21 @@ export default function ChecklistManager() {
   };
 
   useEffect(() => {
-    loadData();
+    if (propChecklists) setChecklists(propChecklists);
+    if (propClients) {
+      setClients(propClients);
+      if (propClients.length > 0 && !selectedClient) setSelectedClient(propClients[0].id);
+    }
+    if (propEquipments) setEquipments(propEquipments);
+    if (propLoading !== undefined) setLoading(propLoading);
+  }, [propChecklists, propClients, propEquipments, propLoading]);
+
+  useEffect(() => {
+    if (!propChecklists) {
+      loadData();
+    }
     loadCustomQuestions();
-  }, []);
+  }, [propChecklists]);
 
   const loadData = async () => {
     setLoading(true);
@@ -1723,6 +1749,7 @@ export default function ChecklistManager() {
         if (mockClis.length > 0) setSelectedClient(mockClis[0].id);
         setEquipments(mockDb.getEquipments());
       }
+      onDataChanged?.();
     } catch (e) {
       if (isRealFirebase) {
         handleFirestoreError(e, OperationType.LIST, 'checklists');

@@ -12,23 +12,48 @@ import { FileText, Printer, CheckCircle, Clock, AlertTriangle, ShieldAlert, File
 
 interface ClientPortalProps {
   associatedClientId?: string; // Loaded from the user's Auth profile
+  clients?: ClientData[];
+  laudos?: LaudoData[];
+  checklists?: ChecklistData[];
+  equipments?: EquipmentData[];
+  loading?: boolean;
 }
 
-export default function ClientPortal({ associatedClientId }: ClientPortalProps) {
+export default function ClientPortal({
+  associatedClientId,
+  clients: propClients,
+  laudos: propLaudos,
+  checklists: propChecklists,
+  equipments: propEquipments,
+  loading: propLoading
+}: ClientPortalProps) {
   const [laudos, setLaudos] = useState<LaudoData[]>([]);
   const [checklists, setChecklists] = useState<ChecklistData[]>([]);
   const [equipments, setEquipments] = useState<EquipmentData[]>([]);
   const [clientProfile, setClientProfile] = useState<ClientData | null>(null);
   
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
   const [activeTab, setActiveTab] = useState<'laudos' | 'checklists' | 'equipments'>('laudos');
 
   // If no clientId is assigned, default to the first mock client 'c1' so they can see data during local preview immediately!
   const targetId = associatedClientId || 'c1';
 
   useEffect(() => {
-    loadPortalData();
-  }, [targetId]);
+    if (propLaudos && propChecklists && propEquipments && propClients) {
+      setLaudos(propLaudos.filter(l => l.clientId === targetId));
+      setChecklists(propChecklists.filter(c => c.clientId === targetId));
+      setEquipments(propEquipments.filter(e => e.clientId === targetId));
+      const profile = propClients.find(c => c.id === targetId) || null;
+      setClientProfile(profile);
+      if (propLoading !== undefined) setLoading(propLoading);
+    }
+  }, [targetId, propLaudos, propChecklists, propEquipments, propClients, propLoading]);
+
+  useEffect(() => {
+    if (!propLaudos) {
+      loadPortalData();
+    }
+  }, [targetId, propLaudos]);
 
   const loadPortalData = async () => {
     setLoading(true);

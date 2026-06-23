@@ -11,16 +11,40 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Users, FileCheck, FileSignature, Activity, CalendarDays, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
-export default function AdminDashboard() {
-  const [clients, setClients] = useState<ClientData[]>([]);
-  const [laudos, setLaudos] = useState<LaudoData[]>([]);
-  const [checklists, setChecklists] = useState<ChecklistData[]>([]);
-  const [equipments, setEquipments] = useState<EquipmentData[]>([]);
-  const [loading, setLoading] = useState(false);
+interface AdminDashboardProps {
+  clients?: ClientData[];
+  laudos?: LaudoData[];
+  checklists?: ChecklistData[];
+  equipments?: EquipmentData[];
+  loading?: boolean;
+}
+
+export default function AdminDashboard({
+  clients: propClients,
+  laudos: propLaudos,
+  checklists: propChecklists,
+  equipments: propEquipments,
+  loading: propLoading
+}: AdminDashboardProps = {}) {
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
+  const [laudos, setLaudos] = useState<LaudoData[]>(propLaudos || []);
+  const [checklists, setChecklists] = useState<ChecklistData[]>(propChecklists || []);
+  const [equipments, setEquipments] = useState<EquipmentData[]>(propEquipments || []);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
 
   useEffect(() => {
-    loadDashboardMetrics();
-  }, []);
+    if (propClients) setClients(propClients);
+    if (propLaudos) setLaudos(propLaudos);
+    if (propChecklists) setChecklists(propChecklists);
+    if (propEquipments) setEquipments(propEquipments);
+    if (propLoading !== undefined) setLoading(propLoading);
+  }, [propClients, propLaudos, propChecklists, propEquipments, propLoading]);
+
+  useEffect(() => {
+    if (!propClients) {
+      loadDashboardMetrics();
+    }
+  }, [propClients]);
 
   const loadDashboardMetrics = async () => {
     setLoading(true);

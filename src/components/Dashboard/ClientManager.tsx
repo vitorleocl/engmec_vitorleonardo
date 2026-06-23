@@ -10,19 +10,36 @@ import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Plus, Edit2, Trash2, Search, X, CheckSquare, Save } from 'lucide-react';
 
-export default function ClientManager() {
-  const [clients, setClients] = useState<ClientData[]>([]);
+interface ClientManagerProps {
+  clients?: ClientData[];
+  loading?: boolean;
+  onDataChanged?: () => void;
+}
+
+export default function ClientManager({
+  clients: propClients,
+  loading: propLoading,
+  onDataChanged
+}: ClientManagerProps = {}) {
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentClient, setCurrentClient] = useState<Partial<ClientData> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    loadClients();
-  }, []);
+    if (propClients) setClients(propClients);
+    if (propLoading !== undefined) setLoading(propLoading);
+  }, [propClients, propLoading]);
+
+  useEffect(() => {
+    if (!propClients) {
+      loadClients();
+    }
+  }, [propClients]);
 
   const loadClients = async () => {
     setLoading(true);
@@ -37,6 +54,7 @@ export default function ClientManager() {
       } else {
         setClients(mockDb.getClients());
       }
+      onDataChanged?.();
     } catch (e) {
       if (isRealFirebase) {
         handleFirestoreError(e, OperationType.LIST, 'clients');

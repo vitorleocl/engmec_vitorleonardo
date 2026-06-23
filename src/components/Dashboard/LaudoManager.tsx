@@ -11,10 +11,24 @@ import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye, Shield, Clipboard, Printer } from 'lucide-react';
 import PMOCEditor from './PMOCEditor';
 
-export default function LaudoManager() {
-  const [laudos, setLaudos] = useState<LaudoData[]>([]);
-  const [clients, setClients] = useState<ClientData[]>([]);
-  const [equipments, setEquipments] = useState<EquipmentData[]>([]);
+interface LaudoManagerProps {
+  laudos?: LaudoData[];
+  clients?: ClientData[];
+  equipments?: EquipmentData[];
+  loading?: boolean;
+  onDataChanged?: () => void;
+}
+
+export default function LaudoManager({
+  laudos: propLaudos,
+  clients: propClients,
+  equipments: propEquipments,
+  loading: propLoading,
+  onDataChanged
+}: LaudoManagerProps = {}) {
+  const [laudos, setLaudos] = useState<LaudoData[]>(propLaudos || []);
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
+  const [equipments, setEquipments] = useState<EquipmentData[]>(propEquipments || []);
   
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -140,15 +154,24 @@ export default function LaudoManager() {
     }
   };
   
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
   const [uploading, setUploading] = useState<string | null>(null); // 'pdf' | 'image' | 'video' | null
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (propLaudos) setLaudos(propLaudos);
+    if (propClients) setClients(propClients);
+    if (propEquipments) setEquipments(propEquipments);
+    if (propLoading !== undefined) setLoading(propLoading);
+  }, [propLaudos, propClients, propEquipments, propLoading]);
+
+  useEffect(() => {
+    if (!propLaudos) {
+      loadData();
+    }
+  }, [propLaudos]);
 
   const loadData = async () => {
     setLoading(true);
@@ -198,6 +221,7 @@ export default function LaudoManager() {
           } catch (_) {}
         }
       }
+      onDataChanged?.();
     } catch (e) {
       if (isRealFirebase) {
         handleFirestoreError(e, OperationType.LIST, 'laudos');

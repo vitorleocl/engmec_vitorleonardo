@@ -9,9 +9,13 @@ import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../l
 import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { KeyRound, Shield, Search, X, Save, Edit2, Trash2, CheckCircle, RefreshCw } from 'lucide-react';
 
-export default function UserManager() {
+interface UserManagerProps {
+  clients?: ClientData[];
+}
+
+export default function UserManager({ clients: propClients }: UserManagerProps = {}) {
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [clients, setClients] = useState<ClientData[]>([]);
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<Partial<UserProfile> | null>(null);
@@ -19,6 +23,10 @@ export default function UserManager() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (propClients) setClients(propClients);
+  }, [propClients]);
 
   useEffect(() => {
     loadData();
@@ -31,7 +39,7 @@ export default function UserManager() {
         // Fetch users profiles and clients list in parallel
         const [querySnapshot, clientsSnap] = await Promise.all([
           getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'clients'))
+          propClients ? Promise.resolve(null) : getDocs(collection(db, 'clients'))
         ]);
 
         const usersArray: UserProfile[] = [];
@@ -40,11 +48,13 @@ export default function UserManager() {
         });
         setUsers(usersArray);
 
-        const clientsArray: ClientData[] = [];
-        clientsSnap.forEach((docSnap) => {
-          clientsArray.push(docSnap.data() as ClientData);
-        });
-        setClients(clientsArray);
+        if (clientsSnap) {
+          const clientsArray: ClientData[] = [];
+          clientsSnap.forEach((docSnap) => {
+            clientsArray.push(docSnap.data() as ClientData);
+          });
+          setClients(clientsArray);
+        }
       } else {
         // Mock fallback if offline/no firebase configs
         const mockUsers: UserProfile[] = [

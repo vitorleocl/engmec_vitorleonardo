@@ -10,20 +10,40 @@ import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Plus, Edit2, Trash2, Search, X, Cog, Save } from 'lucide-react';
 
-export default function EquipmentManager() {
-  const [equipments, setEquipments] = useState<EquipmentData[]>([]);
-  const [clients, setClients] = useState<ClientData[]>([]);
+interface EquipmentManagerProps {
+  equipments?: EquipmentData[];
+  clients?: ClientData[];
+  loading?: boolean;
+  onDataChanged?: () => void;
+}
+
+export default function EquipmentManager({
+  equipments: propEquipments,
+  clients: propClients,
+  loading: propLoading,
+  onDataChanged
+}: EquipmentManagerProps = {}) {
+  const [equipments, setEquipments] = useState<EquipmentData[]>(propEquipments || []);
+  const [clients, setClients] = useState<ClientData[]>(propClients || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentEq, setCurrentEq] = useState<Partial<EquipmentData> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (propEquipments) setEquipments(propEquipments);
+    if (propClients) setClients(propClients);
+    if (propLoading !== undefined) setLoading(propLoading);
+  }, [propEquipments, propClients, propLoading]);
+
+  useEffect(() => {
+    if (!propEquipments) {
+      loadData();
+    }
+  }, [propEquipments]);
 
   const loadData = async () => {
     setLoading(true);
@@ -45,6 +65,7 @@ export default function EquipmentManager() {
         setEquipments(mockDb.getEquipments());
         setClients(mockDb.getClients());
       }
+      onDataChanged?.();
     } catch (e) {
       if (isRealFirebase) {
         handleFirestoreError(e, OperationType.LIST, 'equipments');

@@ -32,9 +32,13 @@ import {
   isRealFirebase,
   onModeChange,
   setRealFirebaseEnabled,
-  onFirebaseUnreachableChange
+  onFirebaseUnreachableChange,
+  db
 } from '../../lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { mockDb } from '../../lib/mockDb';
+import { ClientData, EquipmentData, LaudoData, ChecklistData } from '../../types';
 
 type SystemRole = 'admin' | 'client';
 
@@ -48,6 +52,23 @@ export default function DashboardMain() {
 
   const [role, setRole] = useState<SystemRole>('admin');
   const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'users' | 'portal'>('indicators');
+
+  // Shared high-performance real-time cached states
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [equipments, setEquipments] = useState<EquipmentData[]>([]);
+  const [laudos, setLaudos] = useState<LaudoData[]>([]);
+  const [checklists, setChecklists] = useState<ChecklistData[]>([]);
+  const [globalLoading, setGlobalLoading] = useState(true);
+
+  // Trigger cache refresh for offline sandbox actions
+  const handleDataChanged = () => {
+    if (!realFirebase) {
+      setClients(mockDb.getClients());
+      setEquipments(mockDb.getEquipments());
+      setLaudos(mockDb.getLaudos());
+      setChecklists(mockDb.getChecklists());
+    }
+  };
 
   // Monitor Auth state changes and Base mode alterations
   useEffect(() => {
@@ -106,6 +127,91 @@ export default function DashboardMain() {
       unsubscribeUnreachable();
     };
   }, [realFirebase]);
+
+  // High-performance real-time cached synchronization via onSnapshot
+  useEffect(() => {
+    if (!realFirebase) {
+      // Offline Sandbox Mode: load instantly from localStorage/mockDb
+      setClients(mockDb.getClients());
+      setEquipments(mockDb.getEquipments());
+      setLaudos(mockDb.getLaudos());
+      setChecklists(mockDb.getChecklists());
+      setGlobalLoading(false);
+      return;
+    }
+
+    if (currentUser || bypassAuth) {
+      setGlobalLoading(true);
+      const dbInstance = db;
+      if (!dbInstance) {
+        setGlobalLoading(false);
+        return;
+      }
+
+      let loaded = { clients: false, equipments: false, laudos: false, checklists: false };
+      const checkLoaded = (key: keyof typeof loaded) => {
+        loaded[key] = true;
+        if (loaded.clients && loaded.equipments && loaded.laudos && loaded.checklists) {
+          setGlobalLoading(false);
+        }
+      };
+
+      const unsubClients = onSnapshot(collection(dbInstance, 'clients'), (snap) => {
+        const arr: ClientData[] = [];
+        snap.forEach(d => arr.push(d.data() as ClientData));
+        setClients(arr);
+        checkLoaded('clients');
+      }, (err) => {
+        console.warn("Error listening to clients:", err);
+        checkLoaded('clients');
+      });
+
+      const unsubEquipments = onSnapshot(collection(dbInstance, 'equipments'), (snap) => {
+        const arr: EquipmentData[] = [];
+        snap.forEach(d => arr.push(d.data() as EquipmentData));
+        setEquipments(arr);
+        checkLoaded('equipments');
+      }, (err) => {
+        console.warn("Error listening to equipments:", err);
+        checkLoaded('equipments');
+      });
+
+      const unsubLaudos = onSnapshot(collection(dbInstance, 'laudos'), (snap) => {
+        const arr: LaudoData[] = [];
+        snap.forEach(d => arr.push(d.data() as LaudoData));
+        setLaudos(arr);
+        checkLoaded('laudos');
+      }, (err) => {
+        console.warn("Error listening to laudos:", err);
+        checkLoaded('laudos');
+      });
+
+      const unsubChecklists = onSnapshot(collection(dbInstance, 'checklists'), (snap) => {
+        const arr: ChecklistData[] = [];
+        snap.forEach(d => arr.push(d.data() as ChecklistData));
+        setChecklists(arr);
+        checkLoaded('checklists');
+      }, (err) => {
+        console.warn("Error listening to checklists:", err);
+        checkLoaded('checklists');
+      });
+
+      // Absolute safety timeout fallback to make sure UI is never blocked if Firestore hangs
+      const safetyTimer = setTimeout(() => {
+        setGlobalLoading(false);
+      }, 3000);
+
+      return () => {
+        unsubClients();
+        unsubEquipments();
+        unsubLaudos();
+        unsubChecklists();
+        clearTimeout(safetyTimer);
+      };
+    } else {
+      setGlobalLoading(false);
+    }
+  }, [realFirebase, currentUser, bypassAuth]);
 
   // Google Authentication trigger
   const handleGoogleLogin = async () => {
@@ -402,13 +508,62 @@ export default function DashboardMain() {
                 </div>
               )}
 
-              {activeTab === 'indicators' && role === 'admin' && <AdminDashboard />}
-              {activeTab === 'clients' && role === 'admin' && <ClientManager />}
-              {activeTab === 'equipments' && role === 'admin' && <EquipmentManager />}
-              {activeTab === 'laudos' && role === 'admin' && <LaudoManager />}
-              {activeTab === 'checklists' && role === 'admin' && <ChecklistManager />}
-              {activeTab === 'users' && role === 'admin' && <UserManager />}
-              {activeTab === 'portal' && <ClientPortal />}
+              {activeTab === 'indicators' && role === 'admin' && (
+                <AdminDashboard 
+                  clients={clients} 
+                  laudos={laudos} 
+                  checklists={checklists} 
+                  equipments={equipments} 
+                  loading={globalLoading} 
+                />
+              )}
+              {activeTab === 'clients' && role === 'admin' && (
+                <ClientManager 
+                  clients={clients} 
+                  loading={globalLoading} 
+                  onDataChanged={handleDataChanged} 
+                />
+              )}
+              {activeTab === 'equipments' && role === 'admin' && (
+                <EquipmentManager 
+                  equipments={equipments} 
+                  clients={clients} 
+                  loading={globalLoading} 
+                  onDataChanged={handleDataChanged} 
+                />
+              )}
+              {activeTab === 'laudos' && role === 'admin' && (
+                <LaudoManager 
+                  laudos={laudos} 
+                  clients={clients} 
+                  equipments={equipments} 
+                  loading={globalLoading} 
+                  onDataChanged={handleDataChanged} 
+                />
+              )}
+              {activeTab === 'checklists' && role === 'admin' && (
+                <ChecklistManager 
+                  checklists={checklists} 
+                  clients={clients} 
+                  equipments={equipments} 
+                  loading={globalLoading} 
+                  onDataChanged={handleDataChanged} 
+                />
+              )}
+              {activeTab === 'users' && role === 'admin' && (
+                <UserManager 
+                  clients={clients} 
+                />
+              )}
+              {activeTab === 'portal' && (
+                <ClientPortal 
+                  clients={clients} 
+                  laudos={laudos} 
+                  checklists={checklists} 
+                  equipments={equipments} 
+                  loading={globalLoading} 
+                />
+              )}
             </div>
           </div>
 
