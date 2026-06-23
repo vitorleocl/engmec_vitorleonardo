@@ -1527,6 +1527,7 @@ export default function ChecklistManager({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureSaved, setSignatureSaved] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   // Camera stream and frame capturing states
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -1838,6 +1839,35 @@ export default function ChecklistManager({
     ctx.stroke();
   };
 
+  // Handle touch events on signature canvas (mobile and tablets)
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.beginPath();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    setIsDrawing(true);
+  };
+
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#134074';
+    ctx.lineWidth = 2;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+  };
+
   const stopDrawing = () => {
     setIsDrawing(false);
     setSignatureSaved(true);
@@ -1852,6 +1882,110 @@ export default function ChecklistManager({
     setSignatureSaved(false);
   };
 
+  // Auto-save draft on changes (only when modal is open and we have actual user interactions)
+  useEffect(() => {
+    if (modalOpen) {
+      const draftObj = {
+        checklistType,
+        selectedClient,
+        selectedEq,
+        answers,
+        questionNotes,
+        questionPhotos,
+        inspectorName,
+        nr12Empresa,
+        nr12Maquina,
+        nr12Fabricante,
+        nr12Tag,
+        nr12Qtd,
+        nr12QtdOperador,
+        nr12Setor,
+        nr12ResponsavelServico,
+        nr12Contato,
+        nr12DataChecklist,
+        pmocObs01,
+        pmocObs02,
+        pmocObs03,
+        pmocObs04,
+        pmocAnotacoes
+      };
+      
+      const hasContent = Object.keys(answers).length > 0 || 
+                         selectedClient || 
+                         selectedEq || 
+                         nr12Empresa || 
+                         pmocAnotacoes;
+                         
+      if (hasContent) {
+        localStorage.setItem('checklist_draft', JSON.stringify(draftObj));
+      }
+    }
+  }, [
+    modalOpen,
+    checklistType,
+    selectedClient,
+    selectedEq,
+    answers,
+    questionNotes,
+    questionPhotos,
+    inspectorName,
+    nr12Empresa,
+    nr12Maquina,
+    nr12Fabricante,
+    nr12Tag,
+    nr12Qtd,
+    nr12QtdOperador,
+    nr12Setor,
+    nr12ResponsavelServico,
+    nr12Contato,
+    nr12DataChecklist,
+    pmocObs01,
+    pmocObs02,
+    pmocObs03,
+    pmocObs04,
+    pmocAnotacoes
+  ]);
+
+  const handleRestoreDraft = () => {
+    try {
+      const raw = localStorage.getItem('checklist_draft');
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (draft.checklistType) setChecklistType(draft.checklistType);
+        if (draft.selectedClient) setSelectedClient(draft.selectedClient);
+        if (draft.selectedEq) setSelectedEq(draft.selectedEq);
+        if (draft.answers) setAnswers(draft.answers);
+        if (draft.questionNotes) setQuestionNotes(draft.questionNotes);
+        if (draft.questionPhotos) setQuestionPhotos(draft.questionPhotos);
+        if (draft.inspectorName) setInspectorName(draft.inspectorName);
+        if (draft.nr12Empresa) setNr12Empresa(draft.nr12Empresa);
+        if (draft.nr12Maquina) setNr12Maquina(draft.nr12Maquina);
+        if (draft.nr12Fabricante) setNr12Fabricante(draft.nr12Fabricante);
+        if (draft.nr12Tag) setNr12Tag(draft.nr12Tag);
+        if (draft.nr12Qtd) setNr12Qtd(draft.nr12Qtd);
+        if (draft.nr12QtdOperador) setNr12QtdOperador(draft.nr12QtdOperador);
+        if (draft.nr12Setor) setNr12Setor(draft.nr12Setor);
+        if (draft.nr12ResponsavelServico) setNr12ResponsavelServico(draft.nr12ResponsavelServico);
+        if (draft.nr12Contato) setNr12Contato(draft.nr12Contato);
+        if (draft.nr12DataChecklist) setNr12DataChecklist(draft.nr12DataChecklist);
+        if (draft.pmocObs01) setPmocObs01(draft.pmocObs01);
+        if (draft.pmocObs02) setPmocObs02(draft.pmocObs02);
+        if (draft.pmocObs03) setPmocObs03(draft.pmocObs03);
+        if (draft.pmocObs04) setPmocObs04(draft.pmocObs04);
+        if (draft.pmocAnotacoes) setPmocAnotacoes(draft.pmocAnotacoes);
+      }
+    } catch (e) {
+      console.error("Error restoring draft:", e);
+    }
+    setHasDraft(false);
+  };
+
+  const handleDiscardDraft = () => {
+    localStorage.removeItem('checklist_draft');
+    setHasDraft(false);
+    clearForm();
+  };
+
   // Build Answers model
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({
@@ -1860,11 +1994,33 @@ export default function ChecklistManager({
     }));
   };
 
+  const getCardStatusClasses = (qId: string) => {
+    const ans = answers[qId];
+    if (ans === undefined || ans === '') {
+      return 'border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-450 dark:border-l-amber-500 bg-white dark:bg-slate-900/60';
+    }
+    if (ans === 'C' || ans === 'OK' || ans === 'BOM' || ans === 'SIM' || ans === 'APROVADO') {
+      return 'border border-emerald-100 dark:border-emerald-900/30 border-l-4 border-l-emerald-500 bg-emerald-50/10 dark:bg-emerald-950/10';
+    }
+    if (ans === 'NC' || ans === 'NOK' || ans === 'RUIM' || ans === 'NÃO' || ans === 'REPROVADO') {
+      return 'border border-rose-100 dark:border-rose-900/30 border-l-4 border-l-rose-500 bg-rose-50/10 dark:bg-rose-950/10';
+    }
+    if (ans === 'NA' || ans === 'N/A' || ans === 'N.A.') {
+      return 'border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 bg-slate-50/50 dark:bg-slate-900/30';
+    }
+    return 'border border-blue-100 dark:border-blue-900/30 border-l-4 border-l-[#134074] bg-blue-50/10 dark:bg-blue-950/10';
+  };
+
   const handleCreateChecklist = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     if (!selectedClient || !selectedEq) {
       setError('Por favor, selecione um Cliente Real e um Ativo correspondente.');
+      return;
+    }
+
+    if (!signatureSaved) {
+      setError('Por favor, assine eletronicamente com o Mouse ou Toque no painel de assinatura antes de Registrar a Vistoria.');
       return;
     }
 
@@ -1937,6 +2093,8 @@ export default function ChecklistManager({
       setModalOpen(false);
       setSuccess('Vistoria técnica cadastrada com sucesso!');
       setTimeout(() => setSuccess(null), 4500);
+      localStorage.removeItem('checklist_draft');
+      setHasDraft(false);
       clearForm();
       loadData();
     } catch (err: any) {
@@ -2245,8 +2403,14 @@ export default function ChecklistManager({
 
         <button
           onClick={() => {
-            clearForm();
             setError(null);
+            const draft = localStorage.getItem('checklist_draft');
+            if (draft) {
+              setHasDraft(true);
+            } else {
+              setHasDraft(false);
+              clearForm();
+            }
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
@@ -2637,6 +2801,36 @@ export default function ChecklistManager({
             </div>
 
             <form onSubmit={handleCreateChecklist} className="p-6 space-y-6">
+              {hasDraft && (
+                <div className="bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-500/15 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold flex items-center gap-1.5 uppercase font-sans">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      <span>Rascunho de Vistoria Encontrado</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed">
+                      Você possui respostas e fotos de um rascunho anterior preenchido que não foi finalizado. Deseja restaurar essas informações?
+                    </p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleRestoreDraft}
+                      className="bg-[#134074] hover:bg-[#0B2545] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow"
+                    >
+                      Restaurar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDiscardDraft}
+                      className="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div id="checklist-error-banner" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono font-bold">
                   <span className="p-1 bg-rose-500 text-white rounded-full text-[9px] font-bold w-4 h-4 flex items-center justify-center shrink-0">!</span>
@@ -2833,15 +3027,49 @@ export default function ChecklistManager({
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-slate-400 uppercase font-mono bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">Itens de Inspeção Regulamentar</h4>
                 
-                <div className="space-y-4 divide-y divide-slate-100 dark:divide-slate-800">
-                  {questionsMap[checklistType].map((q) => {
+                {(() => {
+                  const sortedFormQuestions = sortQuestionsByNumberedCategory(questionsMap[checklistType]);
+                  const answeredCount = sortedFormQuestions.filter(q => answers[q.id] !== undefined && answers[q.id] !== '').length;
+                  const totalCount = sortedFormQuestions.length;
+                  const percentComplete = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+                  return (
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-wider">Progresso do Preenchimento</span>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                          {answeredCount} de {totalCount} itens inspecionados ({percentComplete}%)
+                        </p>
+                      </div>
+                      <div className="w-full sm:w-48 bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
+                          style={{ width: `${percentComplete}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="space-y-4 flex flex-col gap-1.5">
+                  {sortQuestionsByNumberedCategory(questionsMap[checklistType]).map((q) => {
                     const photos = questionPhotos[q.id] || [];
+                    const cardClass = getCardStatusClasses(q.id);
                     return (
-                      <div key={q.id} className="pt-4 pb-2 space-y-3">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                          <div className="space-y-1 pr-4">
-                            <span className="text-[10px] font-mono tracking-wider font-bold text-[#134074] dark:text-[#4895EF] uppercase">{q.category}</span>
-                            <p className="text-sm font-medium text-slate-800 dark:text-slate-300 leading-normal">{q.text}</p>
+                      <div key={q.id} className={`p-4 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md space-y-4 ${cardClass}`}>
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                          <div className="space-y-1.5 pr-4 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono tracking-wider font-extrabold text-[#134074] dark:text-[#4895EF] uppercase bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                {q.category}
+                              </span>
+                              {answers[q.id] !== undefined && answers[q.id] !== '' && (
+                                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-md flex items-center gap-0.5">
+                                  <Check className="w-3 h-3" />
+                                  <span>Respondido</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-slate-850 dark:text-slate-200 leading-relaxed">{q.text}</p>
                           </div>
 
                           <div className="flex gap-2 shrink-0">
@@ -3317,6 +3545,9 @@ export default function ChecklistManager({
                       onMouseMove={draw}
                       onMouseUp={stopDrawing}
                       onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawingTouch}
+                      onTouchMove={drawTouch}
+                      onTouchEnd={stopDrawing}
                       className="w-full h-full cursor-crosshair block"
                     />
                     <div className="absolute right-3 bottom-2 flex gap-2">
@@ -3358,11 +3589,11 @@ export default function ChecklistManager({
                 </button>
                 <button
                   type="submit"
-                  disabled={!signatureSaved || Object.keys(answers).length < questionsMap[checklistType].length}
+                  disabled={loading}
                   className="px-5 py-2 rounded-lg bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
-                  <span>Registrar Vistoria</span>
+                  <span>{loading ? 'Registrando...' : 'Registrar Vistoria'}</span>
                 </button>
               </div>
             </form>
