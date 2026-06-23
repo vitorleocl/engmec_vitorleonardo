@@ -2011,6 +2011,60 @@ export default function ChecklistManager({
     return 'border border-blue-100 dark:border-blue-900/30 border-l-4 border-l-[#134074] bg-blue-50/10 dark:bg-blue-950/10';
   };
 
+  const getOptionButtonClass = (qId: string, option: string) => {
+    const isSelected = answers[qId] === option;
+    const opt = option.toUpperCase();
+    
+    // Positive options
+    if (['C', 'OK', 'BOM', 'SIM', 'APROVADO', 'EXCELENTE', 'BOA', 'INTERNO', 'PEQUENA MONTA', 'PASSEIO', 'SPLIT', 'CASSETE', 'BOM / SIM'].includes(opt)) {
+      return isSelected
+        ? 'px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer bg-emerald-500 text-white border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
+        : 'px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border-slate-200 dark:border-slate-700 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-300 dark:hover:bg-emerald-500/5';
+    }
+    
+    // Negative options
+    if (['NC', 'NOK', 'RUIM', 'NÃO', 'REPROVADO', 'GRANDE MONTA', 'N.C / NÃO'].includes(opt)) {
+      return isSelected
+        ? 'px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer bg-rose-500 text-white border-rose-500 shadow-sm ring-2 ring-rose-500/20'
+        : 'px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border-slate-200 dark:border-slate-700 hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-300 dark:hover:bg-rose-500/5';
+    }
+    
+    // Warning/Neutral options
+    if (['REGULAR', 'MÉDIA MONTA'].includes(opt)) {
+      return isSelected
+        ? 'px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-500/20'
+        : 'px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border-slate-200 dark:border-slate-700 hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-300 dark:hover:bg-amber-500/5';
+    }
+    
+    // N.A. options
+    if (['NA', 'N/A', 'N.A.'].includes(opt)) {
+      return isSelected
+        ? 'px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer bg-slate-500 text-white border-slate-500 shadow-sm ring-2 ring-slate-500/20'
+        : 'px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border-slate-200 dark:border-slate-700 hover:bg-slate-500/10 hover:text-slate-600 hover:border-slate-300 dark:hover:bg-slate-500/5';
+    }
+    
+    // Default blue selected options
+    return isSelected
+      ? 'px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer bg-[#134074] text-white border-[#134074] shadow-sm ring-2 ring-[#134074]/20'
+      : 'px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border-slate-200 dark:border-slate-700 hover:bg-blue-500/10 hover:text-[#134074] hover:border-blue-300 dark:hover:bg-blue-500/5';
+  };
+
+  const cleanUndefined = (obj: any): any => {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(cleanUndefined).filter(val => val !== undefined);
+    }
+    const cleanObj: any = {};
+    for (const key in obj) {
+      if (obj[key] !== undefined) {
+        cleanObj[key] = cleanUndefined(obj[key]);
+      }
+    }
+    return cleanObj;
+  };
+
   const handleCreateChecklist = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -2082,13 +2136,14 @@ export default function ChecklistManager({
     );
 
     try {
+      const sanitizedSaveObj = cleanUndefined(saveObj);
       if (isRealFirebase) {
         await Promise.race([
-          setDoc(doc(db, 'checklists', chkId), saveObj),
+          setDoc(doc(db, 'checklists', chkId), sanitizedSaveObj),
           timeoutPromise
         ]);
       } else {
-        mockDb.saveChecklist(saveObj);
+        mockDb.saveChecklist(sanitizedSaveObj);
       }
       setModalOpen(false);
       setSuccess('Vistoria técnica cadastrada com sucesso!');
@@ -3080,11 +3135,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'C' ? 'bg-emerald-500 text-white border-emerald-500' : option === 'NC' ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-500 text-white border-slate-500'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option === 'C' ? 'C / SIM' : option === 'NC' ? 'N.C / NÃO' : 'N.A.'}
                                   </button>
@@ -3099,11 +3150,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'OK' ? 'bg-emerald-500 text-white border-emerald-500' : option === 'NOK' ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-500 text-white border-slate-500'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3118,11 +3165,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'BOM' ? 'bg-emerald-500 text-white border-emerald-500' : option === 'REGULAR' ? 'bg-amber-500 text-white border-amber-500' : 'bg-rose-500 text-white border-rose-500'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option === 'BOM' ? 'BOM' : option === 'REGULAR' ? 'REGULAR' : 'RUIM'}
                                   </button>
@@ -3149,11 +3192,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'OK' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-rose-500 text-white border-rose-500'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3191,11 +3230,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'SIM' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-rose-500 text-white border-rose-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3210,11 +3245,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'APROVADO' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-rose-500 text-white border-rose-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3229,11 +3260,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'C' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-rose-500 text-white border-rose-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option === 'C' ? 'C' : 'N.C'}
                                   </button>
@@ -3248,11 +3275,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? 'bg-[#134074] text-white border-[#134074] shadow-sm font-black'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3330,11 +3353,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'C' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : option === 'NC' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-slate-500 text-white border-slate-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option === 'C' ? 'C' : option === 'NC' ? 'N.C' : 'N.A'}
                                   </button>
@@ -3349,11 +3368,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'BOM' ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : option === 'REGULAR' ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : option === 'RUIM' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-slate-500 text-white border-slate-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3368,11 +3383,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? 'bg-[#134074] text-white border-[#134074] shadow-sm font-black'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3387,11 +3398,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? 'bg-[#134074] text-white border-[#134074] shadow-sm font-black'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3406,11 +3413,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? 'bg-[#134074] text-white border-[#134074] shadow-sm font-black'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3425,11 +3428,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'Pequena Monta' ? 'font-black bg-emerald-500 text-white border-emerald-500 shadow-sm' : option === 'Média Monta' ? 'font-black bg-amber-500 text-white border-amber-500 shadow-sm' : 'font-black bg-rose-500 text-white border-rose-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
@@ -3444,11 +3443,7 @@ export default function ChecklistManager({
                                     key={option}
                                     type="button"
                                     onClick={() => handleAnswerChange(q.id, option)}
-                                    className={`px-3 py-1.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                                      answers[q.id] === option
-                                        ? option === 'Excelente' ? 'font-black bg-emerald-600 text-white border-emerald-600 shadow-sm' : option === 'Boa' ? 'font-black bg-emerald-500 text-white border-emerald-500 shadow-sm' : option === 'Regular' ? 'font-black bg-amber-500 text-white border-amber-500 shadow-sm' : 'font-black bg-rose-500 text-white border-rose-500 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                    }`}
+                                    className={getOptionButtonClass(q.id, option)}
                                   >
                                     {option}
                                   </button>
