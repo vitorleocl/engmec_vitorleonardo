@@ -1425,6 +1425,28 @@ const CHECKLIST_GROUPS = [
   }
 ];
 
+const getCategoryNumber = (cat: string): number => {
+  const match = cat.match(/\d+/);
+  return match ? parseInt(match[0], 10) : Infinity;
+};
+
+const sortQuestionsByNumberedCategory = (questions: ChecklistQuestion[]): ChecklistQuestion[] => {
+  if (!questions) return [];
+  return [...questions].sort((a, b) => {
+    const numA = getCategoryNumber(a.category);
+    const numB = getCategoryNumber(b.category);
+    
+    if (numA !== numB) {
+      return numA - numB;
+    }
+    
+    const catCompare = a.category.localeCompare(b.category, 'pt-BR', { numeric: true });
+    if (catCompare !== 0) return catCompare;
+    
+    return a.id.localeCompare(b.id, 'pt-BR', { numeric: true });
+  });
+};
+
 interface ChecklistManagerProps {
   checklists?: ChecklistData[];
   clients?: ClientData[];
@@ -2383,7 +2405,7 @@ export default function ChecklistManager({
             ))}
           </div>
 
-          {/* New Item addition helper card */}
+             {/* New Item addition helper card */}
           <div className="border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 rounded-xl p-4 space-y-3">
             <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase font-mono flex items-center gap-1">
               <Plus className="w-3.5 h-3.5 text-emerald-500" />
@@ -2397,7 +2419,7 @@ export default function ChecklistManager({
                   placeholder="EX: Riscos Mecânicos"
                   value={newQuestionCategory}
                   onChange={(e) => setNewQuestionCategory(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-[#334255] rounded-lg px-3 py-1.5 text-xs outline-none text-slate-900 dark:text-white"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-[#334255] rounded-lg px-3 py-1.5 text-xs outline-none text-slate-900 dark:text-white"
                 />
               </div>
               <div className="space-y-1">
@@ -2405,28 +2427,28 @@ export default function ChecklistManager({
                 <select
                   value={newQuestionResponseType}
                   onChange={(e) => setNewQuestionResponseType(e.target.value as QuestionResponseType)}
-                  className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-[#334255] rounded-lg px-2.5 py-1.5 text-xs outline-none text-slate-900 dark:text-white cursor-pointer"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-[#334255] rounded-lg px-2.5 py-1.5 text-xs outline-none text-slate-900 dark:text-white cursor-pointer"
                 >
-                  <option value="default">C / NC / NA (Padrão)</option>
-                  <option value="ok_nok">OK / NOK</option>
-                  <option value="ok_nok_na">OK / NOK / N/A</option>
-                  <option value="bom_reg_ruim">Bom / Regular / Ruim</option>
-                  <option value="text">Campo de Texto</option>
-                  <option value="number">Número</option>
-                  <option value="date">Data</option>
-                  <option value="photo">Foto</option>
-                  <option value="sim_nao">Sim / Não</option>
-                  <option value="aprovado_reprovado">Aprovado / Reprovado</option>
-                  <option value="c_nc">C / NC (Conforme / Não Conforme)</option>
-                  <option value="tipo_ar_condicionado">Tipo de Ar Condicionado (PMOC)</option>
-                  <option value="tipo_veiculo_reclassificacao">Tipo de Veículo (Reclassificação)</option>
-                  <option value="tipo_veiculo_integridade">Tipo de Veículo (Integridade)</option>
-                  <option value="classificacao_monta">Classificação de Monta</option>
-                  <option value="condicao_fisica_geral">Condição Física Geral</option>
-                  <option value="text_long">Campo de Texto Longo</option>
-                  <option value="c_nc_na">Conforme / Não Conforme / N.A</option>
-                  <option value="bom_reg_ruim_na">Bom / Regular / Ruim / N.A</option>
-                  <option value="ambiente_playground">Ambiente (Interno / Externo)</option>
+                  <option value="default" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">C / NC / NA (Padrão)</option>
+                  <option value="ok_nok" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">OK / NOK</option>
+                  <option value="ok_nok_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">OK / NOK / N/A</option>
+                  <option value="bom_reg_ruim" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Bom / Regular / Ruim</option>
+                  <option value="text" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Campo de Texto</option>
+                  <option value="number" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Número</option>
+                  <option value="date" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Data</option>
+                  <option value="photo" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Foto</option>
+                  <option value="sim_nao" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Sim / Não</option>
+                  <option value="aprovado_reprovado" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Aprovado / Reprovado</option>
+                  <option value="c_nc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">C / NC (Conforme / Não Conforme)</option>
+                  <option value="tipo_ar_condicionado" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Ar Condicionado (PMOC)</option>
+                  <option value="tipo_veiculo_reclassificacao" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Veículo (Reclassificação)</option>
+                  <option value="tipo_veiculo_integridade" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Veículo (Integridade)</option>
+                  <option value="classificacao_monta" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Classificação de Monta</option>
+                  <option value="condicao_fisica_geral" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Condição Física Geral</option>
+                  <option value="text_long" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Campo de Texto Longo</option>
+                  <option value="c_nc_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Conforme / Não Conforme / N.A</option>
+                  <option value="bom_reg_ruim_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Bom / Regular / Ruim / N.A</option>
+                  <option value="ambiente_playground" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Ambiente (Interno / Externo)</option>
                 </select>
               </div>
               <div className="sm:col-span-2 space-y-1">
@@ -2437,7 +2459,7 @@ export default function ChecklistManager({
                     placeholder="EX: Existem proteções físicas fixas nas áreas de esmagamento?"
                     value={newQuestionText}
                     onChange={(e) => setNewQuestionText(e.target.value)}
-                    className="flex-1 bg-white dark:bg-slate-955 border border-slate-200 dark:border-[#334255] rounded-lg px-3 py-1.5 text-xs outline-none text-slate-900 dark:text-white"
+                    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-[#334255] rounded-lg px-3 py-1.5 text-xs outline-none text-slate-900 dark:text-white"
                   />
                   <button
                     type="button"
@@ -2460,7 +2482,7 @@ export default function ChecklistManager({
                   Nenhum item cadastrado nesta categoria. Adicione no formulário acima.
                 </div>
               ) : (
-                questionsMap[selectedSetupType].map((q) => (
+                sortQuestionsByNumberedCategory(questionsMap[selectedSetupType]).map((q) => (
                   <div key={q.id} className="pt-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     {editingQuestionId === q.id ? (
                       <div className="w-full grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -2470,7 +2492,7 @@ export default function ChecklistManager({
                             type="text"
                             value={editingCategory}
                             onChange={(e) => setEditingCategory(e.target.value)}
-                            className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-705 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none"
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-705 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -2478,28 +2500,28 @@ export default function ChecklistManager({
                           <select
                             value={editingResponseType}
                             onChange={(e) => setEditingResponseType(e.target.value as QuestionResponseType)}
-                            className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-[#334255] rounded p-1.5 text-xs text-slate-900 dark:text-white h-[32px] cursor-pointer outline-none"
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-[#334255] rounded p-1.5 text-xs text-slate-900 dark:text-white h-[32px] cursor-pointer outline-none"
                           >
-                            <option value="default">C / NC / NA</option>
-                            <option value="ok_nok">OK / NOK</option>
-                            <option value="ok_nok_na">OK / NOK / N/A</option>
-                            <option value="bom_reg_ruim">Bom / Regular / Ruim</option>
-                            <option value="text">Campo de Texto</option>
-                            <option value="number">Número</option>
-                            <option value="date">Data</option>
-                            <option value="photo">Foto</option>
-                            <option value="sim_nao">Sim / Não</option>
-                            <option value="aprovado_reprovado">Aprovado / Reprovado</option>
-                            <option value="c_nc">C / NC (Conforme / Não Conforme)</option>
-                            <option value="tipo_ar_condicionado">Tipo de Ar Condicionado (PMOC)</option>
-                            <option value="tipo_veiculo_reclassificacao">Tipo de Veículo (Reclassificação)</option>
-                            <option value="tipo_veiculo_integridade">Tipo de Veículo (Integridade)</option>
-                            <option value="classificacao_monta">Classificação de Monta</option>
-                            <option value="condicao_fisica_geral">Condição Física Geral</option>
-                            <option value="text_long">Campo de Texto Longo</option>
-                            <option value="c_nc_na">Conforme / Não Conforme / N.A</option>
-                            <option value="bom_reg_ruim_na">Bom / Regular / Ruim / N.A</option>
-                            <option value="ambiente_playground">Ambiente (Interno / Externo)</option>
+                            <option value="default" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">C / NC / NA</option>
+                            <option value="ok_nok" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">OK / NOK</option>
+                            <option value="ok_nok_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">OK / NOK / N/A</option>
+                            <option value="bom_reg_ruim" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Bom / Regular / Ruim</option>
+                            <option value="text" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Campo de Texto</option>
+                            <option value="number" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Número</option>
+                            <option value="date" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Data</option>
+                            <option value="photo" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Foto</option>
+                            <option value="sim_nao" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Sim / Não</option>
+                            <option value="aprovado_reprovado" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Aprovado / Reprovado</option>
+                            <option value="c_nc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">C / NC (Conforme / Não Conforme)</option>
+                            <option value="tipo_ar_condicionado" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Ar Condicionado (PMOC)</option>
+                            <option value="tipo_veiculo_reclassificacao" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Veículo (Reclassificação)</option>
+                            <option value="tipo_veiculo_integridade" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tipo de Veículo (Integridade)</option>
+                            <option value="classificacao_monta" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Classificação de Monta</option>
+                            <option value="condicao_fisica_geral" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Condição Física Geral</option>
+                            <option value="text_long" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Campo de Texto Longo</option>
+                            <option value="c_nc_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Conforme / Não Conforme / N.A</option>
+                            <option value="bom_reg_ruim_na" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Bom / Regular / Ruim / N.A</option>
+                            <option value="ambiente_playground" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Ambiente (Interno / Externo)</option>
                           </select>
                         </div>
                         <div className="sm:col-span-2 space-y-1">
@@ -2509,7 +2531,7 @@ export default function ChecklistManager({
                               type="text"
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
-                              className="flex-1 bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-705 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none"
+                              className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-705 rounded p-1.5 text-xs text-slate-900 dark:text-white outline-none"
                             />
                             <button
                               type="button"
