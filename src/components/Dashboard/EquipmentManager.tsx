@@ -29,12 +29,15 @@ export default function EquipmentManager() {
     setLoading(true);
     try {
       if (isRealFirebase) {
-        const querySnapshot = await getDocs(collection(db, 'equipments'));
+        const [querySnapshot, clientsSnap] = await Promise.all([
+          getDocs(collection(db, 'equipments')),
+          getDocs(collection(db, 'clients'))
+        ]);
+
         const eqArray: EquipmentData[] = [];
         querySnapshot.forEach((docSnap) => eqArray.push(docSnap.data() as EquipmentData));
         setEquipments(eqArray);
 
-        const clientsSnap = await getDocs(collection(db, 'clients'));
         const cliArray: ClientData[] = [];
         clientsSnap.forEach((docSnap) => cliArray.push(docSnap.data() as ClientData));
         setClients(cliArray);

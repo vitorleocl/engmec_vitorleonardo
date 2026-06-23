@@ -28,16 +28,18 @@ export default function UserManager() {
     setLoading(true);
     try {
       if (isRealFirebase) {
-        // Fetch users profiles
-        const querySnapshot = await getDocs(collection(db, 'users'));
+        // Fetch users profiles and clients list in parallel
+        const [querySnapshot, clientsSnap] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(collection(db, 'clients'))
+        ]);
+
         const usersArray: UserProfile[] = [];
         querySnapshot.forEach((docSnap) => {
           usersArray.push(docSnap.data() as UserProfile);
         });
         setUsers(usersArray);
 
-        // Fetch clients list to map associative links
-        const clientsSnap = await getDocs(collection(db, 'clients'));
         const clientsArray: ClientData[] = [];
         clientsSnap.forEach((docSnap) => {
           clientsArray.push(docSnap.data() as ClientData);

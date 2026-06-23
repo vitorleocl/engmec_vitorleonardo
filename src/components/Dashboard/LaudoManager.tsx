@@ -154,34 +154,35 @@ export default function LaudoManager() {
     setLoading(true);
     try {
       if (isRealFirebase) {
-        const querySnapshot = await getDocs(collection(db, 'laudos'));
+        const [querySnapshot, clientsSnap, eqSnap, catSnap] = await Promise.all([
+          getDocs(collection(db, 'laudos')),
+          getDocs(collection(db, 'clients')),
+          getDocs(collection(db, 'equipments')),
+          getDocs(collection(db, 'laudo_categories')).catch(err => {
+            console.warn('Could not load custom categories, using empty:', err);
+            return { forEach: () => {} } as any;
+          })
+        ]);
+
         const lArray: LaudoData[] = [];
         querySnapshot.forEach((docSnap) => lArray.push(docSnap.data() as LaudoData));
         setLaudos(lArray);
 
-        const clientsSnap = await getDocs(collection(db, 'clients'));
         const cliArray: ClientData[] = [];
         clientsSnap.forEach((docSnap) => cliArray.push(docSnap.data() as ClientData));
         setClients(cliArray);
 
-        const eqSnap = await getDocs(collection(db, 'equipments'));
         const eqArray: EquipmentData[] = [];
         eqSnap.forEach((docSnap) => eqArray.push(docSnap.data() as EquipmentData));
         setEquipments(eqArray);
 
-        // Load custom categories if stored
-        try {
-          const catSnap = await getDocs(collection(db, 'laudo_categories'));
-          const catArray: string[] = [];
-          catSnap.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.name) catArray.push(data.name);
-          });
-          if (catArray.length > 0) {
-            setCategories(prev => Array.from(new Set([...prev, ...catArray])));
-          }
-        } catch (catErr) {
-          console.warn('Could not load custom categories:', catErr);
+        const catArray: string[] = [];
+        catSnap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.name) catArray.push(data.name);
+        });
+        if (catArray.length > 0) {
+          setCategories(prev => Array.from(new Set([...prev, ...catArray])));
         }
       } else {
         setLaudos(mockDb.getLaudos());

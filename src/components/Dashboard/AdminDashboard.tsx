@@ -26,22 +26,25 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       if (isRealFirebase) {
-        const querySnapshot = await getDocs(collection(db, 'clients'));
+        const [querySnapshot, laudoSnapshot, chkSnapshot, eqSnapshot] = await Promise.all([
+          getDocs(collection(db, 'clients')),
+          getDocs(collection(db, 'laudos')),
+          getDocs(collection(db, 'checklists')),
+          getDocs(collection(db, 'equipments'))
+        ]);
+
         const cliArr: ClientData[] = [];
         querySnapshot.forEach(d => cliArr.push(d.data() as ClientData));
         setClients(cliArr);
 
-        const laudoSnapshot = await getDocs(collection(db, 'laudos'));
         const lArr: LaudoData[] = [];
         laudoSnapshot.forEach(d => lArr.push(d.data() as LaudoData));
         setLaudos(lArr);
 
-        const chkSnapshot = await getDocs(collection(db, 'checklists'));
         const cArr: ChecklistData[] = [];
         chkSnapshot.forEach(d => cArr.push(d.data() as ChecklistData));
         setChecklists(cArr);
 
-        const eqSnapshot = await getDocs(collection(db, 'equipments'));
         const eArr: EquipmentData[] = [];
         eqSnapshot.forEach(d => eArr.push(d.data() as EquipmentData));
         setEquipments(eArr);

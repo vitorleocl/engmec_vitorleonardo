@@ -1698,18 +1698,21 @@ export default function ChecklistManager() {
     setLoading(true);
     try {
       if (isRealFirebase) {
-        const querySnapshot = await getDocs(collection(db, 'checklists'));
+        const [querySnapshot, clientsSnap, eqSnap] = await Promise.all([
+          getDocs(collection(db, 'checklists')),
+          getDocs(collection(db, 'clients')),
+          getDocs(collection(db, 'equipments'))
+        ]);
+
         const arr: ChecklistData[] = [];
         querySnapshot.forEach(docSnap => arr.push(docSnap.data() as ChecklistData));
         setChecklists(arr);
 
-        const clientsSnap = await getDocs(collection(db, 'clients'));
         const cliArray: ClientData[] = [];
         clientsSnap.forEach(docSnap => cliArray.push(docSnap.data() as ClientData));
         setClients(cliArray);
         if (cliArray.length > 0) setSelectedClient(cliArray[0].id);
 
-        const eqSnap = await getDocs(collection(db, 'equipments'));
         const eqArray: EquipmentData[] = [];
         eqSnap.forEach(docSnap => eqArray.push(docSnap.data() as EquipmentData));
         setEquipments(eqArray);

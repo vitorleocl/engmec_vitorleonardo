@@ -34,27 +34,30 @@ export default function ClientPortal({ associatedClientId }: ClientPortalProps) 
     setLoading(true);
     try {
       if (isRealFirebase) {
-        // Query only matching documents belonging to this client ID for absolute zero-trust privacy!
+        // Query only matching documents belonging to this client ID in parallel for high performance!
         const laudosQuery = query(collection(db, 'laudos'), where('clientId', '==', targetId));
-        const laudosSnap = await getDocs(laudosQuery);
+        const chkQuery = query(collection(db, 'checklists'), where('clientId', '==', targetId));
+        const eqQuery = query(collection(db, 'equipments'), where('clientId', '==', targetId));
+
+        const [laudosSnap, chkSnap, eqSnap, clientsSnap] = await Promise.all([
+          getDocs(laudosQuery),
+          getDocs(chkQuery),
+          getDocs(eqQuery),
+          getDocs(collection(db, 'clients'))
+        ]);
+
         const lArray: LaudoData[] = [];
         laudosSnap.forEach(d => lArray.push(d.data() as LaudoData));
         setLaudos(lArray);
 
-        const chkQuery = query(collection(db, 'checklists'), where('clientId', '==', targetId));
-        const chkSnap = await getDocs(chkQuery);
         const cArray: ChecklistData[] = [];
         chkSnap.forEach(d => cArray.push(d.data() as ChecklistData));
         setChecklists(cArray);
 
-        const eqQuery = query(collection(db, 'equipments'), where('clientId', '==', targetId));
-        const eqSnap = await getDocs(eqQuery);
         const eArray: EquipmentData[] = [];
         eqSnap.forEach(d => eArray.push(d.data() as EquipmentData));
         setEquipments(eArray);
 
-        // Fetch client master details
-        const clientsSnap = await getDocs(collection(db, 'clients'));
         clientsSnap.forEach(d => {
           const cData = d.data() as ClientData;
           if (cData.id === targetId) setClientProfile(cData);
