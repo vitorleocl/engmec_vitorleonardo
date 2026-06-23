@@ -16,6 +16,7 @@ import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  memoryLocalCache,
   getFirestore,
   doc,
   getDoc,
@@ -88,10 +89,16 @@ if (getApps().length === 0) {
 export const auth = getAuth(app);
 
 // Initialize Firestore with experimentalForceLongPolling to bypass websocket blocks/iframe sandbox connection hangs
+// We detect if we are running in an iframe (which has IndexedDB/storage limitations and blocks third-party cookies)
+// If we are in an iframe, we force memoryLocalCache to guarantee a smooth experience without connection hangs.
 export let db;
 try {
+  const isIframe = typeof window !== 'undefined' && window.self !== window.top;
   db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
+    localCache: isIframe ? memoryLocalCache() : persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
   });
 } catch (error) {
   db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
