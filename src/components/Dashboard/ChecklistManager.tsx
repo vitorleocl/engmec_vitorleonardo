@@ -1662,6 +1662,26 @@ export default function ChecklistManager() {
         }
       });
 
+      // Apply locally stored deleted default questions
+      const savedDeleted = localStorage.getItem('vitor_engmec_deleted_questions');
+      if (savedDeleted) {
+        try {
+          const deletedList = JSON.parse(savedDeleted) as string[];
+          deletedList.forEach(itemKey => {
+            const parts = itemKey.split('_');
+            if (parts.length >= 2) {
+              const type = parts[0] as ChecklistType;
+              const qId = parts.slice(1).join('_');
+              if (mergedMap[type]) {
+                mergedMap[type] = mergedMap[type].filter(item => item.id !== qId);
+              }
+            }
+          });
+        } catch (e) {
+          console.warn("Could not parse saved deleted questions list", e);
+        }
+      }
+
       setQuestionsMap(mergedMap);
     } catch (e) {
       console.warn("Could not load custom questions, using defaults:", e);
@@ -2054,9 +2074,26 @@ export default function ChecklistManager() {
             } else {
               await deleteDoc(doc(db, 'checklist_questions', qDocId));
             }
-          } else {
-            localStorage.setItem('vitor_engmec_custom_questions', JSON.stringify(newQuestionsMap));
           }
+
+          // ALWAYS update local storage deleted tracking list
+          const isDefault = QUESTIONS_BY_TYPE[type]?.some(q => q.id === questionId);
+          if (isDefault) {
+            const savedDeleted = localStorage.getItem('vitor_engmec_deleted_questions');
+            let deletedList: string[] = [];
+            if (savedDeleted) {
+              try {
+                deletedList = JSON.parse(savedDeleted);
+              } catch (e) {}
+            }
+            const itemKey = `${type}_${questionId}`;
+            if (!deletedList.includes(itemKey)) {
+              deletedList.push(itemKey);
+              localStorage.setItem('vitor_engmec_deleted_questions', JSON.stringify(deletedList));
+            }
+          }
+
+          localStorage.setItem('vitor_engmec_custom_questions', JSON.stringify(newQuestionsMap));
         } catch (err) {
           if (isRealFirebase) {
             handleFirestoreError(err, OperationType.DELETE, `checklist_questions/${type}_${questionId}`);
@@ -2086,9 +2123,19 @@ export default function ChecklistManager() {
                 await deleteDoc(doc(db, 'checklist_questions', docSnap.id));
               }
             });
-          } else {
-            localStorage.setItem('vitor_engmec_custom_questions', JSON.stringify(newQuestionsMap));
           }
+          
+          // Clear deleted list in localStorage for this type
+          const savedDeleted = localStorage.getItem('vitor_engmec_deleted_questions');
+          if (savedDeleted) {
+            try {
+              let deletedList: string[] = JSON.parse(savedDeleted);
+              deletedList = deletedList.filter(item => !item.startsWith(`${type}_`));
+              localStorage.setItem('vitor_engmec_deleted_questions', JSON.stringify(deletedList));
+            } catch (e) {}
+          }
+          
+          localStorage.setItem('vitor_engmec_custom_questions', JSON.stringify(newQuestionsMap));
         } catch (err) {
           console.error("Erro ao resetar padrão:", err);
         }

@@ -42,6 +42,7 @@ export interface EquipmentData {
   year: string;
   createdAt: string;
   updatedAt: string;
+  potenciaInstalada?: string;
 }
 
 export enum LaudoStatus {

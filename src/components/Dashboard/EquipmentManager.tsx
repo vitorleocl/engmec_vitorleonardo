@@ -72,7 +72,8 @@ export default function EquipmentManager() {
       serialNumber: currentEq.serialNumber || 'N/A',
       year: currentEq.year || '',
       createdAt: currentEq.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      potenciaInstalada: currentEq.potenciaInstalada || ''
     };
 
     const timeoutPromise = new Promise((_, reject) => 
@@ -231,7 +232,7 @@ export default function EquipmentManager() {
                     </td>
                     <td className="p-4 space-y-0.5 font-mono text-xs">
                       <div className="text-slate-800 dark:text-slate-200">S/N: {eq.serialNumber}</div>
-                      <div className="text-slate-400">Ano: {eq.year || 'N/D'}</div>
+                      <div className="text-slate-400">Ano: {eq.year || 'N/D'}{eq.potenciaInstalada ? ` • Potência: ${eq.potenciaInstalada} kW` : ''}</div>
                     </td>
                     <td className="p-4 text-right space-x-2 shrink-0">
                       {deleteConfirmId === eq.id ? (
@@ -360,7 +361,7 @@ export default function EquipmentManager() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-400 uppercase font-mono">Número de Série / Chassi</label>
                   <input
@@ -380,6 +381,17 @@ export default function EquipmentManager() {
                     onChange={(e) => setCurrentEq({ ...currentEq, year: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white"
                     placeholder="Ex: 2021"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase font-mono">Potência Instalada (kW)</label>
+                  <input
+                    type="text"
+                    value={currentEq.potenciaInstalada || ''}
+                    onChange={(e) => setCurrentEq({ ...currentEq, potenciaInstalada: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none text-slate-950 dark:text-white"
+                    placeholder="Ex: 15"
                   />
                 </div>
               </div>

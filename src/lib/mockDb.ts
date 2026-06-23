@@ -54,6 +54,7 @@ const initialEquipments: EquipmentData[] = [
     year: '2018',
     createdAt: new Date('2026-01-16').toISOString(),
     updatedAt: new Date('2026-01-16').toISOString(),
+    potenciaInstalada: '45'
   },
   {
     id: 'e2',
@@ -66,6 +67,7 @@ const initialEquipments: EquipmentData[] = [
     year: '2020',
     createdAt: new Date('2026-02-11').toISOString(),
     updatedAt: new Date('2026-02-11').toISOString(),
+    potenciaInstalada: '185'
   },
   {
     id: 'e3',
@@ -78,6 +80,7 @@ const initialEquipments: EquipmentData[] = [
     year: '2021',
     createdAt: new Date('2026-03-02').toISOString(),
     updatedAt: new Date('2026-03-02').toISOString(),
+    potenciaInstalada: ''
   },
   {
     id: 'e4',
@@ -90,6 +93,7 @@ const initialEquipments: EquipmentData[] = [
     year: '2019',
     createdAt: new Date('2026-03-05').toISOString(),
     updatedAt: new Date('2026-03-05').toISOString(),
+    potenciaInstalada: '120'
   }
 ];
 
