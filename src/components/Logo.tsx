@@ -5,11 +5,12 @@
 
 interface LogoProps {
   className?: string;
-  variant?: 'light' | 'dark' | 'footer';
+  variant?: 'light' | 'dark' | 'footer' | 'print';
 }
 
 export default function Logo({ className = '', variant = 'light' }: LogoProps) {
   const isDarkBg = variant === 'footer';
+  const isPrint = variant === 'print';
   
   return (
     <div className={`flex items-center select-none ${className}`}>
@@ -72,12 +73,12 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             {/* Bold custom angled letter V, highly slanted and interlocking */}
             <path 
               d="M -40,-28 L -17,-28 L 0,20 L 17,-28 L 31,-28 L -2,34 L -10,34 Z" 
-              className={isDarkBg ? "fill-white" : "fill-[#0f284e] dark:fill-white"} 
+              className={isDarkBg ? "fill-white" : isPrint ? "fill-[#0f284e]" : "fill-[#0f284e] dark:fill-white"} 
             />
             {/* Bold custom letter L nesting on the right, perfectly parallel and matching slant */}
             <path 
               d="M 37,-28 L 50,-28 L 25,18 L 58,18 L 49,34 L 4,34 Z" 
-              className={isDarkBg ? "fill-[#3b82f6]" : "fill-[#0066d4] dark:fill-[#4895EF]"} 
+              className={isDarkBg ? "fill-[#3b82f6]" : isPrint ? "fill-[#0066d4]" : "fill-[#0066d4] dark:fill-[#4895EF]"} 
             />
           </g>
         </g>
@@ -89,7 +90,7 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
           x2="165" 
           y2="130" 
           strokeWidth="1.5" 
-          className="stroke-slate-350 dark:stroke-slate-700" 
+          className={isPrint ? "stroke-slate-350" : "stroke-slate-350 dark:stroke-slate-700"} 
         />
 
         {/* Brand typography block */}
@@ -101,7 +102,7 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             fontFamily="system-ui, -apple-system, sans-serif" 
             fontWeight="900" 
             fontSize="41" 
-            className={isDarkBg ? "fill-white" : "fill-[#0B2545] dark:fill-white"}
+            className={isDarkBg ? "fill-white" : isPrint ? "fill-[#0B2545]" : "fill-[#0B2545] dark:fill-white"}
           >
             VL
           </text>
@@ -113,7 +114,7 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             fontFamily="system-ui, -apple-system, sans-serif" 
             fontWeight="800" 
             fontSize="41" 
-            className={isDarkBg ? "fill-[#4895EF]" : "fill-[#105FD3] dark:fill-[#4895EF]"}
+            className={isDarkBg ? "fill-[#4895EF]" : isPrint ? "fill-[#105FD3]" : "fill-[#105FD3] dark:fill-[#4895EF]"}
           >
             ENGENHARIA
           </text>
@@ -125,12 +126,12 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             x2="520" 
             y2="92" 
             strokeWidth="1.5" 
-            className="stroke-slate-300 dark:stroke-slate-700" 
+            className={isPrint ? "stroke-slate-300" : "stroke-slate-300 dark:stroke-slate-700"} 
           />
 
           {/* Small interlocking technical gear centered on the divider line */}
-          <g transform="translate(350, 92)" className="stroke-slate-400 dark:stroke-slate-500" strokeWidth="1.5">
-            <circle cx="0" cy="0" r="5" fill={isDarkBg ? "#05162E" : "#F4F7F6"} className="dark:fill-slate-950" />
+          <g transform="translate(350, 92)" className={isPrint ? "stroke-slate-400" : "stroke-slate-400 dark:stroke-slate-500"} strokeWidth="1.5">
+            <circle cx="0" cy="0" r="5" fill={isDarkBg ? "#05162E" : isPrint ? "#FFFFFF" : "#F4F7F6"} className={isPrint ? "" : "dark:fill-slate-950"} />
             <circle cx="0" cy="0" r="1.5" fill="none" />
             <line x1="0" y1="-7" x2="0" y2="7" />
             <line x1="-7" y1="0" x2="7" y2="0" />
@@ -147,7 +148,7 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             fontWeight="800" 
             fontSize="10" 
             letterSpacing="1.8" 
-            className={isDarkBg ? "fill-slate-400" : "fill-slate-500 dark:fill-slate-400"}
+            className={isDarkBg ? "fill-slate-400" : isPrint ? "fill-slate-500" : "fill-slate-500 dark:fill-slate-400"}
           >
             INSPEÇÕES  •  LAUDOS TÉCNICOS  •  ENGENHARIA MECÂNICA
           </text>

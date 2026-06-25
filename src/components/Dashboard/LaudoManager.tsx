@@ -4,12 +4,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { LaudoData, ClientData, EquipmentData, LaudoStatus } from '../../types';
+import { LaudoData, ClientData, EquipmentData, LaudoStatus, ChecklistData } from '../../types';
 import { isRealFirebase, db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { mockDb } from '../../lib/mockDb';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Plus, Edit2, Trash2, Search, X, ClipboardCopy, Send, Save, FileText, Upload, HelpCircle, Eye, Shield, Clipboard, Printer } from 'lucide-react';
 import PMOCEditor from './PMOCEditor';
+import Logo from '../Logo';
 
 interface LaudoManagerProps {
   laudos?: LaudoData[];
@@ -30,6 +31,10 @@ export default function LaudoManager({
   const [clients, setClients] = useState<ClientData[]>(propClients || []);
   const [equipments, setEquipments] = useState<EquipmentData[]>(propEquipments || []);
   
+  const [checklists, setChecklists] = useState<ChecklistData[]>([]);
+  const [selectedChecklistId, setSelectedChecklistId] = useState<string>('');
+  const [printingLaudo, setPrintingLaudo] = useState<LaudoData | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
 
   const getInitialPmocData = (clientId?: string) => {
@@ -177,12 +182,16 @@ export default function LaudoManager({
     setLoading(true);
     try {
       if (isRealFirebase) {
-        const [querySnapshot, clientsSnap, eqSnap, catSnap] = await Promise.all([
+        const [querySnapshot, clientsSnap, eqSnap, catSnap, checklistsSnap] = await Promise.all([
           getDocs(collection(db, 'laudos')),
           getDocs(collection(db, 'clients')),
           getDocs(collection(db, 'equipments')),
           getDocs(collection(db, 'laudo_categories')).catch(err => {
             console.warn('Could not load custom categories, using empty:', err);
+            return { forEach: () => {} } as any;
+          }),
+          getDocs(collection(db, 'checklists')).catch(err => {
+            console.warn('Could not load checklists, using empty:', err);
             return { forEach: () => {} } as any;
           })
         ]);
@@ -199,6 +208,10 @@ export default function LaudoManager({
         eqSnap.forEach((docSnap) => eqArray.push(docSnap.data() as EquipmentData));
         setEquipments(eqArray);
 
+        const chkArray: ChecklistData[] = [];
+        checklistsSnap.forEach((docSnap) => chkArray.push(docSnap.data() as ChecklistData));
+        setChecklists(chkArray);
+
         const catArray: string[] = [];
         catSnap.forEach((docSnap) => {
           const data = docSnap.data();
@@ -211,6 +224,7 @@ export default function LaudoManager({
         setLaudos(mockDb.getLaudos());
         setClients(mockDb.getClients());
         setEquipments(mockDb.getEquipments());
+        setChecklists(mockDb.getChecklists());
 
         // Load mock categories
         const savedCats = localStorage.getItem('laudo_categories');
@@ -247,6 +261,7 @@ export default function LaudoManager({
     const isNr12 = currentLaudo.categoria?.toLowerCase().includes('nr-12') || currentLaudo.categoria?.toLowerCase().includes('nr12');
     const hrnScore = getHrnScore();
     const hrnDetails = getHrnDetails(hrnScore);
+    const linkedChki = checklists.find(c => c.id === selectedChecklistId);
 
     const saveObj: LaudoData = {
       id: laudoId,
@@ -275,7 +290,9 @@ export default function LaudoManager({
         acoesRecomendadas: hrnAcoesText,
         zonaPerigo: hrnDetails.desc
       } : undefined,
-      pmocData: currentLaudo.categoria === 'PMOC (Climatização)' ? (currentLaudo.pmocData || getInitialPmocData(currentLaudo.clientId)) : undefined
+      pmocData: currentLaudo.categoria === 'PMOC (Climatização)' ? (currentLaudo.pmocData || getInitialPmocData(currentLaudo.clientId)) : undefined,
+      linkedChecklistId: selectedChecklistId || undefined,
+      linkedChecklistData: linkedChki || undefined
     };
 
     const timeoutPromise = new Promise((_, reject) => 
@@ -402,6 +419,7 @@ export default function LaudoManager({
             setHrnDo(5.0);
             setHrnNp(1.0);
             setHrnAcoesText('');
+            setSelectedChecklistId('');
             setModalOpen(true);
           }}
           disabled={clients.length === 0 || equipments.length === 0}
@@ -534,8 +552,8 @@ export default function LaudoManager({
                           </button>
                         </div>
                       ) : (
-                        <>
-                          {laudo.categoria === 'PMOC (Climatização)' && (
+                        <div className="flex items-center justify-end gap-1.5 inline-flex">
+                          {laudo.categoria === 'PMOC (Climatização)' ? (
                             <button
                               type="button"
                               onClick={() => {
@@ -545,6 +563,20 @@ export default function LaudoManager({
                               }}
                               className="p-1.5 hover:bg-[#1D3557]/10 dark:hover:bg-[#1D3557]/20 rounded text-[#1D3557] dark:text-[#4895EF] hover:scale-110 transition-all inline-block cursor-pointer"
                               title="Visualizar Planilha PMOC e Imprimir"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPrintingLaudo(laudo);
+                                setTimeout(() => {
+                                  window.print();
+                                }, 150);
+                              }}
+                              className="p-1.5 hover:bg-[#134074]/10 dark:hover:bg-[#134074]/20 rounded text-[#134074] dark:text-[#4895EF] hover:scale-110 transition-all inline-block cursor-pointer"
+                              title="Imprimir Laudo Técnico"
                             >
                               <Printer className="w-4 h-4" />
                             </button>
@@ -566,6 +598,7 @@ export default function LaudoManager({
                                 setHrnNp(1.0);
                                 setHrnAcoesText('');
                               }
+                              setSelectedChecklistId(laudo.linkedChecklistId || '');
                               setModalOpen(true);
                             }}
                             className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
@@ -580,7 +613,7 @@ export default function LaudoManager({
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -965,6 +998,96 @@ export default function LaudoManager({
                       </div>
                     );
                   })()}
+
+                  {/* Connect Checklist de Vistoria Section */}
+                  <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-blue-500/10 pb-2 mb-2">
+                      <Clipboard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-bold uppercase font-mono text-blue-600 dark:text-blue-400 tracking-wider">Conectar Checklist de Vistoria (Integração NR12)</span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono block">Vistoria Realizada Vinculada (Opcional)</label>
+                      <select
+                        value={selectedChecklistId}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSelectedChecklistId(val);
+                          const chk = checklists.find(c => c.id === val);
+                          if (chk) {
+                            let notesText = '';
+                            if (chk.questionNotes) {
+                              const notes = Object.values(chk.questionNotes).filter(Boolean);
+                              if (notes.length > 0) {
+                                notesText = 'Observações coletadas no Checklist:\n' + notes.map(n => `- ${n}`).join('\n');
+                              }
+                            }
+                            if (notesText && !hrnAcoesText) {
+                              setHrnAcoesText(notesText);
+                            }
+                          }
+                        }}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs outline-none text-slate-950 dark:text-white cursor-pointer"
+                      >
+                        <option value="">Nenhum checklist vinculado...</option>
+                        {checklists.filter(chk => chk.clientId === currentLaudo?.clientId).map((chk) => (
+                          <option key={chk.id} value={chk.id}>
+                            [{chk.type.toUpperCase()}] {new Date(chk.createdAt).toLocaleDateString('pt-BR')} - {chk.equipmentModel} ({chk.inspectorName})
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {selectedChecklistId && (() => {
+                        const chk = checklists.find(c => c.id === selectedChecklistId);
+                        if (!chk) return null;
+                        
+                        const okCount = Object.values(chk.questions).filter(v => v === 'OK' || v === 'C' || v === true || v === 'SIM' || v === 'APROVADO').length;
+                        const nokCount = Object.values(chk.questions).filter(v => v === 'NOK' || v === 'NC' || v === false || v === 'NÃO' || v === 'REPROVADO' || v === 'RUIM').length;
+                        const naCount = Object.values(chk.questions).filter(v => v === 'NA' || v === 'N.A' || v === 'N.A (NÃO SE APLICA)').length;
+
+                        return (
+                          <div className="bg-white dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-3 shadow-sm">
+                            <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
+                              <span>ID Vistoria: {chk.id}</span>
+                              <span>Data: {new Date(chk.createdAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div className="font-bold text-slate-800 dark:text-slate-200">
+                              Métricas de Conformidade Importadas:
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono font-bold">
+                              <div className="bg-emerald-500/10 text-emerald-600 p-2 rounded border border-emerald-500/10">
+                                CONFORME: {okCount}
+                              </div>
+                              <div className="bg-rose-500/10 text-rose-600 p-2 rounded border border-rose-500/10">
+                                NÃO CONFORME: {nokCount}
+                              </div>
+                              <div className="bg-slate-100 dark:bg-slate-900 text-slate-500 p-2 rounded border border-slate-200/5 dark:border-slate-800">
+                                N.A: {naCount}
+                              </div>
+                            </div>
+
+                            {chk.questionPhotos && Object.values(chk.questionPhotos).flat().length > 0 && (
+                              <div className="space-y-1.5">
+                                <div className="font-bold text-slate-400 text-[10px] uppercase font-mono">Fotos Técnicas do Checklist ({Object.values(chk.questionPhotos).flat().length}):</div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {Object.values(chk.questionPhotos).flat().slice(0, 5).map((photo, pIdx) => (
+                                    <img
+                                      key={pIdx}
+                                      src={photo}
+                                      alt="Vistoria"
+                                      className="w-12 h-12 object-cover rounded-lg border border-slate-200 dark:border-slate-800 hover:scale-105 transition-transform"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1055,6 +1178,290 @@ export default function LaudoManager({
             </form>
 
           </div>
+        </div>
+      )}
+
+      {/* Hidden print container specifically formatted for A4 prints of Laudos Técnicos! */}
+      {printingLaudo && (
+        <div 
+          id="print-container-laudo" 
+          className="fixed inset-0 z-[99999] bg-white text-slate-950 p-12 overflow-y-auto hidden print:block space-y-8"
+        >
+          {/* Header block with company logo */}
+          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6">
+            <Logo variant="print" className="h-16" />
+            <div className="text-right font-mono text-[10px] text-slate-500 space-y-1">
+              <div className="font-bold text-sm text-slate-900">LAUDO TÉCNICO DE ENGENHARIA</div>
+              <div>REGISTRO: {printingLaudo.numero}</div>
+              <div>EMISSÃO: {new Date(printingLaudo.createdAt).toLocaleDateString('pt-BR')}</div>
+              <div>ART VINCULADA: {printingLaudo.art || 'N/A'}</div>
+            </div>
+          </div>
+
+          {/* Title and Identification of Responsable Engineer */}
+          <div className="text-center space-y-1 py-4">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
+              {printingLaudo.categoria || 'Laudo Técnico de Conformidade'}
+            </h1>
+            <p className="text-xs text-slate-600 font-mono">
+              Responsável Técnico: Eng. Vitor Leonardo Cordeiro Linhares • CREA-PE 18222994-PE
+            </p>
+          </div>
+
+          {/* Informações Gerais (Client and Equipment) */}
+          <div className="grid grid-cols-2 gap-8 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-slate-400 uppercase font-mono tracking-wider border-b border-slate-200 pb-1">
+                Cliente Interessado
+              </h3>
+              <div className="text-sm space-y-1 leading-normal text-slate-800">
+                <p className="font-bold text-slate-950">{printingLaudo.clientName}</p>
+                {(() => {
+                  const cli = clients.find(c => c.id === printingLaudo.clientId);
+                  if (!cli) return null;
+                  return (
+                    <div className="space-y-0.5 text-xs text-slate-600">
+                      <p>CNPJ/CPF: {cli.cnpj_cpf}</p>
+                      <p>Endereço: {cli.address}</p>
+                      <p>Contato: {cli.phone} | {cli.email}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-slate-400 uppercase font-mono tracking-wider border-b border-slate-200 pb-1">
+                Descrição do Ativo / Objeto
+              </h3>
+              <div className="text-sm space-y-1 leading-normal text-slate-800">
+                <p className="font-bold text-slate-950">{printingLaudo.equipmentModel}</p>
+                {(() => {
+                  const eq = equipments.find(e => e.id === printingLaudo.equipmentId);
+                  if (!eq) return null;
+                  return (
+                    <div className="space-y-0.5 text-xs text-slate-600">
+                      <p>Marca: {eq.brand}</p>
+                      <p>Modelo: {eq.model}</p>
+                      <p>Número de Série: {eq.serialNumber || 'N/A'}</p>
+                      <p>Ano Fabricação: {eq.year || 'N/A'}</p>
+                      {eq.potenciaInstalada && <p>Potência Instalada: {eq.potenciaInstalada} kW</p>}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Risk Appreciation section (HRN / ISO 12100) */}
+          {printingLaudo.apreciacaoRisco && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold border-b-2 border-slate-900 pb-2 uppercase tracking-wide">
+                1. Apreciação de Riscos Dinâmica (ISO 12100 / HRN)
+              </h2>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                A avaliação de perigos foi conduzida utilizando o consagrado método internacional HRN (Hazard Rating Number), estimando quantitativamente a probabilidade de ocorrência, frequência de exposição, gravidade do dano físico e número de pessoas expostas ao perigo mecânico direto.
+              </p>
+
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">Probabilidade (LO)</div>
+                  <div className="text-lg font-bold text-slate-800 mt-1">{printingLaudo.apreciacaoRisco.loValue}</div>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">Frequência (FE)</div>
+                  <div className="text-lg font-bold text-slate-800 mt-1">{printingLaudo.apreciacaoRisco.feValue}</div>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">Gravidade Dano (DO)</div>
+                  <div className="text-lg font-bold text-slate-800 mt-1">{printingLaudo.apreciacaoRisco.doValue}</div>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">Nº de Expostos (NP)</div>
+                  <div className="text-lg font-bold text-slate-800 mt-1">{printingLaudo.apreciacaoRisco.npValue}</div>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 block uppercase">Pontuação Final HRN</span>
+                  <span className="text-2xl font-mono font-black">{printingLaudo.apreciacaoRisco.hrnScore}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-mono text-slate-400 block uppercase">Grau de Severidade</span>
+                  <span className="text-sm font-black uppercase tracking-widest">{printingLaudo.apreciacaoRisco.classificacao}</span>
+                </div>
+              </div>
+
+              {printingLaudo.apreciacaoRisco.acoesRecomendadas && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+                  <h4 className="text-xs font-bold text-slate-950 uppercase font-mono">Medidas de Salvaguarda Recomendadas:</h4>
+                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{printingLaudo.apreciacaoRisco.acoesRecomendadas}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Connected Checklist Section - Visualizing Checklist items, photos, and answers */}
+          {printingLaudo.linkedChecklistId && (
+            <div className="space-y-4 pt-4 page-break-before">
+              <h2 className="text-lg font-bold border-b-2 border-slate-900 pb-2 uppercase tracking-wide">
+                2. Diagnóstico e Vistorias Integradas (Checklist Conectado)
+              </h2>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                As verificações táticas registradas sob a vistoria técnica unificada de ID <strong>{printingLaudo.linkedChecklistId}</strong> estão integradas a este laudo pericial, detalhando a conformidade dos itens normativos coletados em campo pelo engenheiro inspetor.
+              </p>
+
+              {(() => {
+                const chk = checklists.find(c => c.id === printingLaudo.linkedChecklistId) || printingLaudo.linkedChecklistData;
+                if (!chk) {
+                  return (
+                    <div className="text-xs text-slate-500 font-mono italic">
+                      Checklist vinculado ID {printingLaudo.linkedChecklistId} não pôde ser carregado offline.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl text-xs border border-slate-200">
+                      <div>
+                        <strong>Tipo de Vistoria:</strong> <span className="uppercase font-bold">{chk.type}</span>
+                      </div>
+                      <div>
+                        <strong>Inspetor Responsável:</strong> <span>{chk.inspectorName}</span>
+                      </div>
+                      <div>
+                        <strong>Data da Vistoria:</strong> <span>{new Date(chk.createdAt).toLocaleString('pt-BR')}</span>
+                      </div>
+                      <div>
+                        <strong>Assinatura Digital de Vistoria:</strong> <span className="font-mono text-[9px] select-all break-all">{chk.digitalSignature}</span>
+                      </div>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-100 font-bold border-b border-slate-200 font-mono text-[10px]">
+                            <th className="p-3">Item de Verificação Normativa</th>
+                            <th className="p-3 text-center w-32">Status da Inspeção</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 text-slate-800">
+                          {Object.entries(chk.questions).map(([qKey, qValue]) => {
+                            let qLabel = qKey;
+                            if (qKey.startsWith('q')) {
+                              qLabel = qKey.replace(/^q\d+_/, '').replace(/_/g, ' ').toUpperCase();
+                            }
+                            const isConforme = qValue === 'OK' || qValue === 'C' || qValue === true || qValue === 'SIM' || qValue === 'APROVADO';
+                            const isNaoConforme = qValue === 'NOK' || qValue === 'NC' || qValue === false || qValue === 'NÃO' || qValue === 'REPROVADO' || qValue === 'RUIM';
+                            
+                            return (
+                              <tr key={qKey}>
+                                <td className="p-3">
+                                  <div className="font-semibold text-slate-900">{qLabel}</div>
+                                  {chk.questionNotes?.[qKey] && (
+                                    <div className="text-[10px] text-slate-500 font-mono italic mt-1 bg-slate-50 p-1 rounded border border-slate-100">
+                                      Obs: {chk.questionNotes[qKey]}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="p-3 text-center">
+                                  {isConforme ? (
+                                    <span className="inline-block px-2.5 py-0.5 font-bold font-mono text-emerald-800 text-[10px] bg-emerald-100 rounded">CONFORME</span>
+                                  ) : isNaoConforme ? (
+                                    <span className="inline-block px-2.5 py-0.5 font-bold font-mono text-rose-800 text-[10px] bg-rose-100 rounded">NÃO CONFORME</span>
+                                  ) : (
+                                    <span className="inline-block px-2.5 py-0.5 font-bold font-mono text-slate-500 text-[10px] bg-slate-100 rounded">N/A</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {chk.questionPhotos && Object.values(chk.questionPhotos).flat().length > 0 && (
+                      <div className="space-y-3 pt-2 page-break-inside-avoid">
+                        <h3 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+                          2.1 Anexo Fotográfico de Evidências Técnicas
+                        </h3>
+                        <p className="text-[11px] text-slate-500 leading-normal">
+                          Abaixo encontram-se registradas as fotos e as evidências técnicas capturadas in-loco durante a execução das inspeções na máquina correspondente:
+                        </p>
+                        <div className="grid grid-cols-3 gap-4">
+                          {Object.entries(chk.questionPhotos).map(([qKey, photos]) => {
+                            const photoList = photos as string[];
+                            if (!photoList || photoList.length === 0) return null;
+                            let qLabel = qKey;
+                            if (qKey.startsWith('q')) {
+                              qLabel = qKey.replace(/^q\d+_/, '').replace(/_/g, ' ').toUpperCase();
+                            }
+                            return photoList.map((photo, pIdx) => (
+                              <div key={`${qKey}-${pIdx}`} className="border border-slate-200 rounded-xl p-2 bg-slate-50 text-center space-y-1.5">
+                                <img
+                                  src={photo}
+                                  alt={`Evidência ${qLabel}`}
+                                  className="w-full h-32 object-cover rounded-lg border border-slate-200 shadow-sm"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <div className="text-[9px] font-mono font-bold text-slate-600 uppercase truncate">
+                                  {qLabel} ({pIdx + 1})
+                                </div>
+                              </div>
+                            ));
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Footer signatures block */}
+          <div className="pt-16 grid grid-cols-2 gap-16 items-start page-break-inside-avoid">
+            <div className="space-y-2 border-t border-slate-400 pt-4 text-center">
+              {(() => {
+                const chk = checklists.find(c => c.id === printingLaudo.linkedChecklistId) || printingLaudo.linkedChecklistData;
+                if (chk?.signatureUrl) {
+                  return (
+                    <img 
+                      src={chk.signatureUrl} 
+                      alt="Assinatura técnica" 
+                      className="mx-auto max-h-16 border border-slate-200 bg-white rounded"
+                      referrerPolicy="no-referrer"
+                    />
+                  );
+                }
+                return <div className="h-16" />;
+              })()}
+              <h4 className="font-bold text-md text-slate-900">Vitor Leonardo Cordeiro Linhares</h4>
+              <p className="text-xs text-slate-500 font-mono">Engenheiro Mecânico • CREA-PE 1822299490</p>
+            </div>
+
+            <div className="space-y-2 pt-12">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[10px] font-mono space-y-1.5 leading-normal">
+                <div className="font-bold text-slate-700">CERTIFICAÇÃO DIGITAL DE INTEGRABILIDADE:</div>
+                <div>Hash de Verificação: <strong className="text-slate-900">MD5:LAUDO:{printingLaudo.id.substring(0, 8)}:{printingLaudo.numero}</strong></div>
+                <div>Este laudo técnico foi emitido de forma digital e cumpre integralmente com as resoluções do CONFEA/CREA-PE para Engenharia Mecânica.</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="fixed bottom-6 right-6 text-[10px] font-mono text-slate-450 print:block hidden">
+            VL ENGENHARIA • Inspeções, Laudos Técnicos e Engenharia Mecânica
+          </div>
+
+          <button 
+            type="button" 
+            onClick={() => setPrintingLaudo(null)}
+            className="fixed bottom-6 left-6 px-4 py-2 bg-slate-900 text-white rounded font-bold text-xs font-mono uppercase tracking-wider print:hidden cursor-pointer"
+          >
+            Voltar ao painel
+          </button>
         </div>
       )}
 

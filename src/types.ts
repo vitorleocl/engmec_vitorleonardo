@@ -156,6 +156,8 @@ export interface LaudoData {
     zonaPerigo?: string;
   };
   pmocData?: PMOCData;
+  linkedChecklistId?: string;
+  linkedChecklistData?: ChecklistData;
 }
 
 export type ChecklistType = 'nr12' | 'munck' | 'guindaste' | 'maquinas_pesadas' | 'playground' | 'pmoc' | 'reclassificacao_monta' | 'integridade_fisica' | 'frota_escolar';
