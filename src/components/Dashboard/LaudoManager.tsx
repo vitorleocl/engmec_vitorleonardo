@@ -908,9 +908,13 @@ export default function LaudoManager({
                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
                       >
                         <option value={0.03}>0.03 (Quase impossível)</option>
-                        <option value={1.0}>1.0 (Insignificante/Improvável)</option>
-                        <option value={5.0}>5.0 (Possível)</option>
-                        <option value={15.0}>15.0 (Provável)</option>
+                        <option value={0.2}>0.20 (Altamente improvável)</option>
+                        <option value={1.0}>1.00 (Improvável / Insignificante)</option>
+                        <option value={1.5}>1.50 (Possível)</option>
+                        <option value={2.0}>2.00 (Pouco provável)</option>
+                        <option value={5.0}>5.00 (Provável)</option>
+                        <option value={8.0}>8.00 (Altamente provável)</option>
+                        <option value={15.0}>15.00 (Certo de acontecer)</option>
                       </select>
                     </div>
 
@@ -922,10 +926,12 @@ export default function LaudoManager({
                         onChange={(e) => setHrnFe(Number(e.target.value))}
                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
                       >
-                        <option value={0.1}>0.1 (Anual / Rara)</option>
-                        <option value={2.0}>2.0 (Mensal)</option>
-                        <option value={5.0}>5.0 (Diária)</option>
-                        <option value={15.0}>15.0 (Constante/Multi-turno)</option>
+                        <option value={0.1}>0.10 (Infrequente / Anual)</option>
+                        <option value={0.2}>0.20 (Mensal)</option>
+                        <option value={1.0}>1.00 (Semanal)</option>
+                        <option value={2.5}>2.50 (Diária)</option>
+                        <option value={4.0}>4.00 (De hora em hora)</option>
+                        <option value={5.0}>5.00 (Constante / Multi-turno)</option>
                       </select>
                     </div>
 
@@ -937,11 +943,13 @@ export default function LaudoManager({
                         onChange={(e) => setHrnDo(Number(e.target.value))}
                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
                       >
-                        <option value={0.1}>0.1 (Contusão leve)</option>
-                        <option value={1.0}>1.0 (Corte com afastamento)</option>
-                        <option value={5.0}>5.0 (Amputação pequena)</option>
-                        <option value={15.0}>15.0 (Morte individual)</option>
-                        <option value={50.0}>50.0 (Múltiplas mortes)</option>
+                        <option value={0.1}>0.10 (Arranhão / Contusão leve)</option>
+                        <option value={0.5}>0.50 (Dilaceração / Corte leve)</option>
+                        <option value={1.0}>1.00 (Amputação de dedo / Fratura leve)</option>
+                        <option value={2.0}>2.00 (Perda de um membro / Fratura grave)</option>
+                        <option value={4.0}>4.00 (Invalidez permanente / Amputação de membros)</option>
+                        <option value={15.0}>15.00 (Morte individual)</option>
+                        <option value={50.0}>50.00 (Múltiplas mortes)</option>
                       </select>
                     </div>
 
@@ -953,11 +961,11 @@ export default function LaudoManager({
                         onChange={(e) => setHrnNp(Number(e.target.value))}
                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none text-slate-950 dark:text-white"
                       >
-                        <option value={1.0}>1.0 (1-2 pessoas)</option>
-                        <option value={2.0}>2.0 (3-7 pessoas)</option>
-                        <option value={4.0}>4.0 (8-15 pessoas)</option>
-                        <option value={8.0}>8.0 (16-50 pessoas)</option>
-                        <option value={12.0}>12.0 (Mais de 50 pessoas)</option>
+                        <option value={1.0}>1.00 (1-2 pessoas)</option>
+                        <option value={2.0}>2.00 (3-7 pessoas)</option>
+                        <option value={4.0}>4.00 (8-15 pessoas)</option>
+                        <option value={8.0}>8.00 (16-50 pessoas)</option>
+                        <option value={12.0}>12.00 (Mais de 50 pessoas)</option>
                       </select>
                     </div>
                   </div>
@@ -1080,6 +1088,50 @@ export default function LaudoManager({
                                       referrerPolicy="no-referrer"
                                     />
                                   ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Identified Non-Conformities */}
+                            {nokCount > 0 && (
+                              <div className="space-y-1.5 pt-2 border-t border-slate-150 dark:border-slate-800">
+                                <div className="font-bold text-rose-500 text-[10px] uppercase font-mono tracking-wider flex items-center gap-1">
+                                  <span>🚨 Não-Conformidades Detectadas na Vistoria:</span>
+                                </div>
+                                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                  {Object.entries(chk.questions)
+                                    .filter(([_, val]) => val === 'NOK' || val === 'NC' || val === false || val === 'NÃO' || val === 'REPROVADO' || val === 'RUIM')
+                                    .map(([qKey, _]) => {
+                                      let qLabel = qKey;
+                                      if (qKey.startsWith('q')) {
+                                        qLabel = qKey.replace(/^q\d+_/, '').replace(/_/g, ' ').toUpperCase();
+                                      }
+                                      const hasNote = chk.questionNotes?.[qKey];
+                                      return (
+                                        <div key={qKey} className="bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/10 p-2 rounded-xl text-[11px] text-slate-700 dark:text-slate-350 space-y-1 flex flex-col justify-between">
+                                          <div className="flex justify-between items-start gap-2">
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200 leading-snug">• {qLabel}</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const riskDesc = `[Inconformidade: ${qLabel}]${hasNote ? ` Observação: ${hasNote}` : ''}`;
+                                                if (hrnAcoesText.includes(riskDesc)) return;
+                                                setHrnAcoesText(prev => prev ? `${prev}\n- ${riskDesc}` : `- ${riskDesc}`);
+                                              }}
+                                              className="text-[9px] bg-rose-600 dark:bg-rose-500 hover:bg-rose-700 text-white font-mono px-2 py-0.5 rounded-lg font-bold active:scale-95 transition-all shrink-0 cursor-pointer"
+                                              title="Importar recomendação técnica"
+                                            >
+                                              + Vincular Laudo
+                                            </button>
+                                          </div>
+                                          {hasNote && (
+                                            <div className="text-[10px] text-slate-500 italic pl-2 border-l-2 border-rose-300 dark:border-rose-800 font-mono">
+                                              {hasNote}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                 </div>
                               </div>
                             )}

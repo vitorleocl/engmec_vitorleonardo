@@ -1471,6 +1471,7 @@ export default function ChecklistManager({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [printingChecklist, setPrintingChecklist] = useState<ChecklistData | null>(null);
+  const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
 
   // Custom confirmation modal state to prevent iframe window.confirm blocks
   const [confirmState, setConfirmState] = useState<{
@@ -2081,7 +2082,7 @@ export default function ChecklistManager({
     setLoading(true);
     const matchedClient = clients.find(c => c.id === selectedClient);
     const matchedEq = equipments.find(eq => eq.id === selectedEq);
-    const chkId = 'chk_' + Math.random().toString(36).substr(2, 9);
+    const chkId = editingChecklistId || ('chk_' + Math.random().toString(36).substr(2, 9));
 
     // Grab canvas drawing representation
     let signatureUrl = '';
@@ -2103,10 +2104,10 @@ export default function ChecklistManager({
       equipmentId: selectedEq,
       equipmentModel: matchedEq ? `${matchedEq.type} (${matchedEq.model})` : 'Equipamento',
       questions: compiledAnswers,
-      signatureUrl: signatureUrl,
-      digitalSignature: 'MD5:' + Math.random().toString(36).substr(2, 5) + Date.now().toString(36),
+      signatureUrl: signatureUrl || (editingChecklistId ? (checklists.find(c => c.id === editingChecklistId)?.signatureUrl || '') : ''),
+      digitalSignature: editingChecklistId ? (checklists.find(c => c.id === editingChecklistId)?.digitalSignature || 'MD5:' + Math.random().toString(36).substr(2, 5) + Date.now().toString(36)) : 'MD5:' + Math.random().toString(36).substr(2, 5) + Date.now().toString(36),
       inspectorName: inspectorName,
-      createdAt: new Date().toISOString(),
+      createdAt: editingChecklistId ? (checklists.find(c => c.id === editingChecklistId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       nr12Metadata: checklistType === 'nr12' ? {
         empresa: nr12Empresa,
@@ -2146,7 +2147,7 @@ export default function ChecklistManager({
         mockDb.saveChecklist(sanitizedSaveObj);
       }
       setModalOpen(false);
-      setSuccess('Vistoria técnica cadastrada com sucesso!');
+      setSuccess(editingChecklistId ? 'Vistoria técnica atualizada com sucesso!' : 'Vistoria técnica cadastrada com sucesso!');
       setTimeout(() => setSuccess(null), 4500);
       localStorage.removeItem('checklist_draft');
       setHasDraft(false);
@@ -2228,6 +2229,62 @@ export default function ChecklistManager({
     setPmocAnotacoes('');
     setQuestionPhotos({});
     setQuestionNotes({});
+    setEditingChecklistId(null);
+  };
+
+  const startEditChecklist = (chk: ChecklistData) => {
+    setEditingChecklistId(chk.id);
+    setSelectedClient(chk.clientId);
+    setSelectedEq(chk.equipmentId);
+    setChecklistType(chk.type);
+    setAnswers(chk.questions || {});
+    setInspectorName(chk.inspectorName || '');
+    setQuestionPhotos(chk.questionPhotos || {});
+    setQuestionNotes(chk.questionNotes || {});
+    
+    if (chk.nr12Metadata) {
+      setNr12Empresa(chk.nr12Metadata.empresa || '');
+      setNr12Maquina(chk.nr12Metadata.maquina || '');
+      setNr12Fabricante(chk.nr12Metadata.fabricante || '');
+      setNr12Tag(chk.nr12Metadata.tag || '');
+      setNr12Qtd(chk.nr12Metadata.qtd || '');
+      setNr12QtdOperador(chk.nr12Metadata.qtdOperador || '');
+      setNr12Setor(chk.nr12Metadata.setor || '');
+      setNr12ResponsavelServico(chk.nr12Metadata.responsavelServico || '');
+      setNr12Contato(chk.nr12Metadata.contato || '');
+      setNr12DataChecklist(chk.nr12Metadata.dataChecklist || '');
+    }
+    
+    if (chk.pmocMetadata) {
+      setPmocObs01(chk.pmocMetadata.obs01 || '');
+      setPmocObs02(chk.pmocMetadata.obs02 || '');
+      setPmocObs03(chk.pmocMetadata.obs03 || '');
+      setPmocObs04(chk.pmocMetadata.obs04 || '');
+      setPmocAnotacoes(chk.pmocMetadata.anotacoes || '');
+    }
+
+    if (chk.signatureUrl) {
+      setSignatureSaved(true);
+      setTimeout(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0);
+            };
+            img.src = chk.signatureUrl;
+          }
+        }
+      }, 200);
+    } else {
+      setSignatureSaved(false);
+    }
+
+    setModalOpen(true);
   };
 
   const handleSaveQuestion = async (type: ChecklistType, questionId: string, updatedCategory: string, updatedText: string, responseType: QuestionResponseType = 'default') => {
@@ -2557,7 +2614,14 @@ export default function ChecklistManager({
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 text-right space-x-2 shrink-0">
+                    <td className="p-4 text-right space-x-2 shrink-0 flex items-center justify-end">
+                      <button
+                        onClick={() => startEditChecklist(chk)}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500 hover:text-blue-500 hover:scale-105 transition-all inline-block cursor-pointer"
+                        title="Editar Checklist"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => triggerPrint(chk)}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[#134074] hover:text-[#0B2545] hover:scale-105 transition-all inline-block cursor-pointer border border-[#134074]/20"
@@ -2844,7 +2908,7 @@ export default function ChecklistManager({
             <div className="bg-[#0B2545] text-white p-6 flex justify-between items-center">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Shield className="w-5 h-5 text-emerald-400" />
-                <span>Nova Vistoria de Conformidade Mecânica</span>
+                <span>{editingChecklistId ? 'Editar Vistoria de Conformidade Mecânica' : 'Nova Vistoria de Conformidade Mecânica'}</span>
               </h3>
               <button 
                 onClick={() => setModalOpen(false)} 
@@ -3588,7 +3652,7 @@ export default function ChecklistManager({
                   className="px-5 py-2 rounded-lg bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{loading ? 'Registrando...' : 'Registrar Vistoria'}</span>
+                  <span>{loading ? 'Processando...' : (editingChecklistId ? 'Salvar Alterações' : 'Registrar Vistoria')}</span>
                 </button>
               </div>
             </form>
@@ -3606,7 +3670,7 @@ export default function ChecklistManager({
           {/* Header */}
           <div className="border-b-4 border-slate-900 pb-6 flex justify-between items-start">
             <div className="space-y-2">
-              <Logo variant="light" className="h-20" />
+              <Logo variant="print" className="h-20" />
               <p className="text-[10px] font-bold font-mono tracking-wide text-slate-500 uppercase mt-2">Registro Profissional: CREA-PE 1822299490 • Recife, Pernambuco</p>
             </div>
             <div className="text-right space-y-1 text-xs font-mono">
@@ -3713,186 +3777,218 @@ export default function ChecklistManager({
           )}
 
           {/* Form items results */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold border-b-2 border-slate-850 pb-2">Diagnóstico de Itens Regulamentares ({printingChecklist.type.toUpperCase()})</h2>
+          <div className="space-y-8">
+            <h2 className="text-xl font-bold border-b-2 border-slate-900 pb-2 flex justify-between items-center text-slate-900">
+              <span>Diagnóstico Detalhado de Itens Regulamentares ({printingChecklist.type.toUpperCase()})</span>
+              <span className="text-xs font-mono bg-slate-100 text-slate-800 px-3 py-1 rounded border border-slate-300 uppercase">Laudo de Vistoria</span>
+            </h2>
             
-            <table className="w-full text-left font-sans text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-slate-300 font-bold bg-slate-100 text-xs font-mono">
-                  <th className="p-3">Categoria / Item Conforme Regulamento</th>
-                  <th className="p-3 text-center w-32">Status Técnico</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 text-slate-800">
-                {questionsMap[printingChecklist.type].map((q) => (
-                  <tr key={q.id}>
-                    <td className="p-3 font-medium">
-                      <div className="text-xs font-mono text-slate-400">{q.category}</div>
-                      <div>{q.text}</div>
-                      
-                      {/* Show per-item notes in print */}
-                      {printingChecklist.questionNotes?.[q.id] && (
-                        <div className="text-xs mt-1.5 font-sans text-slate-600 bg-slate-50 p-2 rounded border border-slate-200">
-                          <strong>Anotação/Observações:</strong> {printingChecklist.questionNotes[q.id]}
-                        </div>
-                      )}
+            {(() => {
+              const groupedQuestions = questionsMap[printingChecklist.type].reduce((acc, q) => {
+                if (!acc[q.category]) {
+                  acc[q.category] = [];
+                }
+                acc[q.category].push(q);
+                return acc;
+              }, {} as Record<string, ChecklistQuestion[]>);
 
-                      {/* Show per-item photos in print */}
-                      {printingChecklist.questionPhotos?.[q.id] && printingChecklist.questionPhotos[q.id].length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {printingChecklist.questionPhotos[q.id].map((photo, pIdx) => (
-                            <img
-                              key={pIdx}
-                              src={photo}
-                              alt={`Item ${q.id} foto ${pIdx + 1}`}
-                              className="w-24 h-24 object-cover rounded-md border border-slate-300 shadow-sm"
-                              referrerPolicy="no-referrer"
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-3 text-center">
-                      {(() => {
+              return (Object.entries(groupedQuestions) as [string, ChecklistQuestion[]][]).map(([category, qList]) => (
+                <div key={category} className="space-y-4 break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
+                  <div className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider flex justify-between items-center shadow-sm">
+                    <span>{category}</span>
+                    <span className="text-[10px] font-mono text-slate-400 font-medium">{qList.length} itens avaliados</span>
+                  </div>
+
+                  <table className="w-full text-left font-sans text-xs border-collapse border border-slate-300">
+                    <thead>
+                      <tr className="border-b border-slate-300 font-bold bg-slate-50 text-[10px] font-mono uppercase text-slate-600">
+                        <th className="p-3 border-r border-slate-300">Item / Requisito Normativo</th>
+                        <th className="p-3 text-center w-36 shrink-0">Parecer Técnico</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-slate-800">
+                      {qList.map((q) => {
                         const ans = printingChecklist.questions[q.id];
-                        if (ans === undefined || ans === null || ans === '') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-400 text-xs border border-dashed border-slate-200 rounded">NÃO RESPONDIDO</span>;
-                        }
+                        const photos = (printingChecklist.questionPhotos?.[q.id] || []) as string[];
+                        return (
+                          <tr key={q.id} className="hover:bg-slate-50/50">
+                            <td className="p-3 space-y-3">
+                              <div className="font-semibold text-slate-900 text-xs leading-relaxed">{q.text}</div>
+                              
+                              {/* Show per-item notes in print */}
+                              {printingChecklist.questionNotes?.[q.id] && (
+                                <div className="text-xs text-slate-700 bg-amber-500/5 p-2 rounded border border-amber-500/15 font-mono leading-relaxed mt-1">
+                                  <strong className="text-amber-800 uppercase text-[9px] tracking-wide block mb-0.5">Nota de Campo:</strong>
+                                  {printingChecklist.questionNotes[q.id]}
+                                </div>
+                              )}
 
-                        if (q.responseType === 'text') {
-                          return <span className="inline-block px-3 py-1 font-bold text-slate-800 text-xs bg-slate-100 rounded max-w-full break-words">{String(ans)}</span>;
-                        }
+                              {/* Show per-item photos in print */}
+                              {photos.length > 0 && (
+                                <div className="space-y-1.5 mt-2">
+                                  <span className="text-[9px] font-bold font-mono text-slate-500 uppercase tracking-wider block">Registros Fotográficos (Evidências):</span>
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {photos.map((photo, pIdx) => (
+                                      <div key={pIdx} className="space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-250 flex flex-col justify-between shadow-sm">
+                                        <img
+                                          src={photo}
+                                          alt={`Item ${q.id} foto ${pIdx + 1}`}
+                                          className="w-full h-40 object-cover rounded-lg border border-slate-300 shadow-sm"
+                                          referrerPolicy="no-referrer"
+                                        />
+                                        <span className="text-[9px] font-bold text-slate-500 text-center block font-mono pt-1">
+                                          Foto {pIdx + 1} - Item ID: {q.id}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-3 text-center border-l border-slate-200 shrink-0 align-middle">
+                              {(() => {
+                                if (ans === undefined || ans === null || ans === '') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-400 text-xs border border-dashed border-slate-300 rounded">NÃO RESPONDIDO</span>;
+                                }
 
-                        if (q.responseType === 'ok_nok_na') {
-                          if (ans === 'OK') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">OK</span>;
-                          } else if (ans === 'NOK') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NÃO OK</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">N.A</span>;
-                          }
-                        }
+                                if (q.responseType === 'text') {
+                                  return <span className="inline-block px-3 py-1 font-bold text-slate-800 text-xs bg-slate-100 rounded max-w-full break-words">{String(ans)}</span>;
+                                }
 
-                        if (q.responseType === 'bom_reg_ruim') {
-                          if (ans === 'BOM') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">BOM</span>;
-                          } else if (ans === 'REGULAR') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-amber-800 text-xs bg-amber-100 rounded">REGULAR</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">RUIM</span>;
-                          }
-                        }
+                                if (q.responseType === 'ok_nok_na') {
+                                  if (ans === 'OK') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">OK</span>;
+                                  } else if (ans === 'NOK') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NÃO OK</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">N.A</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'ok_nok') {
-                          if (ans === 'OK') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">OK</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NÃO OK (NOK)</span>;
-                          }
-                        }
+                                if (q.responseType === 'bom_reg_ruim') {
+                                  if (ans === 'BOM') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">BOM</span>;
+                                  } else if (ans === 'REGULAR') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-amber-800 text-xs bg-amber-100 rounded border border-amber-200">REGULAR</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">RUIM</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'sim_nao') {
-                          if (ans === 'SIM') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">SIM</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NÃO</span>;
-                          }
-                        }
+                                if (q.responseType === 'ok_nok') {
+                                  if (ans === 'OK') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">OK</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NÃO OK (NOK)</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'aprovado_reprovado') {
-                          if (ans === 'APROVADO') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">APROVADO</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">REPROVADO</span>;
-                          }
-                        }
+                                if (q.responseType === 'sim_nao') {
+                                  if (ans === 'SIM') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">SIM</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NÃO</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'c_nc') {
-                          if (ans === 'C' || ans === true || String(ans).toUpperCase() === 'C') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">C</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NC</span>;
-                          }
-                        }
+                                if (q.responseType === 'aprovado_reprovado') {
+                                  if (ans === 'APROVADO') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">APROVADO</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">REPROVADO</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'tipo_ar_condicionado') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-blue-800 text-xs bg-blue-105 rounded">{String(ans).toUpperCase()}</span>;
-                        }
+                                if (q.responseType === 'c_nc') {
+                                  if (ans === 'C' || ans === true || String(ans).toUpperCase() === 'C') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">C</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NC</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'number') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">{String(ans)}</span>;
-                        }
+                                if (q.responseType === 'tipo_ar_condicionado') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-blue-800 text-xs bg-blue-100 rounded border border-blue-200">{String(ans).toUpperCase()}</span>;
+                                }
 
-                        if (q.responseType === 'date') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">{String(ans)}</span>;
-                        }
+                                if (q.responseType === 'number') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">{String(ans)}</span>;
+                                }
 
-                        if (q.responseType === 'photo') {
-                          return ans ? (
-                            <img src={String(ans)} alt="Evidência" className="w-16 h-12 object-cover rounded border border-slate-300 mx-auto" referrerPolicy="no-referrer" />
-                          ) : (
-                            <span className="inline-block px-3 py-1 font-bold font-mono text-slate-400 text-xs border border-dashed border-slate-200 rounded">SEM FOTO</span>
-                          );
-                        }
+                                if (q.responseType === 'date') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">{String(ans)}</span>;
+                                }
 
-                        if (q.responseType === 'text_long') {
-                          return <span className="inline-block px-3 py-2 text-slate-800 bg-slate-50 border border-slate-100 rounded text-xs whitespace-pre-wrap text-left max-w-sm break-words leading-relaxed">{String(ans)}</span>;
-                        }
+                                if (q.responseType === 'photo') {
+                                  return ans ? (
+                                    <img src={String(ans)} alt="Evidência" className="w-16 h-12 object-cover rounded border border-slate-300 mx-auto" referrerPolicy="no-referrer" />
+                                  ) : (
+                                    <span className="inline-block px-3 py-1 font-bold font-mono text-slate-400 text-xs border border-dashed border-slate-200 rounded">SEM FOTO</span>
+                                  );
+                                }
 
-                        if (q.responseType === 'c_nc_na') {
-                          if (ans === 'C') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">CONFORME (C)</span>;
-                          } else if (ans === 'NC') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NÃO CONFORME (NC)</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">N.A</span>;
-                          }
-                        }
+                                if (q.responseType === 'text_long') {
+                                  return <span className="inline-block px-3 py-2 text-slate-800 bg-slate-50 border border-slate-200 rounded text-xs whitespace-pre-wrap text-left max-w-sm break-words leading-relaxed">{String(ans)}</span>;
+                                }
 
-                        if (q.responseType === 'bom_reg_ruim_na') {
-                          if (ans === 'BOM') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">BOM</span>;
-                          } else if (ans === 'REGULAR') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-amber-800 text-xs bg-amber-100 rounded">REGULAR</span>;
-                          } else if (ans === 'RUIM') {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">RUIM</span>;
-                          } else {
-                            return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">N.A</span>;
-                          }
-                        }
+                                if (q.responseType === 'c_nc_na') {
+                                  if (ans === 'C') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">CONFORME (C)</span>;
+                                  } else if (ans === 'NC') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NÃO CONFORME (NC)</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">N.A</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'ambiente_playground') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-[#134074] text-xs bg-blue-50 dark:bg-[#134074]/20 rounded">{String(ans).toUpperCase()}</span>;
-                        }
+                                if (q.responseType === 'bom_reg_ruim_na') {
+                                  if (ans === 'BOM') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">BOM</span>;
+                                  } else if (ans === 'REGULAR') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-amber-800 text-xs bg-amber-100 rounded border border-amber-200">REGULAR</span>;
+                                  } else if (ans === 'RUIM') {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">RUIM</span>;
+                                  } else {
+                                    return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">N.A</span>;
+                                  }
+                                }
 
-                        if (q.responseType === 'tipo_veiculo_reclassificacao' || q.responseType === 'tipo_veiculo_integridade') {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-blue-800 text-xs bg-blue-100 rounded">{String(ans).toUpperCase()}</span>;
-                        }
+                                if (q.responseType === 'ambiente_playground') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-[#134074] text-xs bg-blue-50 rounded border border-blue-100">{String(ans).toUpperCase()}</span>;
+                                }
 
-                        if (q.responseType === 'classificacao_monta') {
-                          const colorClass = ans === 'Pequena Monta' ? 'text-emerald-800 bg-emerald-100' : ans === 'Média Monta' ? 'text-amber-800 bg-amber-100' : 'text-rose-800 bg-rose-100';
-                          return <span className={`inline-block px-3 py-1 font-bold font-mono text-xs rounded ${colorClass}`}>{String(ans).toUpperCase()}</span>;
-                        }
+                                if (q.responseType === 'tipo_veiculo_reclassificacao' || q.responseType === 'tipo_veiculo_integridade') {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-blue-800 text-xs bg-blue-100 rounded border border-blue-200">{String(ans).toUpperCase()}</span>;
+                                }
 
-                        if (q.responseType === 'condicao_fisica_geral') {
-                          const colorClass = ans === 'Excelente' ? 'text-emerald-900 bg-emerald-200' : ans === 'Boa' ? 'text-emerald-800 bg-emerald-100' : ans === 'Regular' ? 'text-amber-800 bg-amber-100' : 'text-rose-800 bg-rose-100';
-                          return <span className={`inline-block px-3 py-1 font-bold font-mono text-xs rounded ${colorClass}`}>{String(ans).toUpperCase()}</span>;
-                        }
+                                if (q.responseType === 'classificacao_monta') {
+                                  const colorClass = ans === 'Pequena Monta' ? 'text-emerald-800 bg-emerald-100 border-emerald-200' : ans === 'Média Monta' ? 'text-amber-800 bg-amber-100 border-amber-200' : 'text-rose-800 bg-rose-100 border-rose-200';
+                                  return <span className={`inline-block px-3 py-1 font-bold font-mono text-xs rounded border ${colorClass}`}>{String(ans).toUpperCase()}</span>;
+                                }
 
-                        // Default C / NC / NA
-                        if (ans === 'C' || ans === true) {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded">CONFORME</span>;
-                        } else if (ans === 'NC' || ans === false) {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded">NÃO CONFORME</span>;
-                        } else {
-                          return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded">N.A (NÃO SE APLICA)</span>;
-                        }
-                      })()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                                if (q.responseType === 'condicao_fisica_geral') {
+                                  const colorClass = ans === 'Excelente' ? 'text-emerald-900 bg-emerald-200 border-emerald-300' : ans === 'Boa' ? 'text-emerald-800 bg-emerald-100 border-emerald-200' : ans === 'Regular' ? 'text-amber-800 bg-amber-100 border-amber-200' : 'text-rose-800 bg-rose-100 border-rose-200';
+                                  return <span className={`inline-block px-3 py-1 font-bold font-mono text-xs rounded border ${colorClass}`}>{String(ans).toUpperCase()}</span>;
+                                }
+
+                                // Default C / NC / NA
+                                if (ans === 'C' || ans === true) {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-emerald-800 text-xs bg-emerald-100 rounded border border-emerald-200">CONFORME</span>;
+                                } else if (ans === 'NC' || ans === false) {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-rose-800 text-xs bg-rose-100 rounded border border-rose-200">NÃO CONFORME</span>;
+                                } else {
+                                  return <span className="inline-block px-3 py-1 font-bold font-mono text-slate-800 text-xs bg-slate-100 rounded border border-slate-200">N.A (NÃO SE APLICA)</span>;
+                                }
+                              })()}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ));
+            })()}
           </div>
 
           {/* Signature and Digital footprint footer */}

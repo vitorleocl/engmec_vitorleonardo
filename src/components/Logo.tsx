@@ -32,17 +32,17 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
           
           {/* Gear teeth template centered at (0,0) */}
           <g id="gear-tooth-logo">
-            <path d="M -6,-52 L -4,-64 L 4,-64 L 6,-52 Z" fill="url(#silver-metal-logo)" stroke="#495057" strokeWidth="0.5" />
+            <path d="M -6,-52 L -4,-64 L 4,-64 L 6,-52 Z" fill={isPrint ? "#6c757d" : "url(#silver-metal-logo)"} stroke="#495057" strokeWidth="0.5" />
           </g>
         </defs>
 
         {/* Monogram circle graphic centered at (85, 80) */}
         <g id="monogram-emblem">
           {/* Outer crescent element floating at top-left */}
-          <path d="M 55,35 A 56,56 0 0,1 138,55" stroke="url(#silver-metal-logo)" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M 55,35 A 56,56 0 0,1 138,55" stroke={isPrint ? "#495057" : "url(#silver-metal-logo)"} strokeWidth="4" strokeLinecap="round" fill="none" />
           
           {/* Core circular rim */}
-          <circle cx="85" cy="80" r="52" stroke="url(#silver-metal-logo)" strokeWidth="5.5" fill="none" />
+          <circle cx="85" cy="80" r="52" stroke={isPrint ? "#0f284e" : "url(#silver-metal-logo)"} strokeWidth="5.5" fill="none" />
           
           {/* Dark blue top-right accent arc, mirroring the original logo's top sweep */}
           <path 
@@ -66,7 +66,7 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
           </g>
 
           {/* Dotted/Dashed inner circle accent */}
-          <circle cx="85" cy="80" r="44" stroke="url(#silver-metal-logo)" strokeWidth="1.2" strokeDasharray="3 3" fill="none" />
+          <circle cx="85" cy="80" r="44" stroke={isPrint ? "#6c757d" : "url(#silver-metal-logo)"} strokeWidth="1.2" strokeDasharray="3 3" fill="none" />
 
           {/* Stylized monogram initials inside (85, 80) */}
           <g transform="translate(85, 80)">
@@ -90,7 +90,8 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
           x2="165" 
           y2="130" 
           strokeWidth="1.5" 
-          className={isPrint ? "stroke-slate-350" : "stroke-slate-350 dark:stroke-slate-700"} 
+          stroke={isPrint ? "#cbd5e1" : "currentColor"}
+          className={isPrint ? "" : "stroke-slate-350 dark:stroke-slate-700"} 
         />
 
         {/* Brand typography block */}
@@ -126,7 +127,8 @@ export default function Logo({ className = '', variant = 'light' }: LogoProps) {
             x2="520" 
             y2="92" 
             strokeWidth="1.5" 
-            className={isPrint ? "stroke-slate-300" : "stroke-slate-300 dark:stroke-slate-700"} 
+            stroke={isPrint ? "#cbd5e1" : "currentColor"}
+            className={isPrint ? "" : "stroke-slate-300 dark:stroke-slate-700"} 
           />
 
           {/* Small interlocking technical gear centered on the divider line */}
