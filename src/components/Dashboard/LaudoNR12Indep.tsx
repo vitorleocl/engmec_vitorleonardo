@@ -25,7 +25,9 @@ import {
   Info,
   X,
   ChevronDown,
-  Upload
+  Upload,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 
 // --- HRN VALUES ---
@@ -160,6 +162,7 @@ const NR12_CHECKLIST_TEMPLATE = [
 
 export default function LaudoNR12Indep() {
   const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
+  const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -420,7 +423,11 @@ export default function LaudoNR12Indep() {
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col">
+    <div className={
+      isFullscreen
+        ? "fixed inset-0 z-[999] bg-slate-50 dark:bg-slate-900 w-screen h-screen text-slate-800 dark:text-slate-100 flex flex-col overflow-y-auto"
+        : "bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col"
+    }>
       {/* Upper Navigation Header */}
       <div className="bg-[#0B2545] p-6 text-white border-b-2 border-[#134074] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -434,6 +441,15 @@ export default function LaudoNR12Indep() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white flex items-center gap-2 border border-white/10 animate-pulse"
+            title={isFullscreen ? "Minimizar visualização" : "Expandir em Tela Cheia"}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-amber-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
+            <span>{isFullscreen ? "Minimizar" : "Tela Cheia"}</span>
+          </button>
+
           <button
             onClick={() => setActiveTab("form")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer ${
