@@ -25,6 +25,7 @@ import LaudoManager from './LaudoManager';
 import ChecklistManager from './ChecklistManager';
 import ClientPortal from './ClientPortal';
 import UserManager from './UserManager';
+import LaudoNR12Indep from './LaudoNR12Indep';
 import { 
   auth, 
   loginWithGoogle, 
@@ -51,7 +52,7 @@ export default function DashboardMain() {
   const [firebaseUnreachable, setFirebaseUnreachable] = useState(false);
 
   const [role, setRole] = useState<SystemRole>('admin');
-  const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'users' | 'portal'>('indicators');
+  const [activeTab, setActiveTab] = useState<'indicators' | 'clients' | 'equipments' | 'laudos' | 'checklists' | 'users' | 'portal' | 'laudos_indep'>('indicators');
 
   // Shared high-performance real-time cached states
   const [clients, setClients] = useState<ClientData[]>([]);
@@ -429,6 +430,21 @@ export default function DashboardMain() {
                     </button>
 
                     <button
+                      onClick={() => setActiveTab('laudos_indep')}
+                      className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border border-emerald-500/20 bg-emerald-500/5 ${
+                        activeTab === 'laudos_indep' 
+                          ? 'bg-[#0B2545] text-white border-emerald-500' 
+                          : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-emerald-500 dark:hover:text-emerald-400'
+                      }`}
+                    >
+                      <Shield className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-sans">Gerador NR-12</span>
+                        <span className="text-[8px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-mono font-black animate-pulse">IA</span>
+                      </span>
+                    </button>
+
+                    <button
                       onClick={() => setActiveTab('checklists')}
                       className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                         activeTab === 'checklists' 
@@ -540,6 +556,9 @@ export default function DashboardMain() {
                   loading={globalLoading} 
                   onDataChanged={handleDataChanged} 
                 />
+              )}
+              {activeTab === 'laudos_indep' && role === 'admin' && (
+                <LaudoNR12Indep />
               )}
               {activeTab === 'checklists' && role === 'admin' && (
                 <ChecklistManager 
