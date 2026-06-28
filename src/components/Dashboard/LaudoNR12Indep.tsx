@@ -301,23 +301,80 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
   }, [nbrCategory.s, nbrCategory.f, nbrCategory.p]);
 
   // --- IMAGE UPLOADING UTILS ---
+  const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     Array.from(files).forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImages((prev: UploadedImage[]) => [
-          ...prev,
-          {
-            name: file.name,
-            data: reader.result as string,
-            description: "Fotografia técnica demonstrando detalhes do equipamento durante a auditoria."
-          }
-        ]);
-      };
-      reader.readAsDataURL(file);
+      compressImage(file)
+        .then((compressedBase64) => {
+          setUploadedImages((prev: UploadedImage[]) => [
+            ...prev,
+            {
+              name: file.name,
+              data: compressedBase64,
+              description: "Fotografia técnica demonstrando detalhes do equipamento durante a auditoria."
+            }
+          ]);
+        })
+        .catch((err) => {
+          console.error("Compression failed, using fallback reader:", err);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setUploadedImages((prev: UploadedImage[]) => [
+              ...prev,
+              {
+                name: file.name,
+                data: reader.result as string,
+                description: "Fotografia técnica demonstrando detalhes do equipamento durante a auditoria."
+              }
+            ]);
+          };
+          reader.readAsDataURL(file);
+        });
     });
   };
 
@@ -341,7 +398,14 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
       });
 
       if (!res.ok) {
-        throw new Error("Falha ao comunicar com o servidor de Inteligência.");
+        let errMsg = "Falha ao comunicar com o servidor de Inteligência.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errMsg += " Detalhes: " + errData.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
       }
 
       const data = await res.json();

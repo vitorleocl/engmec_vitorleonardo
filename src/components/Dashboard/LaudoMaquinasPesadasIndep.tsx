@@ -383,23 +383,80 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
   };
 
   // --- IMAGE UPLOADING UTILS ---
+  const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     Array.from(files).forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImages((prev: UploadedImage[]) => [
-          ...prev,
-          {
-            name: file.name,
-            data: reader.result as string,
-            description: "Registro fotográfico capturado em campo pelo auditor Vitor Leonardo."
-          }
-        ]);
-      };
-      reader.readAsDataURL(file);
+      compressImage(file)
+        .then((compressedBase64) => {
+          setUploadedImages((prev: UploadedImage[]) => [
+            ...prev,
+            {
+              name: file.name,
+              data: compressedBase64,
+              description: "Registro fotográfico capturado em campo pelo auditor Vitor Leonardo."
+            }
+          ]);
+        })
+        .catch((err) => {
+          console.error("Compression failed, using fallback reader:", err);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setUploadedImages((prev: UploadedImage[]) => [
+              ...prev,
+              {
+                name: file.name,
+                data: reader.result as string,
+                description: "Registro fotográfico capturado em campo pelo auditor Vitor Leonardo."
+              }
+            ]);
+          };
+          reader.readAsDataURL(file);
+        });
     });
   };
 
@@ -436,7 +493,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
         notes: aiPrompt || laudoParams.notes,
         images: uploadedImages.slice(0, 3).map(img => ({
           data: img.data,
-          mimeType: img.data.startsWith("data:image/png") ? "image/png" : "image/jpeg"
+          mimeType: img.data.split(";")[0].split(":")[1] || "image/jpeg"
         }))
       };
 
@@ -446,7 +503,16 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Erro na resposta do servidor.");
+      if (!res.ok) {
+        let errMsg = "Erro na resposta do servidor.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errMsg += " Detalhes: " + errData.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
       const data = await res.json();
 
       if (data) {
