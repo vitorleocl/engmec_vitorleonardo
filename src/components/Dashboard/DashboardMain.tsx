@@ -16,7 +16,8 @@ import {
   Shield, 
   KeyRound, 
   AlertCircle,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
 import ClientManager from './ClientManager';
@@ -25,7 +26,7 @@ import LaudoManager from './LaudoManager';
 import ChecklistManager from './ChecklistManager';
 import ClientPortal from './ClientPortal';
 import UserManager from './UserManager';
-import LaudoNR12Indep from './LaudoNR12Indep';
+import LaudoGenerators from './LaudoGenerators';
 import { 
   auth, 
   loginWithGoogle, 
@@ -437,9 +438,9 @@ export default function DashboardMain() {
                           : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-emerald-500 dark:hover:text-emerald-400'
                       }`}
                     >
-                      <Shield className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <Sparkles className="w-4 h-4 shrink-0 text-emerald-500" />
                       <span className="flex items-center gap-1.5">
-                        <span className="font-sans">Gerador NR-12</span>
+                        <span className="font-sans">Geradores com IA</span>
                         <span className="text-[8px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-mono font-black animate-pulse">IA</span>
                       </span>
                     </button>
@@ -558,7 +559,7 @@ export default function DashboardMain() {
                 />
               )}
               {activeTab === 'laudos_indep' && role === 'admin' && (
-                <LaudoNR12Indep />
+                <LaudoGenerators />
               )}
               {activeTab === 'checklists' && role === 'admin' && (
                 <ChecklistManager 

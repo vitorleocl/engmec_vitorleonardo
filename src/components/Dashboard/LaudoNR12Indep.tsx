@@ -160,7 +160,7 @@ const NR12_CHECKLIST_TEMPLATE = [
   { id: "chk_12", text: "Possui Prontuário Técnico do Equipamento assinado por Profissional Habilitado?", ref: "12.131" }
 ];
 
-export default function LaudoNR12Indep() {
+export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
   const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
@@ -441,6 +441,14 @@ export default function LaudoNR12Indep() {
         </div>
 
         <div className="flex items-center gap-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white flex items-center gap-2 border border-white/10"
+            >
+              Voltar
+            </button>
+          )}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white flex items-center gap-2 border border-white/10 animate-pulse"
