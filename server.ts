@@ -177,13 +177,13 @@ async function startServer() {
       }
       `;
 
-      const contents: any[] = [];
+      const parts: any[] = [];
       
       // Inject base64 images if available in payload
       if (images && images.length > 0) {
         images.slice(0, 3).forEach((imgObj: any) => {
           if (imgObj.data && imgObj.mimeType) {
-            contents.push({
+            parts.push({
               inlineData: {
                 data: imgObj.data.split(",")[1] || imgObj.data, // Strip mime type prefix if present
                 mimeType: imgObj.mimeType
@@ -193,11 +193,11 @@ async function startServer() {
         });
       }
 
-      contents.push({ text: textPrompt });
+      parts.push({ text: textPrompt });
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: contents,
+        contents: { parts: parts },
         config: {
           responseMimeType: "application/json",
           temperature: 0.2,
@@ -422,13 +422,13 @@ async function startServer() {
       }
       `;
 
-      const contents: any[] = [];
+      const parts: any[] = [];
       
       // Inject base64 images if available in payload
       if (images && images.length > 0) {
         images.slice(0, 3).forEach((imgObj: any) => {
           if (imgObj.data && imgObj.mimeType) {
-            contents.push({
+            parts.push({
               inlineData: {
                 data: imgObj.data.split(",")[1] || imgObj.data,
                 mimeType: imgObj.mimeType
@@ -438,11 +438,11 @@ async function startServer() {
         });
       }
 
-      contents.push({ text: textPrompt });
+      parts.push({ text: textPrompt });
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: contents,
+        contents: { parts: parts },
         config: {
           responseMimeType: "application/json",
           temperature: 0.2,
