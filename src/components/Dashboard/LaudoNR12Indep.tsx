@@ -400,11 +400,20 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
       if (!res.ok) {
         let errMsg = "Falha ao comunicar com o servidor de Inteligência.";
         try {
-          const errData = await res.json();
-          if (errData && errData.error) {
-            errMsg += " Detalhes: " + errData.error;
+          const rawText = await res.text();
+          try {
+            const errData = JSON.parse(rawText);
+            if (errData && errData.error) {
+              errMsg += " Detalhes: " + errData.error;
+            } else {
+              errMsg += ` (Status: ${res.status}) - ${rawText.substring(0, 150)}`;
+            }
+          } catch (_) {
+            errMsg += ` (Status: ${res.status}) - ${rawText.substring(0, 150)}`;
           }
-        } catch (_) {}
+        } catch (_) {
+          errMsg += ` (Status: ${res.status})`;
+        }
         throw new Error(errMsg);
       }
 
@@ -1169,7 +1178,7 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
                 </span>
                 <div>
                   <span className="text-[9px] font-mono font-bold tracking-widest text-[#4895EF] uppercase">ASSISTENTE PERICIAL</span>
-                  <h4 className="text-sm font-bold tracking-tight">IA Copilot VL Engenharia</h4>
+                  <h4 className="text-sm font-bold tracking-tight">IA Gemini VL Engenharia</h4>
                 </div>
               </div>
 

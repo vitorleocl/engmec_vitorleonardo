@@ -506,11 +506,20 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
       if (!res.ok) {
         let errMsg = "Erro na resposta do servidor.";
         try {
-          const errData = await res.json();
-          if (errData && errData.error) {
-            errMsg += " Detalhes: " + errData.error;
+          const rawText = await res.text();
+          try {
+            const errData = JSON.parse(rawText);
+            if (errData && errData.error) {
+              errMsg += " Detalhes: " + errData.error;
+            } else {
+              errMsg += ` (Status: ${res.status}) - ${rawText.substring(0, 150)}`;
+            }
+          } catch (_) {
+            errMsg += ` (Status: ${res.status}) - ${rawText.substring(0, 150)}`;
           }
-        } catch (_) {}
+        } catch (_) {
+          errMsg += ` (Status: ${res.status})`;
+        }
         throw new Error(errMsg);
       }
       const data = await res.json();
