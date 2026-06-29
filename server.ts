@@ -162,17 +162,10 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
         "conclusao": {
           "status": "CONFORME" | "NÃO CONFORME" | "CONFORME COM RESTRIÇÕES",
           "parecer": "Parecer pericial fundamentado"
-        },
-        "secoes": {
-          "secao_1": "Introdução...",
-          "secao_2": "Dados da Empresa Contratante...",
-          "secao_3": "Dados da Empresa Contratada...",
-          "secao_5": "Documentos Analisados...",
-          "secao_6": "Normas Aplicáveis...",
-          "secao_7": "Metodologia Aplicada...",
-          "secao_17": "Limitações da Avaliação..."
         }
       }
+
+      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
       `;
 
       const parts: any[] = [];
@@ -199,13 +192,22 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
         config: {
           responseMimeType: "application/json",
           temperature: 0.2,
-          systemInstruction: "Você é o auditor mestre especialista em laudos técnicos da NR-12 da VL Engenharia. Retorne apenas o JSON puro, sem markdown adicional além do formato JSON solicitado."
+          systemInstruction: "Você é o auditor mestre especialista em laudos técnicos da NR-12 da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
         }
       });
 
       const responseText = response.text || "";
       try {
         const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        
+        // Dynamically inject the standard report sections to ensure absolute frontend compatibility
+        cleanJson.secoes = getSecoesNR12({
+          equipmentName,
+          clientName,
+          cnpj,
+          address
+        });
+
         res.json(cleanJson);
       } catch (jsonErr) {
         console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
@@ -406,18 +408,10 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
           "rodagem": "Análise técnica de Pneus / Esteiras / Rodagem...",
           "seguranca": "Análise técnica dos Dispositivos de Segurança (alarme de ré, luzes, buzina, extintor)...",
           "motor": "Análise técnica do Sistema de Escape e Motor..."
-        },
-        "secoes": {
-          "secao_1": "Introdução...",
-          "secao_2": "Dados da Empresa Contratante...",
-          "secao_3": "Dados da Empresa Contratada...",
-          "secao_5": "Documentos Analisados...",
-          "secao_6": "Normas Aplicáveis...",
-          "secao_7": "Metodologia Aplicada...",
-          "secao_17": "Condições para Liberação...",
-          "secao_18": "Limitações da Avaliação..."
         }
       }
+
+      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
       `;
 
       const parts: any[] = [];
@@ -444,13 +438,22 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
         config: {
           responseMimeType: "application/json",
           temperature: 0.2,
-          systemInstruction: "Você é o auditor mestre especialista em laudos de Máquinas Pesadas da VL Engenharia. Retorne apenas o JSON puro, sem markdown adicional além do formato JSON solicitado."
+          systemInstruction: "Você é o auditor mestre especialista em laudos de Máquinas Pesadas da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
         }
       });
 
       const responseText = response.text || "";
       try {
         const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        
+        // Dynamically inject the standard report sections to ensure absolute frontend compatibility
+        cleanJson.secoes = getSecoesHeavyMachinery({
+          equipmentName,
+          clientName,
+          cnpj,
+          address
+        });
+
         res.json(cleanJson);
       } catch (jsonErr) {
         console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
@@ -507,6 +510,35 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
   });
 
   export default app;
+
+// Helper function to programmatically generate standard report sections for NR-12
+function getSecoesNR12(params: any): any {
+  const equip = params.equipmentName || "Equipamento Industrial";
+  return {
+    "secao_1": `Este Laudo Técnico de Conformidade tem como objetivo principal atestar as condições de segurança operacional do equipamento ${equip} em conformidade com as diretrizes da Norma Regulamentadora Nº 12 (NR-12) do Ministério do Trabalho e Emprego, visando a prevenção de acidentes e proteção física dos operadores.`,
+    "secao_2": `Empresa Contratante: ${params.clientName || "Empresa Contratante S/A"} localizada no endereço indicado. Desenvolve atividades industriais no ramo metal-mecânico de alta produtividade, demandando conformidade técnica rigorosa de seus equipamentos ativos frente aos órgãos regulatórios trabalhistas municipais e estaduais.`,
+    "secao_3": `Emitido por: VL Engenharia. Responsável Técnico: Eng. Mecânico Vitor Leonardo Cordeiro Linhares (CREA-PE 1822299490). Especialista em Auditoria e Adequação de Máquinas, Apreciação de Riscos e consultoria técnica industrial. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.`,
+    "secao_5": `Para fundamentação pericial, foram analisados: Fotos aéreas e de detalhe físico das áreas móveis da máquina, Manual operacional básico fornecido pelo departamento técnico, Prontuário de manutenções de campo e desenhos esquemáticos da correia e polias de transmissão.`,
+    "secao_6": `As principais normas que guiam esta perícia técnica de auditoria são: NR-12 (Segurança de Máquinas), ABNT NBR ISO 12100 (Apreciação de Riscos), ABNT NBR 14153 (Comando de Segurança), ABNT NBR ISO 14120 (Guardas/Proteções fixas e móveis) e ABNT NBR 5410 (Instalações Elétricas em Baixa Tensão).`,
+    "secao_7": `Para avaliação de riscos, aplicou-se a consagrada Metodologia HRN (Hazard Rating Number), estimando de forma matemática e reprodutível o nível numérico de periculosidade. HRN = Probabilidade (LO) x Frequência (FE) x Gravidade da Lesão (DPH) x Número de Pessoas Expostas (NP).`,
+    "secao_17": "Esta avaliação técnica pericial restringe-se única e estritamente aos aspectos visíveis e operacionais constatados na data de inspeção técnica. Não foi possível confirmar este requisito apenas por meio da inspeção visual, sendo necessária verificação presencial ou documental de itens estruturais internos e espessuras."
+  };
+}
+
+// Helper function to programmatically generate standard report sections for Heavy Machinery
+function getSecoesHeavyMachinery(params: any): any {
+  const equip = params.equipmentName || "Escavadeira Hidráulica";
+  return {
+    "secao_1": `Este Laudo Técnico de Inspeção e Conformidade de Segurança tem por objetivo auditar as condições reais do equipamento pesado ${equip} de grande porte em campo, de acordo com as normas NR-12, NR-11, NR-18 e boas práticas de engenharia mecânica.`,
+    "secao_2": `Contratante das vistorias técnicas: ${params.clientName || "Cliente Contratante Ltda"} (CNPJ: ${params.cnpj || "Não informado"}, Endereço: ${params.address || "Não informado"}), operando no setor de movimentação de solo e infraestrutura de larga escala.`,
+    "secao_3": "Perito Responsável pela Auditoria: Engenheiro Mecânico Vitor Leonardo (CREA-PE 1822299490), atuando sob a razão da VL Engenharia com excelência em segurança operacional pesada de máquinas de terraplenagem.",
+    "secao_5": "Evidências analisadas: Fotografias digitais em alta resolução do material rodante, vídeos operacionais de torque hidráulico, manual técnico oficial do fabricante e registros de manutenções periódicas de óleos lubrificantes.",
+    "secao_6": "Normas técnicas de balizamento pericial: NR-12 (Segurança de Máquinas), NR-11 (Movimentação), NR-18 (Construção), ABNT NBR ISO 12100, ISO 3471 (ROPS) e ISO 3449 (FOPS).",
+    "secao_7": "Metodologia: Aplicação de vistorias empíricas baseadas na norma ABNT NBR ISO 12100 com quantificação matemática de perigo pelo algoritmo HRN (Hazard Rating Number) e análise de integridade física.",
+    "secao_17": "Para a liberação definitiva e retirada das restrições deste equipamento pesado, a empresa contratante deverá protocolar evidências fotográficas do cinto de segurança substituído e do alarme de ré devidamente reparado e operacional.",
+    "secao_18": "Limitações técnicas da Perícia: A presente análise baseia-se em exames visuais externos e testes não destrutivos funcionais. Não abrange ensaios de fadiga interna de ligas metálicas, ultrassom de eixos centrais de giro ou raio-x de blocos de motor diesel."
+  };
+}
 
 // Expert default mock template generator
 function getSimulatedLaudo(params: any): any {
@@ -612,15 +644,7 @@ function getSimulatedLaudo(params: any): any {
       "status": "NÃO CONFORME",
       "parecer": `O equipamento analisado (${equip}) encontra-se em estado NÃO CONFORME frente aos requisitos obrigatórios estabelecidos pela Portaria 916/2019 da NR-12. Apresenta perigos iminentes na área de polias e transmissões mecânicas, demandando interdição local preventiva das atividades operacionais até que as proteções mecânicas enclausurantes e circuitos de comando redundantes sejam integralmente adequados.`
     },
-    "secoes": {
-      "secao_1": `Este Laudo Técnico de Conformidade tem como objetivo principal atestar as condições de segurança operacional do equipamento ${equip} em conformidade com as diretrizes da Norma Regulamentadora Nº 12 (NR-12) do Ministério do Trabalho e Emprego, visando a prevenção de acidentes e proteção física dos operadores.`,
-      "secao_2": `Empresa Contratante: ${params.clientName || "Empresa Contratante S/A"} localizada no endereço indicado. Desenvolve atividades industriais no ramo metal-mecânico de alta produtividade, demandando conformidade técnica rigorosa de seus equipamentos ativos frente aos órgãos regulatórios trabalhistas municipais e estaduais.`,
-      "secao_3": `Emitido por: VL Engenharia. Responsável Técnico: Eng. Mecânico Vitor Leonardo Cordeiro Linhares (CREA-PE 1822299490). Especialista em Auditoria e Adequação de Máquinas, Apreciação de Riscos e consultoria técnica industrial. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.`,
-      "secao_5": `Para fundamentação pericial, foram analisados: Fotos aéreas e de detalhe físico das áreas móveis da máquina, Manual operacional básico fornecido pelo departamento técnico, Prontuário de manutenções de campo e desenhos esquemáticos da correia e polias de transmissão.`,
-      "secao_6": `As principais normas que guiam esta perícia técnica de auditoria são: NR-12 (Segurança de Máquinas), ABNT NBR ISO 12100 (Apreciação de Riscos), ABNT NBR 14153 (Comando de Segurança), ABNT NBR ISO 14120 (Guardas/Proteções fixas e móveis) e ABNT NBR 5410 (Instalações Elétricas em Baixa Tensão).`,
-      "secao_7": `Para avaliação de riscos, aplicou-se a consagrada Metodologia HRN (Hazard Rating Number), estimando de forma matemática e reprodutível o nível numérico de periculosidade. HRN = Probabilidade (LO) x Frequência (FE) x Gravidade da Lesão (DPH) x Número de Pessoas Expostas (NP).`,
-      "secao_17": "Esta avaliação técnica pericial restringe-se única e estritamente aos aspectos visíveis e operacionais constatados na data de inspeção técnica. Não foi possível confirmar este requisito apenas por meio da inspeção visual, sendo necessária verificação presencial ou documental de itens estruturais internos e espessuras."
-    }
+    "secoes": getSecoesNR12(params)
   };
 }
 
@@ -740,16 +764,7 @@ function getSimulatedHeavyMachineryLaudo(params: any): any {
       "seguranca": "Faróis em pleno funcionamento. Buzina ativa. No entanto, o alarme de ré acústico obrigatório está mudo, e o extintor de incêndio químico está sem pressão indicada no manômetro.",
       "motor": `Motor de combustão interna diesel (marca ${brand}) em bom estado de conservação, sem vazamentos significativos de óleo lubrificante ou aditivo refrigerante.`
     },
-    "secoes": {
-      "secao_1": `Este Laudo Técnico de Inspeção e Conformidade de Segurança tem por objetivo auditar as condições reais do equipamento pesado ${equip} de grande porte em campo, de acordo com as normas NR-12, NR-11, NR-18 e boas práticas de engenharia mecânica.`,
-      "secao_2": `Contratante das vistorias técnicas: ${params.clientName || "Cliente Contratante Ltda"} (CNPJ: ${params.cnpj || "Não informado"}, Endereço: ${params.address || "Não informado"}), operando no setor de movimentação de solo e infraestrutura de larga escala.`,
-      "secao_3": "Perito Responsável pela Auditoria: Engenheiro Mecânico Vitor Leonardo (CREA-PE 1822299490), atuando sob a razão da VL Engenharia com excelência em segurança operacional pesada de máquinas de terraplenagem.",
-      "secao_5": "Evidências analisadas: Fotografias digitais em alta resolução do material rodante, vídeos operacionais de torque hidráulico, manual técnico oficial do fabricante e registros de manutenções periódicas de óleos lubrificantes.",
-      "secao_6": "Normas técnicas de balizamento pericial: NR-12 (Segurança de Máquinas), NR-11 (Movimentação), NR-18 (Construção), ABNT NBR ISO 12100, ISO 3471 (ROPS) e ISO 3449 (FOPS).",
-      "secao_7": "Metodologia: Aplicação de vistorias empíricas baseadas na norma ABNT NBR ISO 12100 com quantificação matemática de perigo pelo algoritmo HRN (Hazard Rating Number) e análise de integridade física.",
-      "secao_17": "Para a liberação definitiva e retirada das restrições deste equipamento pesado, a empresa contratante deverá protocolar evidências fotográficas do cinto de segurança substituído e do alarme de ré devidamente reparado e operacional.",
-      "secao_18": "Limitações técnicas da Perícia: A presente análise baseia-se em exames visuais externos e testes não destrutivos funcionais. Não abrange ensaios de fadiga interna de ligas metálicas, ultrassom de eixos centrais de giro ou raio-x de blocos de motor diesel."
-    }
+    "secoes": getSecoesHeavyMachinery(params)
   };
 }
 
