@@ -383,7 +383,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
   };
 
   // --- IMAGE UPLOADING UTILS ---
-  const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.7): Promise<string> => {
+  const compressImage = (file: File, maxWidth = 640, maxHeight = 640, quality = 0.5): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);

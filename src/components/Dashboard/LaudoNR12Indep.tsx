@@ -301,7 +301,7 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
   }, [nbrCategory.s, nbrCategory.f, nbrCategory.p]);
 
   // --- IMAGE UPLOADING UTILS ---
-  const compressImage = (file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.7): Promise<string> => {
+  const compressImage = (file: File, maxWidth = 640, maxHeight = 640, quality = 0.5): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -382,7 +382,8 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
   const handleAICopilotTrigger = async () => {
     setLoadingAI(true);
     try {
-      const base64ImagesPayload = uploadedImages.map(img => ({
+      // Limit to first 3 images to save bandwidth and prevent exceeding Vercel's payload limits
+      const base64ImagesPayload = uploadedImages.slice(0, 3).map(img => ({
         data: img.data,
         mimeType: img.data.split(";")[0].split(":")[1] || "image/jpeg"
       }));
