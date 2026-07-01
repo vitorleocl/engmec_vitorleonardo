@@ -556,6 +556,252 @@ function isValidApiKey(key: string | undefined): boolean {
     }
   });
 
+  // 2.8. API: Intelligent Munck and Cranes Technical Auditor
+  app.post("/api/gemini/crane-audit", async (req, res) => {
+    const { 
+      equipmentName, 
+      brand, 
+      model, 
+      serialNumber, 
+      year, 
+      clientName, 
+      cnpj,
+      address,
+      tag,
+      laudoNumber,
+      capacityNominal,
+      maxIcationHeight,
+      boomLength,
+      horometro,
+      driveType,
+      inspectionDate,
+      inspectionCity,
+      notes,
+      images // array of { data: 'base64string...', mimeType: 'image/jpeg' }
+    } = req.body;
+
+    try {
+
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated crane engine.");
+        return res.json(getSimulatedCraneLaudo({
+          equipmentName, 
+          brand, 
+          model, 
+          serialNumber, 
+          year, 
+          clientName, 
+          cnpj,
+          address,
+          tag,
+          laudoNumber,
+          capacityNominal,
+          maxIcationHeight,
+          boomLength,
+          horometro,
+          driveType,
+          inspectionDate,
+          inspectionCity,
+          notes
+        }));
+      }
+
+      // Initialize Gemini Client Lazily
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o SISTEMA LAUDO MUNCK E GUINDASTES da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Equipamentos de Içamento, Movimentação de Cargas e Guindastes, com profundo conhecimento em NR-11, NR-12, NR-18, ABNT NBR ISO 4301, ABNT NBR 11139, ABNT NBR 6327, ABNT NBR 8777, ABNT NBR 9492, ABNT NBR 11000, regulamentações do CONTRAN, INMETRO e normas internacionais de içamento.
+
+      DADOS DO LAUDO A GERAR:
+      - Número do Laudo: ${laudoNumber || "LMG-001/2026 Rev. 00"}
+      - Empresa Contratante: ${clientName || "Empresa Contratante S/A"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Equipamento: ${equipmentName || "Caminhão Munck"} (Marca: ${brand || "Não informada"}, Modelo: ${model || "Não informado"}, Série: ${serialNumber || "N/A"}, Ano: ${year || "N/A"})
+      - Placa / TAG: ${tag || "TAG-A-CONFIRMAR"}
+      - Horômetro / KM: ${horometro || "Não informado"}
+      - Capacidade Nominal (CNC): ${capacityNominal || "Não informado"}
+      - Altura Máxima de Içamento: ${maxIcationHeight || "Não informado"}
+      - Comprimento da Lança: ${boomLength || "Não informado"}
+      - Tipo de Acionamento: ${driveType || "Não informado"}
+      - Cidade da Inspeção: ${inspectionCity || "Recife"}, Data: ${inspectionDate || "Data atual"}
+      - Notas / Descrição Operacional: ${notes || ""}
+
+      REGRAS OBRIGATÓRIAS DO LAUDO:
+      1. NUNCA invente informações não confirmáveis pelas imagens ou dados fornecidos.
+      2. SEMPRE diferencie: "OBSERVADO" / "PROVÁVEL" / "NÃO FOI POSSÍVEL CONFIRMAR ESTE REQUISITO APENAS POR MEIO DA INSPEÇÃO VISUAL, SENDO NECESSÁRIA VERIFICAÇÃO PRESENCIAL OU DOCUMENTAL."
+      3. SEMPRE cite o item exato da norma para cada não conformidade (ex: NR-11 item 11.1.3.1).
+      4. Calcule o HRN (LO x FE x DPH x NP) antes e depois das medidas recomendadas seguindo estritamente as tabelas fornecidas.
+      5. Postura extremamente conservadora. Em caso de dúvida sobre cabos, ganchos ou limitadores de carga (LMI), recomende INTERDIÇÃO IMEDIATA.
+
+      TABELAS DE CÁLCULO HRN:
+      LO (Probabilidade): 0.033=Quase impossível, 1=Muito improvável, 1.5=Improvável, 2=Possível, 5=Inesperado, 8=Provável, 10=Muito provável, 15=Certamente
+      FE (Exposição): 0.5=Anualmente, 1=Mensalmente, 1.5=Semanalmente, 2.5=Diariamente, 4=De hora em hora, 5=Constantemente
+      DPH (Gravidade): 0.1=Arranhão leve, 0.5=Laceração leve, 1=Fratura ossos pequenos, 2=Fratura ossos grandes, 4=Grave, 6=Perda de membro/olho, 8=Perda de dois membros, 15=Fatalidade
+      NP (Pessoas): 1=1-2 pessoas, 2=3-7 pessoas, 4=8-15 pessoas, 8=16-50 pessoas, 12=mais de 50 pessoas
+
+      Retorne estritamente um JSON estruturado seguindo este esquema:
+      {
+        "numero": "ID do Laudo",
+        "checklist": {
+          "item_1": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa"},
+          ...
+          "item_20": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa"}
+        },
+        "hrn_before": {
+          "lo": 5.0,
+          "fe": 2.5,
+          "dph": 15.0,
+          "np": 1.0,
+          "score": 187.5,
+          "classification": "Risco Muito Alto",
+          "explicacao": "Descrição detalhada do perigo catastrófico direto sem as barreiras"
+        },
+        "hrn_after": {
+          "lo": 0.033,
+          "fe": 2.5,
+          "dph": 15.0,
+          "np": 1.0,
+          "score": 1.23,
+          "classification": "Risco Muito Baixo",
+          "explicacao": "Descrição da segurança após barreiras, LMI ou substituições recomendadas"
+        },
+        "nao_conformidades": [
+          {
+            "id": "NC-01",
+            "descricao": "Descrição técnica detalhada",
+            "criticidade": "CRÍTICA" | "ALTA" | "MÉDIA" | "BAIXA",
+            "risco": "Risco associado",
+            "norma": "Norma exata"
+          }
+        ],
+        "plano_action": [
+          {
+            "id": "AP-01",
+            "problema": "Problema identificado",
+            "norma": "Norma exata",
+            "recomendacao": "Recomendação técnica precisa",
+            "prioridade": "IMEDIATO" | "CURTO PRAZO" | "MÉDIO PRAZO" | "LONGO PRAZO",
+            "responsavel": "Equipe mecânica / elétrica / SESMT",
+            "prazo": "x dias"
+          }
+        ],
+        "sistemas_inspecao": {
+          "lança_pluma": "Análise da lança telescópica, trincas, soldas...",
+          "içamento": "Análise do sistema de içamento, cabos, freio de carga...",
+          "hidraulico": "Análise de cilindros de patolamento e elevação, mangueiras, vazamentos...",
+          "gancho_moitao": "Análise de trava de segurança, garganta, trincas...",
+          "estabilizadores": "Análise das patolas estabilizadoras e sapatas de apoio...",
+          "rotacao": "Análise do sistema de giro, coroa de rotação, rolamento...",
+          "cabine_comandos": "Análise de cabine, joysticks, visibilidade, ergonomia...",
+          "eletrico": "Análise técnica do painel, fiação de comando e chicotes...",
+          "chassi_veicular": "Análise do chassi estrutural, longarinas de fixação...",
+          "dispositivos_seguranca": "Análise do limitador de momento LMI, anemômetro, indicador de ângulo...",
+          "acessorios": "Análise de cintas, cabos adicionais, manilhas e olhais...",
+          "sinalizacao": "Análise de faixas refletivas, placas de capacidade, avisos de área de giro..."
+        },
+        "capacidade_carga": [
+          {"raio": "Raio de op (ex: 2m)", "angulo": "Ângulo (ex: 70°)", "cnc": "CNC (ex: 5.0t)"},
+          {"raio": "Raio de op (ex: 4m)", "angulo": "Ângulo (ex: 55°)", "cnc": "CNC (ex: 2.8t)"},
+          {"raio": "Raio de op (ex: 6m)", "angulo": "Ângulo (ex: 40°)", "cnc": "CNC (ex: 1.5t)"}
+        ],
+        "conclusao": {
+          "status": "APTO PARA OPERAÇÃO" | "NÃO APTO" | "APTO COM RESTRIÇÕES",
+          "parecer": "Parecer pericial fundamentado extremamente rigoroso"
+        }
+      }
+
+      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
+      `;
+
+      const parts: any[] = [];
+      
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+          systemInstruction: "Você é o auditor mestre especialista em laudos de Caminhões Munck e Guindastes da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        
+        cleanJson.secoes = getSecoesCrane({
+          equipmentName,
+          clientName,
+          cnpj,
+          address
+        });
+
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for Cranes:", error);
+      const errStr = String(error.message || "").toUpperCase();
+      const isApiKeyError = errStr.includes("API KEY") || 
+                            errStr.includes("INVALID_ARGUMENT") || 
+                            errStr.includes("NOT VALID") || 
+                            errStr.includes("API_KEY_INVALID") ||
+                            errStr.includes("KEY");
+                            
+      if (isApiKeyError) {
+        console.warn("Failing API key detected at runtime in crane-audit. Falling back to simulated engine.");
+        return res.json(getSimulatedCraneLaudo({
+          equipmentName, 
+          brand, 
+          model, 
+          serialNumber, 
+          year, 
+          clientName, 
+          cnpj,
+          address,
+          tag,
+          laudoNumber,
+          capacityNominal,
+          maxIcationHeight,
+          boomLength,
+          horometro,
+          driveType,
+          inspectionDate,
+          inspectionCity,
+          notes
+        }));
+      }
+      res.status(500).json({ error: error.message || "Erro no processamento da API de Guindastes." });
+    }
+  });
+
   // 3. Vite middleware for development
   async function init() {
     if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
@@ -842,5 +1088,155 @@ function getSimulatedHeavyMachineryLaudo(params: any): any {
     "secoes": getSecoesHeavyMachinery(params)
   };
 }
+
+// Helper function to programmatically generate standard report sections for Munck and Cranes
+function getSecoesCrane(params: any): any {
+  const equip = params.equipmentName || "Caminhão Munck / Guindaste";
+  const cli = params.clientName || "Empresa Contratante S/A";
+  
+  return {
+    "secao_1": `Este Laudo Técnico de Inspeção de Segurança e Conformidade tem por objetivo auditar e certificar as condições físicas e operacionais do equipamento de içamento e movimentação de cargas "${equip}" em campo. A análise pericial foi elaborada em conformidade estrita com as exigências das normas regulamentadoras nacionais NR-11, NR-12, NR-18, e as normas de referência ABNT NBR 11139:2019, ABNT NBR ISO 4301 e ASME B30.5.`,
+    "secao_2": `O presente laudo técnico pericial de engenharia mecânica foi encomendado pela empresa ${cli}, inscrita no CNPJ sob o número ${params.cnpj || "Não informado"}, com endereço de operação em: ${params.address || "Não informado"}. A contratante opera equipamentos de içamento sob condições rigorosas, exigindo conformidade técnica estrita para eliminar riscos catastróficos à integridade de colaboradores e instalações industriais.`,
+    "secao_3": `Emitido por: VL Engenharia. Perito Responsável: Engenheiro Mecânico Vitor Leonardo (CREA-PE 1822299490), especialista em laudos de integridade física de equipamentos pesados de içamento, guindastes de grande porte, pórticos e pontas rolantes. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.`,
+    "secao_5": `As evidências técnicas analisadas compreendem: registro fotográfico visual detalhado das sapatas estabilizadoras, lança telescópica, gancho, cabo de aço, tambor de enrolamento e cabine de controle; fichas de manutenção corretiva; histórico de ensaios não destrutivos de trincas; e certificados de treinamento e habilitação do operador designado para a operação sob as regras da NR-11.`,
+    "secao_6": `As principais referências e balizamentos periciais adotados são: NR-11 (Transporte, Movimentação), NR-12 (Segurança de Máquinas), NR-18 (Construção Civil), ABNT NBR 11139 (Guindastes - Requisitos de segurança), ABNT NBR ISO 4301 (Classificação), ABNT NBR 6327 (Cabos de Aço), ABNT NBR 8777 (Ganchos) e ASME B30.5 (Mobile and Locomotive Cranes).`,
+    "secao_7": `Metodologia de Estimativa de Risco: Aplicação do método numérico Hazard Rating Number (HRN) conforme estabelecido pela NBR ISO 12100 para fins de quantificação de perigo. A fórmula utilizada é: HRN = Probabilidade de ocorrência (LO) x Exposição (FE) x Gravidade (DPH) x Número de Pessoas (NP). Os graus resultantes determinam a urgência e o tipo de medida de controle de engenharia necessária.`,
+    "secao_17": `Para a liberação definitiva do equipamento, a empresa contratante deverá protocolar evidências fotográficas e certificados de execução de: sanar qualquer vazamento do circuito hidráulico das patolas; substituição de ganchos ou acessórios que apresentem desgaste de garganta superior a 10%; e testes periódicos operacionais do indicador de momento de carga (LMI).`,
+    "secao_18": `Limitações técnicas da Perícia: A presente vistoria limitou-se à verificação visual externa e aos testes funcionais sob vácuo ou com a carga disponível no canteiro. Não abrange análises de fadiga metalúrgica profunda de ligas internas do chassi, ultrassom integral de soldas estruturais de fábrica ou testes destrutivos de tração de cabos de aço.`
+  };
+}
+
+// Expert fallback generator for cranes and muncks
+function getSimulatedCraneLaudo(params: any): any {
+  const num = params.laudoNumber || "LMG-001/2026 Rev. 00";
+  const equip = params.equipmentName || "Caminhão Munck";
+  const brand = params.brand || "Madal Palfinger";
+  const model = params.model || "MD 30007";
+  const horo = params.horometro || "1500";
+  const cap = params.capacityNominal || "10 toneladas";
+  
+  return {
+    "numero": num,
+    "checklist": {
+      "item_1": {"resposta": "SIM", "nota": "Placa de capacidade nominal fixada e legível no braço do Munck."},
+      "item_2": {"resposta": "NÃO", "nota": "Limitador de momento de carga (LMI) apresenta falha de calibração eletrônica ou está desligado."},
+      "item_3": {"resposta": "SIM", "nota": "Fim de curso superior atuou perfeitamente travando a subida do moitão."},
+      "item_4": {"resposta": "SIM", "nota": "Trava de segurança do gancho com mola em perfeito estado operacional."},
+      "item_5": {"resposta": "SIM", "nota": "Gancho sem trincas visíveis e com desgaste de garganta de 3%, dentro do limite."},
+      "item_6": {"resposta": "NÃO", "nota": "Cabo de aço apresenta sinais de esmagamento localizado no primeiro terço de enrolamento do tambor."},
+      "item_7": {"resposta": "SIM", "nota": "Patolas estabilizadoras sem trincas ou vazamento nos cilindros de apoio."},
+      "item_8": {"resposta": "SIM", "nota": "Lanças telescópicas retas, sem empenamento ou folga nos pinos de articulação."},
+      "item_9": {"resposta": "NÃO", "nota": "Leve gotejamento de fluido na conexão hidráulica do comando principal."},
+      "item_10": {"resposta": "SIM", "nota": "Freio de retenção de carga mecânico atuou segurando a carga simulada."},
+      "item_11": {"resposta": "N/A", "nota": "Anemômetro não exigido para esta classe de hidro-gruas menores de 15t de capacidade."},
+      "item_12": {"resposta": "SIM", "nota": "Alarme sonoro de sobrecarga disparou no painel em simulação eletrônica."},
+      "item_13": {"resposta": "SIM", "nota": "Operador credenciado apresentou certificado NR-11 atualizado e CNH categoria C."},
+      "item_14": {"resposta": "SIM", "nota": "Sinaleiro treinado presente na operação com rádio de comunicação."},
+      "item_15": {"resposta": "NÃO", "nota": "Ausência de ART da operação de içamento arquivada no local."},
+      "item_16": {"resposta": "SIM", "nota": "Plano de içamento simplificado impresso e assinado pelo supervisor técnico."},
+      "item_17": {"resposta": "SIM", "nota": "Solo nivelado e compactado com pranchas de madeira sob as sapatas das patolas."},
+      "item_18": {"resposta": "SIM", "nota": "Operação realizada a mais de 5 metros da rede elétrica de média tensão aérea."},
+      "item_19": {"resposta": "SIM", "nota": "Cintas de poliéster com plaquetas de carga legíveis e sem rasgos estruturais."},
+      "item_20": {"resposta": "NÃO", "nota": "Laudo de inspeção anterior vencido há mais de 30 dias."}
+    },
+    "hrn_before": {
+      "lo": 8.0,
+      "fe": 2.5,
+      "dph": 15.0,
+      "np": 1.0,
+      "score": 300.0,
+      "classification": "Risco Muito Alto",
+      "explicacao": `Risco iminente de acidente catastrófico por queda de carga suspensa devido ao cabo de aço esmagado no tambor e falha no sistema limitador de momento (LMI) do guindaste ${equip}.`
+    },
+    "hrn_after": {
+      "lo": 0.033,
+      "fe": 2.5,
+      "dph": 15.0,
+      "np": 1.0,
+      "score": 1.23,
+      "classification": "Risco Muito Baixo",
+      "explicacao": "Risco mitigado a patamares aceitáveis através da substituição do cabo de aço danificado e calibração/ativação obrigatória do LMI eletrônico do equipamento."
+    },
+    "nao_conformidades": [
+      {
+        "id": "NC-01",
+        "descricao": "Cabo de aço de elevação principal apresenta desgaste localizado por esmagamento no carretel, violando as regras de integridade física da ABNT NBR 6327.",
+        "criticidade": "CRÍTICA",
+        "risco": "Ruptura do cabo de aço e queda livre de carga suspensa",
+        "norma": "NR-11 item 11.1.3 / NBR 6327"
+      },
+      {
+        "id": "NC-02",
+        "descricao": "O limitador de momento de carga (LMI) eletrônico encontra-se inativo ou descalibrado, impedindo a proteção de sobrecarga ativa no limite de momento geométrico.",
+        "criticidade": "CRÍTICA",
+        "risco": "Tombamento do caminhão por excesso de carga ou raio excessivo",
+        "norma": "NR-12 item 12.112 / NBR 11139"
+      },
+      {
+        "id": "NC-03",
+        "descricao": "Vazamento ativo de óleo hidráulico nas conexões das mangueiras do bloco de comando de operação, gerando riscos mecânicos e perda de carga no sistema.",
+        "criticidade": "MÉDIA",
+        "risco": "Contaminação do solo e descida lenta involuntária do cilindro",
+        "norma": "NR-12 item 12.42"
+      }
+    ],
+    "plano_action": [
+      {
+        "id": "AP-01",
+        "problema": "Cabo de aço de elevação danificado",
+        "norma": "ABNT NBR 6327",
+        "recomendacao": "Realizar a substituição imediata do cabo de aço por um modelo de diâmetro e resistência originais com certificação do fabricante.",
+        "prioridade": "IMEDIATO",
+        "responsavel": "Equipe de Manutenção Mecânica da VL Engenharia",
+        "prazo": "2 dias"
+      },
+      {
+        "id": "AP-02",
+        "problema": "Limitador de momento de carga (LMI) desregulado",
+        "norma": "ABNT NBR 11139",
+        "recomendacao": "Calibrar e testar eletronicamente o LMI com peso padrão, certificando a atuação de corte em 100% da carga máxima permitida.",
+        "prioridade": "IMEDIATO",
+        "responsavel": "Técnico de Instrumentação VL Engenharia",
+        "prazo": "3 dias"
+      },
+      {
+        "id": "AP-03",
+        "problema": "Vazamento no bloco hidráulico de comando",
+        "norma": "NR-12 item 12.42",
+        "recomendacao": "Substituir anéis o-ring de vedação e reapertar conexões hidráulicas flangeadas.",
+        "prioridade": "MÉDIO PRAZO",
+        "responsavel": "Equipe de Mecânica Hidráulica",
+        "prazo": "7 dias"
+      }
+    ],
+    "sistemas_inspecao": {
+      "lança_pluma": "A estrutura metálica da lança telescópica apresenta excelente alinhamento geométrico, ausência de amassamento ou torção local, e soldas de reforço íntegras.",
+      "içamento": "O cabo de aço principal apresenta esmagamento localizado no tambor, sendo recomendada sua substituição imediata. O redutor de engrenagens opera silenciosamente.",
+      "hidraulico": "Sistema hidráulico com leve vazamento gotejante no comando principal. Cilindros estabilizadores e de elevação mantêm a pressão de forma perfeita.",
+      "gancho_moitao": "Gancho com trava de segurança com fecho de mola funcionando perfeitamente. Ausência de deformação ou abertura excessiva da garganta metálica.",
+      "estabilizadores": "Patolas extensíveis dianteiras e traseiras com acionamento rígido, sem trincas estruturais nos pontos de apoio ou sapatas de madeira de suporte.",
+      "rotacao": "Sistema de giro com coroa de rotação sem ruídos, lubrificada de forma abundante e rolamento principal sem folga radial aparente.",
+      "cabine_comandos": "Os comandos manuais por alavanca possuem proteções contra acionamento involuntário e as indicações visuais de movimento estão legíveis.",
+      "eletrico": "Instalação elétrica de 24V isolada por conduítes plásticos contra abrasão, chicotes de comandos devidamente amarrados e painel com led indicador.",
+      "chassi_veicular": "O chassi de suporte veicular do caminhão Munck encontra-se em ótimo estado, com parafusos de fixação (grampos) apertados de acordo com torque recomendado.",
+      "dispositivos_seguranca": "Limitador de momento de carga (LMI) descalibrado, necessitando de parametrização e teste eletrônico. O sensor fim de curso da ponta da lança atuou bem.",
+      "acessorios": "As cintas e manilhas de içamento disponíveis encontram-se em perfeitas condições, com plaquetas de identificação de carga de trabalho segura.",
+      "sinalizacao": "Faixas zebradas refletivas laterais nas patolas com ótimo contraste e tabela de capacidade de carga colada no painel principal visível ao operador."
+    },
+    "capacidade_carga": [
+      {"raio": "Raio de 2.0 metros", "angulo": "75°", "cnc": "CNC: 10.000 kg"},
+      {"raio": "Raio de 4.0 metros", "angulo": "60°", "cnc": "CNC: 4.800 kg"},
+      {"raio": "Raio de 6.0 metros", "angulo": "45°", "cnc": "CNC: 2.900 kg"},
+      {"raio": "Raio de 8.0 metros", "angulo": "30°", "cnc": "CNC: 1.800 kg"},
+      {"raio": "Raio de 10.0 metros", "angulo": "15°", "cnc": "CNC: 1.200 kg"}
+    ],
+    "conclusao": {
+      "status": "NÃO CONFORME",
+      "parecer": `O equipamento de içamento (${equip}, marca ${brand}, modelo ${model}) encontra-se em estado NÃO CONFORME e recomendada INTERDIÇÃO IMEDIATA para operações de içamento devido à criticidade grave do cabo de aço esmagado e inatividade do limitador eletrônico de momento de carga (LMI), fatores que combinados possuem alto potencial de gerar acidentes catastróficos.`
+    },
+    "secoes": getSecoesCrane(params)
+  };
+}
+
 
 

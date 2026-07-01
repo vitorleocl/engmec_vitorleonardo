@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Shield, Cpu, Sparkles, Wand2 } from 'lucide-react';
+import { Shield, Cpu, Sparkles, Wand2, Truck } from 'lucide-react';
 import LaudoNR12Indep from './LaudoNR12Indep';
 import LaudoMaquinasPesadasIndep from './LaudoMaquinasPesadasIndep';
+import LaudoCaminhaoMunckGuindasteIndep from './LaudoCaminhaoMunckGuindasteIndep';
 
 export default function LaudoGenerators() {
-  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy'>('none');
+  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane'>('none');
 
   if (selected === 'nr12') {
     return <LaudoNR12Indep onBack={() => setSelected('none')} />;
@@ -12,6 +13,10 @@ export default function LaudoGenerators() {
 
   if (selected === 'heavy') {
     return <LaudoMaquinasPesadasIndep onBack={() => setSelected('none')} />;
+  }
+
+  if (selected === 'crane') {
+    return <LaudoCaminhaoMunckGuindasteIndep onBack={() => setSelected('none')} />;
   }
 
   return (
@@ -29,7 +34,7 @@ export default function LaudoGenerators() {
       </div>
 
       {/* Grid of generators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
         
         {/* NR-12 Card */}
         <div 
@@ -101,6 +106,43 @@ export default function LaudoGenerators() {
             </span>
             <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
               18 Requisitos
+            </span>
+          </div>
+        </div>
+
+        {/* Munck e Guindastes Card */}
+        <div 
+          onClick={() => setSelected('crane')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Truck className="w-36 h-36 text-[#134074]" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-[#134074]/5 dark:bg-white/5 border border-[#134074]/10 dark:border-white/10 rounded-2xl w-fit text-[#134074] dark:text-[#4895EF]">
+              <Truck className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-[#134074] dark:group-hover:text-[#4895EF] transition-colors font-sans">
+                  Gerador Munck e Guindaste
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Laudos estruturais e de integridade operacional para Caminhões Munck, Guindastes Telescópicos, LMI e acessórios de içamento (cintas/manilhas). Emite laudos de 20 seções com uploads de imagem associados a cada item e tabela de capacidade de carga.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-[#134074] dark:group-hover:text-[#4895EF] transition-colors">
+              Iniciar Auditoria de Munck →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              20 Requisitos
             </span>
           </div>
         </div>
