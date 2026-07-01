@@ -12,6 +12,23 @@ const PORT = 3000;
 app.use(express.json({ limit: "30mb" }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 
+// Helper function to validate if the GEMINI_API_KEY is defined and not a placeholder/mock value
+function isValidApiKey(key: string | undefined): boolean {
+  if (!key) return false;
+  const k = key.trim().toUpperCase();
+  if (k === "" || k === "UNDEFINED" || k === "NULL" || k === "FALSE") return false;
+  if (
+    k.startsWith("MY_") || 
+    k.startsWith("YOUR_") || 
+    k.includes("MOCK") || 
+    k.includes("PLACEHOLDER") || 
+    k === "API_KEY"
+  ) {
+    return false;
+  }
+  return true;
+}
+
   // 1. API: Health Check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -19,35 +36,36 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
 
   // 2. API: Intelligent NR-12 Technical Auditor
   app.post("/api/gemini/nr12-audit", async (req, res) => {
+    const { 
+      equipmentName, 
+      equipmentDesc, 
+      brand, 
+      model, 
+      serialNumber, 
+      year, 
+      clientId, 
+      clientName, 
+      cnpj,
+      address,
+      tag,
+      laudoNumber,
+      operators,
+      power,
+      voltage,
+      inspectionDate,
+      inspectionCity,
+      notes,
+      images // array of { data: 'base64string...', mimeType: 'image/jpeg' }
+    } = req.body;
+
     try {
-      const { 
-        equipmentName, 
-        equipmentDesc, 
-        brand, 
-        model, 
-        serialNumber, 
-        year, 
-        clientId, 
-        clientName, 
-        cnpj,
-        address,
-        tag,
-        laudoNumber,
-        operators,
-        power,
-        voltage,
-        inspectionDate,
-        inspectionCity,
-        notes,
-        images // array of { data: 'base64string...', mimeType: 'image/jpeg' }
-      } = req.body;
 
       const apiKey = process.env.GEMINI_API_KEY;
 
-      if (!apiKey) {
-        // Return a highly structured expert default mock response if no API key is set
+      if (!isValidApiKey(apiKey)) {
+        // Return a highly structured expert default mock response if no API key is set or if it is a placeholder
         // to ensure the application remains perfectly operational and testable in sandbox mode
-        console.warn("GEMINI_API_KEY is not defined. Falling back to simulated expert audit engine.");
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated expert audit engine.");
         return res.json(getSimulatedLaudo({
           equipmentName, 
           equipmentDesc, 
@@ -236,35 +254,66 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
 
     } catch (error: any) {
       console.error("Gemini API Error:", error);
+      const errStr = String(error.message || "").toUpperCase();
+      const isApiKeyError = errStr.includes("API KEY") || 
+                            errStr.includes("INVALID_ARGUMENT") || 
+                            errStr.includes("NOT VALID") || 
+                            errStr.includes("API_KEY_INVALID") ||
+                            errStr.includes("KEY");
+                            
+      if (isApiKeyError) {
+        console.warn("Failing API key detected at runtime in nr12-audit. Falling back to simulated expert audit engine.");
+        return res.json(getSimulatedLaudo({
+          equipmentName, 
+          equipmentDesc, 
+          brand, 
+          model, 
+          serialNumber, 
+          year, 
+          clientId, 
+          clientName, 
+          cnpj,
+          address,
+          tag,
+          laudoNumber,
+          operators,
+          power,
+          voltage,
+          inspectionDate,
+          inspectionCity,
+          notes
+        }));
+      }
       res.status(500).json({ error: error.message || "Erro no processamento da API de Inteligência." });
     }
   });
 
   // 2.5. API: Intelligent Heavy Machinery Technical Auditor
   app.post("/api/gemini/heavy-machinery-audit", async (req, res) => {
+    const { 
+      equipmentName, 
+      brand, 
+      model, 
+      serialNumber, 
+      year, 
+      clientName, 
+      cnpj,
+      address,
+      tag,
+      laudoNumber,
+      horometro,
+      inspectionDate,
+      inspectionCity,
+      notes,
+      images // array of { data: 'base64string...', mimeType: 'image/jpeg' }
+    } = req.body;
+
     try {
-      const { 
-        equipmentName, 
-        brand, 
-        model, 
-        serialNumber, 
-        year, 
-        clientName, 
-        cnpj,
-        address,
-        tag,
-        laudoNumber,
-        horometro,
-        inspectionDate,
-        inspectionCity,
-        notes,
-        images // array of { data: 'base64string...', mimeType: 'image/jpeg' }
-      } = req.body;
 
       const apiKey = process.env.GEMINI_API_KEY;
 
-      if (!apiKey) {
-        console.warn("GEMINI_API_KEY is not defined. Falling back to simulated heavy machinery audit engine.");
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated heavy machinery audit engine.");
         return res.json(getSimulatedHeavyMachineryLaudo({
           equipmentName, 
           brand, 
@@ -477,6 +526,32 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
 
     } catch (error: any) {
       console.error("Gemini API Error for Heavy Machinery:", error);
+      const errStr = String(error.message || "").toUpperCase();
+      const isApiKeyError = errStr.includes("API KEY") || 
+                            errStr.includes("INVALID_ARGUMENT") || 
+                            errStr.includes("NOT VALID") || 
+                            errStr.includes("API_KEY_INVALID") ||
+                            errStr.includes("KEY");
+                            
+      if (isApiKeyError) {
+        console.warn("Failing API key detected at runtime in heavy-machinery-audit. Falling back to simulated engine.");
+        return res.json(getSimulatedHeavyMachineryLaudo({
+          equipmentName, 
+          brand, 
+          model, 
+          serialNumber, 
+          year, 
+          clientName, 
+          cnpj,
+          address,
+          tag,
+          laudoNumber,
+          horometro,
+          inspectionDate,
+          inspectionCity,
+          notes
+        }));
+      }
       res.status(500).json({ error: error.message || "Erro no processamento da API de Máquinas Pesadas." });
     }
   });

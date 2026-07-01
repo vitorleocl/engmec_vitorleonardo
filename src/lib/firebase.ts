@@ -37,9 +37,21 @@ import { UserRole, UserProfile } from '../types';
 // Check if we are running with mocked settings
 const hasConfig = firebaseConfig.apiKey !== 'MOCK_API_KEY' && !firebaseConfig.apiKey.includes('YOUR_');
 
+// Check for force sandbox query parameter
+const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+const forceSandbox = urlParams?.get('sandbox') === 'true' || urlParams?.get('mode') === 'sandbox';
+
+if (forceSandbox) {
+  try {
+    localStorage.setItem('vitor_engmec_db_mode', 'local');
+  } catch (e) {
+    console.warn("Failed to write sandbox preference to localStorage:", e);
+  }
+}
+
 // Persistent DB Preference
-const savedPref = localStorage.getItem('vitor_engmec_db_mode');
-export let isRealFirebase = savedPref === 'firestore' || (savedPref === null && hasConfig);
+const savedPref = typeof window !== 'undefined' ? localStorage.getItem('vitor_engmec_db_mode') : null;
+export let isRealFirebase = !forceSandbox && (savedPref === 'firestore' || (savedPref === null && hasConfig));
 
 // Setup live connection state bindings
 export let isFirebaseUnreachable = false;
