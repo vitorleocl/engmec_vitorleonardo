@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
+import { preprocessStylesheets, restoreStylesheets } from "../../lib/pdfUtils";
 import Logo from "../Logo";
 import { 
   Shield, 
@@ -207,6 +208,26 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [printConfig, setPrintConfig] = useState({
+    capa: true,
+    carta: true,
+    sumario: true,
+    secao1: true,
+    secao2: true,
+    secao3: true,
+    secao4: true,
+    secao5: true,
+    secao6: true,
+    secao7: true,
+    secao8: true,
+    secao9: true,
+    secao10: true,
+    secao11: true,
+    secao12: true,
+    secao13: true,
+    secao14: true,
+    secao15: true
+  });
   const [aiPrompt, setAiPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -629,9 +650,15 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
       const element = document.getElementById("laudo-heavy-printable-area");
       if (!element) return;
 
-      // Set options
+      // Add special class to body to alter layout during PDF generation
+      document.body.classList.add("generating-pdf");
+
+      // Replace modern unsupported OKLCH colors in styles with standard rgb values temporarily
+      await preprocessStylesheets();
+
+      // Set options - using a margin of 5mm (with our CSS padding, it becomes very elegant)
       const opt = {
-        margin:       10,
+        margin:       5,
         filename:     `Laudo_${laudoParams.tag || "Maquina_Pesada"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
         image:        { type: "jpeg", quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
@@ -670,6 +697,9 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
       console.error("Erro ao gerar PDF:", err);
       alert(`Houve um erro ao gerar o PDF: ${err?.message || err}. Por favor, tente novamente.`);
     } finally {
+      // Remove special class from body and restore original stylesheets
+      document.body.classList.remove("generating-pdf");
+      restoreStylesheets();
       setIsDownloadingPdf(false);
     }
   };
@@ -1745,365 +1775,591 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </button>
           </div>
 
+          {/* CONFIGURAÇÃO DE SEÇÕES DO RELATÓRIO */}
+          <div className="max-w-4xl mx-auto mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl print:hidden text-left shadow-sm">
+            <h3 className="font-mono font-black text-[#0B2545] dark:text-[#4895EF] uppercase tracking-wider text-xs mb-2 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-emerald-500" />
+              <span>Opções de Visualização e Impressão (Configurar A4)</span>
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+              O laudo é exportado no formato A4 em alta definição. Selecione quais seções deseja incluir no documento final. Desmarque as seções que não julgar necessárias para deixar o laudo mais limpo, enxuto e focado.
+            </p>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.capa}
+                  onChange={(e) => setPrintConfig({ ...printConfig, capa: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>Capa do Laudo</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.carta}
+                  onChange={(e) => setPrintConfig({ ...printConfig, carta: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>Carta de Apres.</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.sumario}
+                  onChange={(e) => setPrintConfig({ ...printConfig, sumario: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>Sumário Geral</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao1}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao1: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 1: Introdução</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao2}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao2: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 2: Contratante</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao3}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao3: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 3: Contratada</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao4}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao4: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 4: Dados Equip.</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao5}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao5: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 5: Documentos</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao6}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao6: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 6: Normas</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao7}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao7: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 7: Metodologia</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao8}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao8: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 8: Relatório Fotogr.</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao9}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao9: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 9: Subsistemas</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao10}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao10: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 10: Checklist</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao11}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao11: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 11: Perigos / HRN</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao12}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao12: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 12: Não Conform.</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao13}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao13: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 13: Plano Ação</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao14}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao14: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 14: Conclusão</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:text-slate-950 dark:hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={printConfig.secao15}
+                  onChange={(e) => setPrintConfig({ ...printConfig, secao15: e.target.checked })}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-800 w-4 h-4"
+                />
+                <span>SEÇÃO 15: Limitações</span>
+              </label>
+            </div>
+          </div>
+
           {/* Core print page container layout */}
           <div id="laudo-heavy-printable-area" className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
             
             {/* CAPA PROFISSIONAL */}
-            <div className="flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0" style={{ pageBreakAfter: "always" }}>
-              
-              <div className="flex flex-col sm:flex-row justify-between items-center border-b-2 border-red-600 pb-6 gap-4">
-                <Logo variant="print" className="h-14" />
-                <div className="text-right text-xs font-mono text-slate-400">
-                  <p>Laudo de Inspeção LMP</p>
-                  <p className="font-bold text-slate-800 pt-0.5">{laudoParams.laudoNumber}</p>
-                </div>
-              </div>
-
-              <div className="my-auto py-6 space-y-6">
-                <span className="text-[10px] font-mono tracking-widest text-red-600 uppercase font-black bg-red-50 px-4 py-1.5 rounded-full">LAUDO TÉCNICO PERICIAL DE ATIVO PESADO</span>
+            {printConfig.capa && (
+              <div className="flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0" style={{ pageBreakAfter: "always" }}>
                 
-                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight font-sans py-2 leading-tight">
-                  INSPEÇÃO & LAUDO TÉCNICO DE SEGURANÇA MÁQUINAS PESADAS
-                </h1>
-
-                {/* Espaço para Foto do Equipamento na Capa */}
-                <div className="my-4 max-w-xl mx-auto w-full h-56 bg-slate-50 border rounded-2xl overflow-hidden shadow-sm flex items-center justify-center relative print:border print:shadow-none print:my-2">
-                  {laudoParams.coverImage ? (
-                    <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Equipamento Vistoriado" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="text-center p-6 space-y-2 text-slate-300">
-                      <p className="text-xs font-mono font-bold uppercase tracking-wider">Foto do Equipamento Vistoriado</p>
-                      <p className="text-[10px] font-sans max-w-xs mx-auto">Nenhuma imagem carregada para a capa. Insira no formulário de edição.</p>
-                    </div>
-                  )}
+                <div className="flex flex-col sm:flex-row justify-between items-center border-b-2 border-red-600 pb-6 gap-4">
+                  <Logo variant="print" className="h-14" />
+                  <div className="text-right text-xs font-mono text-slate-400">
+                    <p>Laudo de Inspeção LMP</p>
+                    <p className="font-bold text-slate-800 pt-0.5">{laudoParams.laudoNumber}</p>
+                  </div>
                 </div>
 
-                <div className="max-w-lg mx-auto bg-slate-50/50 border rounded-2xl p-5 space-y-3 text-left text-xs font-medium">
-                  <p><strong>EQUIPAMENTO AUDITADO:</strong> <span className="uppercase font-bold text-slate-800">{laudoParams.equipmentName}</span></p>
-                  <p><strong>FABRICANTE:</strong> {laudoParams.brand} | <strong>MODELO:</strong> {laudoParams.model}</p>
-                  <p><strong>ANO FABRICAÇÃO:</strong> {laudoParams.year} | <strong>HORÍMETRO:</strong> {laudoParams.horimetro} h</p>
-                  <p><strong>TAG DO ATIVO:</strong> <span className="font-mono text-red-600 font-bold">{laudoParams.tag}</span></p>
-                  <p><strong>EMPRESA CONTRATANTE:</strong> {laudoParams.clientName}</p>
+                <div className="my-auto py-6 space-y-6">
+                  <span className="text-[10px] font-mono tracking-widest text-red-600 uppercase font-black bg-red-50 px-4 py-1.5 rounded-full">LAUDO TÉCNICO PERICIAL DE ATIVO PESADO</span>
+                  
+                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight font-sans py-2 leading-tight">
+                    INSPEÇÃO & LAUDO TÉCNICO DE SEGURANÇA MÁQUINAS PESADAS
+                  </h1>
+
+                  {/* Espaço para Foto do Equipamento na Capa */}
+                  <div className="my-4 max-w-xl mx-auto w-full h-56 bg-slate-50 border rounded-2xl overflow-hidden shadow-sm flex items-center justify-center relative print:border print:shadow-none print:my-2">
+                    {laudoParams.coverImage ? (
+                      <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Equipamento Vistoriado" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="text-center p-6 space-y-2 text-slate-300">
+                        <p className="text-xs font-mono font-bold uppercase tracking-wider">Foto do Equipamento Vistoriado</p>
+                        <p className="text-[10px] font-sans max-w-xs mx-auto">Nenhuma imagem carregada para a capa. Insira no formulário de edição.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="max-w-lg mx-auto bg-slate-50/50 border rounded-2xl p-5 space-y-3 text-left text-xs font-medium">
+                    <p><strong>EQUIPAMENTO AUDITADO:</strong> <span className="uppercase font-bold text-slate-800">{laudoParams.equipmentName}</span></p>
+                    <p><strong>FABRICANTE:</strong> {laudoParams.brand} | <strong>MODELO:</strong> {laudoParams.model}</p>
+                    <p><strong>ANO FABRICAÇÃO:</strong> {laudoParams.year} | <strong>HORÍMETRO:</strong> {laudoParams.horimetro} h</p>
+                    <p><strong>TAG DO ATIVO:</strong> <span className="font-mono text-red-600 font-bold">{laudoParams.tag}</span></p>
+                    <p><strong>EMPRESA CONTRATANTE:</strong> {laudoParams.clientName}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="border-t pt-6 text-xs font-mono text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <p>VL ENGENHARIA • Vitor Leonardo CREA-PE 1822299490</p>
-                <p className="font-bold">{laudoParams.inspectionCity}, {laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
-              </div>
+                <div className="border-t pt-6 text-xs font-mono text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <p>VL ENGENHARIA • Vitor Leonardo CREA-PE 1822299490</p>
+                  <p className="font-bold">{laudoParams.inspectionCity}, {laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
+                </div>
 
-            </div>
+              </div>
+            )}
 
             {/* CARTA DE APRESENTAÇÃO */}
-            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Carta de Apresentação</h2>
-              <p className="text-xs text-slate-600 font-mono text-right">Recife, {new Date().toLocaleDateString("pt-BR")}</p>
-              
-              <div className="space-y-4 text-xs text-slate-700 leading-relaxed font-sans font-medium">
-                <p>À Direção de Ativos da <strong>{laudoParams.clientName}</strong>,</p>
-                <p>
-                  Apresentamos para vossa auditoria o Relatório Pericial Completo de Segurança e Inspeção de Máquinas Pesadas LMP correspondente ao ativo <strong>{laudoParams.equipmentName}</strong>, vistoriado minuciosamente por nosso corpo técnico em vossas operações de campo.
-                </p>
-                <p>
-                  Este diagnóstico técnico avalia a integridade dos sistemas mecânicos, hidráulicos sob pressão, freios, motores e conformidade protetiva ROPS/FOPS, aplicando a metodologia quantitativa internacional Hazard Rating Number (HRN) em alinhamento aos preceitos da NR-12, NR-11 e NR-18.
-                </p>
-                <p>
-                  Ficamos à inteira disposição para suporte técnico sobre as intervenções e controles descritos no plano de ação cronológico.
-                </p>
+            {printConfig.carta && (
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Carta de Apresentação</h2>
+                <p className="text-xs text-slate-600 font-mono text-right">Recife, {new Date().toLocaleDateString("pt-BR")}</p>
                 
-                <div className="pt-8 text-center sm:text-left space-y-1.5 font-mono">
-                  <p className="font-bold text-slate-900">Eng. Mecânico Vitor Leonardo</p>
-                  <p className="text-[10px] text-slate-500">Responsável Técnico • CREA-PE 1822299490</p>
-                  <p className="text-[10px] text-slate-400">VL Engenharia • vitorleonardocl@gmail.com</p>
+                <div className="space-y-4 text-xs text-slate-700 leading-relaxed font-sans font-medium">
+                  <p>À Direção de Ativos da <strong>{laudoParams.clientName}</strong>,</p>
+                  <p>
+                    Apresentamos para vossa auditoria o Relatório Pericial Completo de Segurança e Inspeção de Máquinas Pesadas LMP correspondente ao ativo <strong>{laudoParams.equipmentName}</strong>, vistoriado minuciosamente por nosso corpo técnico em vossas operações de campo.
+                  </p>
+                  <p>
+                    Este diagnóstico técnico avalia a integridade dos sistemas mecânicos, hidráulicos sob pressão, freios, motores e conformidade protetiva ROPS/FOPS, aplicando a metodologia quantitativa internacional Hazard Rating Number (HRN) em alinhamento aos preceitos da NR-12, NR-11 e NR-18.
+                  </p>
+                  <p>
+                    Ficamos à inteira disposição para suporte técnico sobre as intervenções e controles descritos no plano de ação cronológico.
+                  </p>
+                  
+                  <div className="pt-8 text-center sm:text-left space-y-1.5 font-mono">
+                    <p className="font-bold text-slate-900">Eng. Mecânico Vitor Leonardo</p>
+                    <p className="text-[10px] text-slate-500">Responsável Técnico • CREA-PE 1822299490</p>
+                    <p className="text-[10px] text-slate-400">VL Engenharia • vitorleonardocl@gmail.com</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* SUMÁRIO */}
-            <div className="py-12 border-b space-y-4" style={{ pageBreakAfter: "always" }}>
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Sumário Geral do Documento</h2>
-              <div className="space-y-2 font-mono text-[11px] text-slate-600 font-medium">
-                <div className="flex justify-between"><span>SEÇÃO 1: Introdução, Escopo e Metodologia Pericial</span><span>03</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 2: Dados da Empresa Contratante</span><span>03</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 3: Dados da Empresa Contratada (VL Engenharia)</span><span>03</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 4: Dados Técnicos de Fabricação do Equipamento</span><span>04</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 5: Documentos Técnicos Analisados na Perícia</span><span>04</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 6: Normas Regulamentadoras e Legislações Aplicáveis</span><span>04</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 7: Metodologia Hazard Rating Number (HRN)</span><span>05</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 8: Relatório de Inspeção Visual e Fotográfica</span><span>05</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 9: Registro Detalhado da Inspeção por Subsistema</span><span>06</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 10: Checklist de Conformidade com a NR-12 / NR-18</span><span>07</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 11: Identificação dos Perigos e Apreciação de Risco (HRN)</span><span>08</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 12: Diagnóstico de Não Conformidades Regulamentares</span><span>09</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 13: Cronograma de Plano de Ação Recomendado</span><span>09</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 14: Conclusão Técnica e Parecer Pericial</span><span>10</span></div>
-                <div className="flex justify-between"><span>SEÇÃO 15: Limitações e Observações de Campo</span><span>10</span></div>
+            {printConfig.sumario && (
+              <div className="py-12 border-b space-y-4" style={{ pageBreakAfter: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Sumário Geral do Documento</h2>
+                <div className="space-y-2 font-mono text-[11px] text-slate-600 font-medium">
+                  <div className="flex justify-between"><span>SEÇÃO 1: Introdução, Escopo e Metodologia Pericial</span><span>03</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 2: Dados da Empresa Contratante</span><span>03</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 3: Dados da Empresa Contratada (VL Engenharia)</span><span>03</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 4: Dados Técnicos de Fabricação do Equipamento</span><span>04</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 5: Documentos Técnicos Analisados na Perícia</span><span>04</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 6: Normas Regulamentadoras e Legislações Aplicáveis</span><span>04</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 7: Metodologia Hazard Rating Number (HRN)</span><span>05</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 8: Relatório de Inspeção Visual e Fotográfica</span><span>05</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 9: Registro Detalhado da Inspeção por Subsistema</span><span>06</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 10: Checklist de Conformidade com a NR-12 / NR-18</span><span>07</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 11: Identificação dos Perigos e Apreciação de Risco (HRN)</span><span>08</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 12: Diagnóstico de Não Conformidades Regulamentares</span><span>09</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 13: Cronograma de Plano de Ação Recomendado</span><span>09</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 14: Conclusão Técnica e Parecer Pericial</span><span>10</span></div>
+                  <div className="flex justify-between"><span>SEÇÃO 15: Limitações e Observações de Campo</span><span>10</span></div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 1: INTRODUÇÃO (PÁGINA DEDICADA NO PDF) */}
-            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
-            </div>
+            {printConfig.secao1 && (
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
+                <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
+              </div>
+            )}
 
             {/* SEÇÕES 2 E 3 */}
-            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-slate-50 border p-4 rounded-xl leading-relaxed">
-                <p><strong>Razão Social:</strong> {laudoParams.clientName}</p>
-                <p><strong>CNPJ:</strong> {laudoParams.cnpj}</p>
-                <p className="sm:col-span-2"><strong>Endereço Operacional:</strong> {laudoParams.address}</p>
-              </div>
+            {(printConfig.secao2 || printConfig.secao3) && (
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+                {printConfig.secao2 && (
+                  <>
+                    <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-slate-50 border p-4 rounded-xl leading-relaxed">
+                      <p><strong>Razão Social:</strong> {laudoParams.clientName}</p>
+                      <p><strong>CNPJ:</strong> {laudoParams.cnpj}</p>
+                      <p className="sm:col-span-2"><strong>Endereço Operacional:</strong> {laudoParams.address}</p>
+                    </div>
+                  </>
+                )}
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 pt-6">SEÇÃO 3: Qualificação Técnica da Empresa Contratada</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_3}</p>
-            </div>
+                {printConfig.secao3 && (
+                  <>
+                    <h2 className={`text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 ${printConfig.secao2 ? "pt-6" : ""}`}>SEÇÃO 3: Qualificação Técnica da Empresa Contratada</h2>
+                    <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_3}</p>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* SEÇÃO 4: DADOS DO EQUIPAMENTO */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 4: Dados Técnicos de Fabricação do Equipamento</h2>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left border rounded-xl border-collapse font-mono">
-                  <thead>
-                    <tr className="bg-[#1C3144] text-white">
-                      <th className="p-3">Parâmetro Técnico</th>
-                      <th className="p-3">Informação / Valor Constatado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    <tr><td className="p-3 font-bold bg-slate-50">Equipamento / Máquina</td><td className="p-3">{laudoParams.equipmentName}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Fabricante</td><td className="p-3">{laudoParams.brand}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Modelo</td><td className="p-3">{laudoParams.model}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Número de Série</td><td className="p-3">{laudoParams.serialNumber}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Ano de Fabricação</td><td className="p-3">{laudoParams.year}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Identificador / TAG</td><td className="p-3 font-bold text-red-600">{laudoParams.tag}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Horímetro de Trabalho</td><td className="p-3">{laudoParams.horimetro} h</td></tr>
-                  </tbody>
-                </table>
+            {printConfig.secao4 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 4: Dados Técnicos de Fabricação do Equipamento</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border rounded-xl border-collapse font-mono">
+                    <thead>
+                      <tr className="bg-[#1C3144] text-white">
+                        <th className="p-3">Parâmetro Técnico</th>
+                        <th className="p-3">Informação / Valor Constatado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      <tr><td className="p-3 font-bold bg-slate-50">Equipamento / Máquina</td><td className="p-3">{laudoParams.equipmentName}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Fabricante</td><td className="p-3">{laudoParams.brand}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Modelo</td><td className="p-3">{laudoParams.model}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Número de Série</td><td className="p-3">{laudoParams.serialNumber}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Ano de Fabricação</td><td className="p-3">{laudoParams.year}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Identificador / TAG</td><td className="p-3 font-bold text-red-600">{laudoParams.tag}</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Horímetro de Trabalho</td><td className="p-3">{laudoParams.horimetro} h</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÕES 5, 6, 7 */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 5: Documentos Técnicos Analisados na Perícia</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_5}</p>
+            {(printConfig.secao5 || printConfig.secao6 || printConfig.secao7) && (
+              <div className="py-12 border-b space-y-6">
+                {printConfig.secao5 && (
+                  <>
+                    <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 5: Documentos Técnicos Analisados na Perícia</h2>
+                    <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_5}</p>
+                  </>
+                )}
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 pt-6">SEÇÃO 6: Normas Regulamentadoras e Legislações Aplicáveis</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_6}</p>
+                {printConfig.secao6 && (
+                  <>
+                    <h2 className={`text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 ${printConfig.secao5 ? "pt-6" : ""}`}>SEÇÃO 6: Normas Regulamentadoras e Legislações Aplicáveis</h2>
+                    <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_6}</p>
+                  </>
+                )}
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 pt-6">SEÇÃO 7: Metodologia Hazard Rating Number (HRN)</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_7}</p>
-            </div>
+                {printConfig.secao7 && (
+                  <>
+                    <h2 className={`text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 ${(printConfig.secao5 || printConfig.secao6) ? "pt-6" : ""}`}>SEÇÃO 7: Metodologia Hazard Rating Number (HRN)</h2>
+                    <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_7}</p>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* SEÇÃO 8: EVIDÊNCIAS FOTOGRÁFICAS */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 8: Relatório de Inspeção Visual e Fotográfica</h2>
-              
-              {uploadedImages.length === 0 ? (
-                <div className="p-6 border border-dashed text-center rounded-xl bg-slate-50 text-xs text-slate-400 font-mono">
-                  <span>Nenhum registro fotográfico anexado ao laudo na data de hoje.</span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {uploadedImages.map((img, i) => (
-                    <div key={i} className="border rounded-xl p-3 bg-slate-50 space-y-3 font-mono text-[10px]">
-                      <div className="aspect-video rounded-lg overflow-hidden border bg-white">
-                        <img src={img.data} alt={`Anexo ${i+1}`} className="w-full h-full object-cover" />
+            {printConfig.secao8 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 8: Relatório de Inspeção Visual e Fotográfica</h2>
+                
+                {uploadedImages.length === 0 ? (
+                  <div className="p-6 border border-dashed text-center rounded-xl bg-slate-50 text-xs text-slate-400 font-mono">
+                    <span>Nenhum registro fotográfico anexado ao laudo na data de hoje.</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {uploadedImages.map((img, i) => (
+                      <div key={i} className="border rounded-xl p-3 bg-slate-50 space-y-3 font-mono text-[10px]">
+                        <div className="aspect-video rounded-lg overflow-hidden border bg-white">
+                          <img src={img.data} alt={`Anexo ${i+1}`} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="text-left space-y-1">
+                          <p className="font-bold uppercase text-slate-800">Fotografia Técnica {i+1}: {img.name}</p>
+                          <p className="text-slate-500 leading-normal">{img.description}</p>
+                          <p className="text-red-600 font-bold">STATUS DE DIAGNÓSTICO: OBSERVADO</p>
+                        </div>
                       </div>
-                      <div className="text-left space-y-1">
-                        <p className="font-bold uppercase text-slate-800">Fotografia Técnica {i+1}: {img.name}</p>
-                        <p className="text-slate-500 leading-normal">{img.description}</p>
-                        <p className="text-red-600 font-bold">STATUS DE DIAGNÓSTICO: OBSERVADO</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* SEÇÃO 9: SISTEMAS DE INSPEÇÃO */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 9: Registro Detalhado da Inspeção por Subsistema</h2>
-              
-              <div className="space-y-4 text-xs font-sans text-slate-700">
-                <p><strong>9.1 Sistema de Propulsão e Transmissão:</strong> {sistemasInspecao.propulsao}</p>
-                <p><strong>9.2 Sistema Hidráulico:</strong> {sistemasInspecao.hidraulico}</p>
-                <p><strong>9.3 Sistema Elétrico e Eletrônico:</strong> {sistemasInspecao.eletrico}</p>
-                <p><strong>9.4 Sistema de Freios e Direção:</strong> {sistemasInspecao.freios}</p>
-                <p><strong>9.5 Estrutura e Chassi:</strong> {sistemasInspecao.estrutura}</p>
-                <p><strong>9.6 Cabine do Operador (ROPS/FOPS):</strong> {sistemasInspecao.cabine}</p>
-                <p><strong>9.7 Implementos e Acessórios:</strong> {sistemasInspecao.implementos}</p>
-                <p><strong>9.8 Rodagem (Pneus / Esteiras):</strong> {sistemasInspecao.rodagem}</p>
-                <p><strong>9.9 Dispositivos de Segurança:</strong> {sistemasInspecao.seguranca}</p>
-                <p><strong>9.10 Sistema de Escape e Motor Diesel:</strong> {sistemasInspecao.motor}</p>
+            {printConfig.secao9 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 9: Registro Detalhado da Inspeção por Subsistema</h2>
+                
+                <div className="space-y-4 text-xs font-sans text-slate-700">
+                  <p><strong>9.1 Sistema de Propulsão e Transmissão:</strong> {sistemasInspecao.propulsao}</p>
+                  <p><strong>9.2 Sistema Hidráulico:</strong> {sistemasInspecao.hidraulico}</p>
+                  <p><strong>9.3 Sistema Elétrico e Eletrônico:</strong> {sistemasInspecao.eletrico}</p>
+                  <p><strong>9.4 Sistema de Freios e Direção:</strong> {sistemasInspecao.freios}</p>
+                  <p><strong>9.5 Estrutura e Chassi:</strong> {sistemasInspecao.estrutura}</p>
+                  <p><strong>9.6 Cabine do Operador (ROPS/FOPS):</strong> {sistemasInspecao.cabine}</p>
+                  <p><strong>9.7 Implementos e Acessórios:</strong> {sistemasInspecao.implementos}</p>
+                  <p><strong>9.8 Rodagem (Pneus / Esteiras):</strong> {sistemasInspecao.rodagem}</p>
+                  <p><strong>9.9 Dispositivos de Segurança:</strong> {sistemasInspecao.seguranca}</p>
+                  <p><strong>9.10 Sistema de Escape e Motor Diesel:</strong> {sistemasInspecao.motor}</p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 10: CHECKLIST DE CONFORMIDADE */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 10: Checklist de Conformidade da NR-12 / NR-18</h2>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left border border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                      <th className="p-3">Ref</th>
-                      <th className="p-3">Item Inspecionado</th>
-                      <th className="p-3 text-center">Conformidade</th>
-                      <th className="p-3">Observação / Nota Técnica</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {checklist.map((item) => (
-                      <tr key={item.id} className="text-[11px] leading-relaxed">
-                        <td className="p-3 font-mono font-bold">{item.id.replace("chk_", "Nº ")}</td>
-                        <td className="p-3 font-semibold text-slate-800">{item.text}</td>
-                        <td className="p-3 text-center">
-                          <span className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-black ${
-                            item.resposta === "SIM" 
-                              ? "bg-emerald-100 text-emerald-800" 
-                              : item.resposta === "NÃO" 
-                              ? "bg-red-100 text-red-800" 
-                              : "bg-slate-100 text-slate-500"
-                          }`}>
-                            {item.resposta === "SIM" ? "CONFORME" : item.resposta === "NÃO" ? "IRREGULAR" : "N/A"}
-                          </span>
-                        </td>
-                        <td className="p-3 text-slate-600 font-medium">{item.nota}</td>
+            {printConfig.secao10 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 10: Checklist de Conformidade da NR-12 / NR-18</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
+                        <th className="p-3">Ref</th>
+                        <th className="p-3">Item Inspecionado</th>
+                        <th className="p-3 text-center">Conformidade</th>
+                        <th className="p-3">Observação / Nota Técnica</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {checklist.map((item) => (
+                        <tr key={item.id} className="text-[11px] leading-relaxed">
+                          <td className="p-3 font-mono font-bold">{item.id.replace("chk_", "Nº ")}</td>
+                          <td className="p-3 font-semibold text-slate-800">{item.text}</td>
+                          <td className="p-3 text-center">
+                            <span className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-black ${
+                              item.resposta === "SIM" 
+                                ? "bg-emerald-100 text-emerald-800" 
+                                : item.resposta === "NÃO" 
+                                ? "bg-red-100 text-red-800" 
+                                : "bg-slate-100 text-slate-500"
+                            }`}>
+                              {item.resposta === "SIM" ? "CONFORME" : item.resposta === "NÃO" ? "IRREGULAR" : "N/A"}
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600 font-medium">{item.nota}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 11: APRECIAÇÃO DE RISCO HRN */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 11: Identificação dos Perigos e Apreciação de Risco (HRN)</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs leading-relaxed">
-                <div className="p-4 border rounded-xl bg-slate-50 space-y-2">
-                  <p className="font-mono font-bold uppercase text-red-600">GRAU DE RISCO SEM PROTEÇÃO (SITUAÇÃO PRÉVIA)</p>
-                  <div className="font-mono text-[11px] space-y-1">
-                    <p>LO (Probabilidade de Ocorrência): <strong>{hrnBefore.lo}</strong></p>
-                    <p>FE (Frequência de Exposição): <strong>{hrnBefore.fe}</strong></p>
-                    <p>DPH (Grau de Possível Lesão): <strong>{hrnBefore.dph}</strong></p>
-                    <p>NP (Número de Pessoas Expostas): <strong>{hrnBefore.np}</strong></p>
-                    <p className="text-lg text-red-600 font-black">SCORE HRN: {hrnBefore.score}</p>
-                    <p className="uppercase text-[11px]">Classificação: <strong>{getHRNClassification(hrnBefore.score).label}</strong></p>
+            {printConfig.secao11 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 11: Identificação dos Perigos e Apreciação de Risco (HRN)</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs leading-relaxed">
+                  <div className="p-4 border rounded-xl bg-slate-50 space-y-2">
+                    <p className="font-mono font-bold uppercase text-red-600">GRAU DE RISCO SEM PROTEÇÃO (SITUAÇÃO PRÉVIA)</p>
+                    <div className="font-mono text-[11px] space-y-1">
+                      <p>LO (Probabilidade de Ocorrência): <strong>{hrnBefore.lo}</strong></p>
+                      <p>FE (Frequência de Exposição): <strong>{hrnBefore.fe}</strong></p>
+                      <p>DPH (Grau de Possível Lesão): <strong>{hrnBefore.dph}</strong></p>
+                      <p>NP (Número de Pessoas Expostas): <strong>{hrnBefore.np}</strong></p>
+                      <p className="text-lg text-red-600 font-black">SCORE HRN: {hrnBefore.score}</p>
+                      <p className="uppercase text-[11px]">Classificação: <strong>{getHRNClassification(hrnBefore.score).label}</strong></p>
+                    </div>
+                    <p className="pt-2 border-t font-sans text-slate-600 text-[11px]">{hrnBefore.explicacao}</p>
                   </div>
-                  <p className="pt-2 border-t font-sans text-slate-600 text-[11px]">{hrnBefore.explicacao}</p>
-                </div>
 
-                <div className="p-4 border rounded-xl bg-slate-50 space-y-2">
-                  <p className="font-mono font-bold uppercase text-emerald-600">GRAU DE RISCO ADEQUADO (SITUAÇÃO RESIDUAL)</p>
-                  <div className="font-mono text-[11px] space-y-1">
-                    <p>LO (Probabilidade de Ocorrência): <strong>{hrnAfter.lo}</strong></p>
-                    <p>FE (Frequência de Exposição): <strong>{hrnAfter.fe}</strong></p>
-                    <p>DPH (Grau de Possível Lesão): <strong>{hrnAfter.dph}</strong></p>
-                    <p>NP (Número de Pessoas Expostas): <strong>{hrnAfter.np}</strong></p>
-                    <p className="text-lg text-emerald-600 font-black">SCORE HRN: {hrnAfter.score}</p>
-                    <p className="uppercase text-[11px]">Classificação: <strong>{getHRNClassification(hrnAfter.score).label}</strong></p>
+                  <div className="p-4 border rounded-xl bg-slate-50 space-y-2">
+                    <p className="font-mono font-bold uppercase text-emerald-600">GRAU DE RISCO ADEQUADO (SITUAÇÃO RESIDUAL)</p>
+                    <div className="font-mono text-[11px] space-y-1">
+                      <p>LO (Probabilidade de Ocorrência): <strong>{hrnAfter.lo}</strong></p>
+                      <p>FE (Frequência de Exposição): <strong>{hrnAfter.fe}</strong></p>
+                      <p>DPH (Grau de Possível Lesão): <strong>{hrnAfter.dph}</strong></p>
+                      <p>NP (Número de Pessoas Expostas): <strong>{hrnAfter.np}</strong></p>
+                      <p className="text-lg text-emerald-600 font-black">SCORE HRN: {hrnAfter.score}</p>
+                      <p className="uppercase text-[11px]">Classificação: <strong>{getHRNClassification(hrnAfter.score).label}</strong></p>
+                    </div>
+                    <p className="pt-2 border-t font-sans text-slate-600 text-[11px]">{hrnAfter.explicacao}</p>
                   </div>
-                  <p className="pt-2 border-t font-sans text-slate-600 text-[11px]">{hrnAfter.explicacao}</p>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 12: NÃO CONFORMIDADES */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 12: Diagnóstico de Não Conformidades Regulamentares</h2>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left border border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                      <th className="p-3">ID</th>
-                      <th className="p-3">Irregularidade Identificada</th>
-                      <th className="p-3">Norma Violada</th>
-                      <th className="p-3 text-center">Criticidade</th>
-                      <th className="p-3">Risco Associado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y font-medium text-[11px]">
-                    {naoConformidades.map((nc) => (
-                      <tr key={nc.id} className="hover:bg-slate-50/30">
-                        <td className="p-3 font-mono font-bold text-red-600">{nc.id}</td>
-                        <td className="p-3 text-slate-800 leading-relaxed">{nc.descricao}</td>
-                        <td className="p-3 font-mono text-slate-500">{nc.norma}</td>
-                        <td className="p-3 text-center">
-                          <span className="bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded text-[9px] font-black uppercase font-mono">
-                            {nc.criticidade}
-                          </span>
-                        </td>
-                        <td className="p-3 text-slate-600">{nc.risco}</td>
+            {printConfig.secao12 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 12: Diagnóstico de Não Conformidades Regulamentares</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
+                        <th className="p-3">ID</th>
+                        <th className="p-3">Irregularidade Identificada</th>
+                        <th className="p-3">Norma Violada</th>
+                        <th className="p-3 text-center">Criticidade</th>
+                        <th className="p-3">Risco Associado</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y font-medium text-[11px]">
+                      {naoConformidades.map((nc) => (
+                        <tr key={nc.id} className="hover:bg-slate-50/30">
+                          <td className="p-3 font-mono font-bold text-red-600">{nc.id}</td>
+                          <td className="p-3 text-slate-800 leading-relaxed">{nc.descricao}</td>
+                          <td className="p-3 font-mono text-slate-500">{nc.norma}</td>
+                          <td className="p-3 text-center">
+                            <span className="bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded text-[9px] font-black uppercase font-mono">
+                              {nc.criticidade}
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600">{nc.risco}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 13: PLANO DE AÇÃO */}
-            <div className="py-12 border-b space-y-6">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 13: Cronograma de Plano de Ação Recomendado</h2>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left border border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                      <th className="p-3">Ação</th>
-                      <th className="p-3">Irregularidade / Problema</th>
-                      <th className="p-3">Medida de Controle Recomendada</th>
-                      <th className="p-3 text-center">Prioridade</th>
-                      <th className="p-3">Prazo</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y font-medium text-[11px]">
-                    {planoAcao.map((ap) => (
-                      <tr key={ap.id} className="hover:bg-slate-50/30">
-                        <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.id}</td>
-                        <td className="p-3 text-slate-800 font-semibold">{ap.problema}</td>
-                        <td className="p-3 text-slate-600 leading-relaxed">{ap.recomendacao}</td>
-                        <td className="p-3 text-center">
-                          <span className="bg-slate-100 text-slate-800 border px-2 py-0.5 rounded text-[9px] font-bold font-mono">
-                            {ap.prioridade}
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.prazo}</td>
+            {printConfig.secao13 && (
+              <div className="py-12 border-b space-y-6">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 13: Cronograma de Plano de Ação Recomendado</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
+                        <th className="p-3">Ação</th>
+                        <th className="p-3">Irregularidade / Problema</th>
+                        <th className="p-3">Medida de Controle Recomendada</th>
+                        <th className="p-3 text-center">Prioridade</th>
+                        <th className="p-3">Prazo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y font-medium text-[11px]">
+                      {planoAcao.map((ap) => (
+                        <tr key={ap.id} className="hover:bg-slate-50/30">
+                          <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.id}</td>
+                          <td className="p-3 text-slate-800 font-semibold">{ap.problema}</td>
+                          <td className="p-3 text-slate-600 leading-relaxed">{ap.recomendacao}</td>
+                          <td className="p-3 text-center">
+                            <span className="bg-slate-100 text-slate-800 border px-2 py-0.5 rounded text-[9px] font-bold font-mono">
+                              {ap.prioridade}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.prazo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 14: CONCLUSÃO */}
-            <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always", pageBreakAfter: "always" }}>
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 14: Conclusão Técnica e Parecer Pericial</h2>
-              
-              <div className="p-6 border-2 border-red-600 bg-red-50/10 rounded-2xl space-y-4">
-                <div className="flex items-center justify-between border-b pb-3 border-red-600/20">
-                  <span className="font-mono text-xs uppercase font-bold text-slate-500">Resultado da Avaliação do Ativo:</span>
-                  <span className="text-base font-black font-mono text-red-600 bg-red-50 border border-red-200 px-4 py-1 rounded-xl">
-                    {conclusaoStatus}
-                  </span>
-                </div>
+            {printConfig.secao14 && (
+              <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always", pageBreakAfter: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 14: Conclusão Técnica e Parecer Pericial</h2>
                 
-                <p className="text-xs leading-relaxed text-slate-800 font-sans font-medium whitespace-pre-wrap">
-                  {conclusaoParecer}
-                </p>
+                <div className="p-6 border-2 border-red-600 bg-red-50/10 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b pb-3 border-red-600/20">
+                    <span className="font-mono text-xs uppercase font-bold text-slate-500">Resultado da Avaliação do Ativo:</span>
+                    <span className="text-base font-black font-mono text-red-600 bg-red-50 border border-red-200 px-4 py-1 rounded-xl">
+                      {conclusaoStatus}
+                    </span>
+                  </div>
+                  
+                  <p className="text-xs leading-relaxed text-slate-800 font-sans font-medium whitespace-pre-wrap">
+                    {conclusaoParecer}
+                  </p>
 
+                </div>
               </div>
-            </div>
+            )}
 
             {/* SEÇÃO 15: LIMITAÇÕES */}
-            <div className="py-12 space-y-4 print-avoid-break">
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 15: Limitações e Observações Técnicas de Campo</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_18}</p>
-            </div>
+            {printConfig.secao15 && (
+              <div className="py-12 space-y-4 print-avoid-break">
+                <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 15: Limitações e Observações Técnicas de Campo</h2>
+                <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_18}</p>
+              </div>
+            )}
 
             {/* CENTERED SIGNATURE BLOCK AS SPECIFIED */}
             <div className="py-12 text-center space-y-6 print-avoid-break border-t border-slate-200 mt-8">

@@ -73,3 +73,40 @@
     margin: 15mm 15mm;
   }
 }
+
+/* Custom styles when generating PDF via html2pdf to guarantee exact A4 layout with wide margins */
+body.generating-pdf {
+  background-color: #ffffff !important;
+}
+
+body.generating-pdf #laudo-crane-printable-area,
+body.generating-pdf #laudo-nr12-printable-area,
+body.generating-pdf #laudo-heavy-printable-area {
+  width: 210mm !important;
+  max-width: 210mm !important;
+  min-width: 210mm !important;
+  padding: 12mm 12mm !important; /* Comfortable professional margin padding */
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-sizing: border-box !important;
+}
+
+body.generating-pdf .page-break-after {
+  page-break-after: always !important;
+  break-after: page !important;
+}
+
+body.generating-pdf .page-break-before {
+  page-break-before: always !important;
+  break-before: page !important;
+}
+
+body.generating-pdf .print-avoid-break {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
