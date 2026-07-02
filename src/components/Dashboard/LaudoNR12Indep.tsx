@@ -520,17 +520,42 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
       const opt = {
         margin:       10,
         filename:     `Laudo_${laudoParams.tag || "NR12"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
-        image:        { type: "jpeg" as const, quality: 0.98 },
+        image:        { type: "jpeg", quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const },
+        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak:    { mode: ["avoid-all", "css", "legacy"] }
       };
 
-      // @ts-ignore
-      await html2pdf().set(opt).from(element).save();
-    } catch (err) {
+      // Get or load html2pdf safely with multiple fallbacks
+      let exporter = (window as any).html2pdf;
+      if (!exporter) {
+        // @ts-ignore
+        exporter = html2pdf?.default || html2pdf;
+      }
+
+      if (typeof exporter !== "function") {
+        // Dynamically load the bundled html2pdf.js from CDN to guarantee resolution
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+          script.crossOrigin = "anonymous";
+          script.onload = () => {
+            exporter = (window as any).html2pdf;
+            resolve();
+          };
+          script.onerror = () => reject(new Error("Não foi possível carregar a biblioteca de geração de PDF."));
+          document.body.appendChild(script);
+        });
+      }
+
+      if (typeof exporter !== "function") {
+        throw new Error("A biblioteca html2pdf não pôde ser iniciada.");
+      }
+
+      await exporter().set(opt).from(element).save();
+    } catch (err: any) {
       console.error("Erro ao gerar PDF:", err);
-      alert("Houve um erro ao gerar o PDF. Por favor, tente novamente.");
+      alert(`Houve um erro ao gerar o PDF: ${err?.message || err}. Por favor, tente novamente.`);
     } finally {
       setIsDownloadingPdf(false);
     }
