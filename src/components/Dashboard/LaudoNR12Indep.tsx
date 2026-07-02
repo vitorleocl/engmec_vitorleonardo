@@ -162,8 +162,16 @@ const NR12_CHECKLIST_TEMPLATE = [
   { id: "chk_12", text: "Possui Prontuário Técnico do Equipamento assinado por Profissional Habilitado?", ref: "12.131" }
 ];
 
-export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
+export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { onBack?: () => void, initialPrefilled?: boolean }) {
   const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
+
+  // Automatically prefill and show preview if requested
+  useEffect(() => {
+    if (initialPrefilled) {
+      generateExampleReport();
+      setActiveTab("preview");
+    }
+  }, [initialPrefilled]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -1787,12 +1795,41 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
               <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5 pt-6">SEÇÃO 17: Limitações Técnico-Periciais da Avaliação</h2>
               <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_17}</p>
 
-              {/* Assinatura Final do Documento */}
-              <div className="pt-16 border-t flex flex-col items-center text-center space-y-1.5 font-mono text-xs">
-                <div className="w-56 h-[1px] bg-slate-400 mb-2" />
-                <p className="font-bold text-slate-900">Eng. Mecânico Vitor Leonardo</p>
-                <p className="text-[10px] text-slate-500">Responsável Técnico • CREA-PE 1822299490</p>
-                <p className="text-[10px] text-slate-400">Auditor de Segurança de Máquinas da VL Engenharia</p>
+              {/* CENTERED SIGNATURE BLOCK AS SPECIFIED */}
+              <div className="py-12 text-center space-y-6 print-avoid-break border-t border-slate-200 mt-8">
+                <div className="pt-4 space-y-1">
+                  <p className="text-base font-black text-slate-950">Vitor Leonardo Cordeiro Linhares</p>
+                  <p className="text-xs text-slate-700 font-medium">Eng. Mecânico | Esp. Projetos Mecânicos | Esp. Engenharia da Manutenção</p>
+                  <p className="text-xs text-slate-700 font-medium">Esp.Adequações  de  máquinas e equipamentos.</p>
+                  <p className="text-xs text-slate-600 font-bold font-mono uppercase">CREA PE</p>
+                  <p className="text-xs text-slate-900 font-extrabold uppercase tracking-wider">VL Engenharia</p>
+                </div>
+              </div>
+
+              {/* ANEXOS SECTION (PÁGINA FINAL DO PDF) */}
+              <div className="page-break-before py-12 space-y-8 min-h-[85vh] flex flex-col justify-between border-t border-slate-200 print-avoid-break">
+                <div className="space-y-6 text-left">
+                  <div className="flex items-center gap-2 border-b-2 border-slate-800 pb-3">
+                    <h2 className="text-xl font-black uppercase text-slate-900 tracking-tight">ANEXOS</h2>
+                  </div>
+                  <div className="p-8 border-2 border-dashed border-slate-300 rounded-3xl bg-slate-50/50 text-center space-y-4 py-16">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                      <FileText className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Anexo I: Anotação de Responsabilidade Técnica (ART)</h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                        Espaço reservado para inserção e anexação do PDF da **ART (Anotação de Responsabilidade Técnica)** devidamente emitida e quitada junto ao CREA, vinculada a esta inspeção técnica pericial de conformidade NR-12.
+                      </p>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono">
+                      [O PDF da ART assinado e quitado deve ser inserido nesta página]
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center font-mono text-[9px] text-slate-400">
+                  <p>Laudo Técnico de Inspeção NR-12 • VL Engenharia • Página de Anexos</p>
+                </div>
               </div>
             </div>
 

@@ -180,8 +180,16 @@ O resultado matemático enquadra os riscos em classes de periculosidade (Desprez
   };
 }
 
-export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: () => void }) {
+export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefilled = false }: { onBack?: () => void, initialPrefilled?: boolean }) {
   const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
+
+  // Automatically prefill and show preview if requested
+  useEffect(() => {
+    if (initialPrefilled) {
+      generateExampleReport();
+      setActiveTab("preview");
+    }
+  }, [initialPrefilled]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -203,7 +211,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
     capacityNominal: "12 toneladas",
     maxIcationHeight: "18 metros",
     boomLength: "15 metros",
-    horometro: "2400",
+    horimetro: "2400",
     driveType: "Hidráulico tomada de força",
     inspectionCity: "Recife",
     inspectionDate: new Date().toISOString().split("T")[0],
@@ -517,7 +525,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
       capacityNominal: "45 toneladas-metro (Capacidade máx. 12.500 kg)",
       maxIcationHeight: "22.5 metros",
       boomLength: "19.8 metros",
-      horometro: "1850",
+      horimetro: "1850",
       driveType: "Acoplamento hidráulico por tomada de força (PTO)",
       inspectionCity: "Recife",
       inspectionDate: "2026-07-01",
@@ -889,13 +897,13 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-mono font-bold text-slate-500">Horômetro / KM de Trabalho</label>
+                    <label className="font-mono font-bold text-slate-500">Horímetro / KM de Trabalho</label>
                     <input
                       type="text"
                       placeholder="Ex: 2400"
                       className="w-full border dark:border-slate-800 rounded-xl p-3 bg-white dark:bg-slate-950 text-slate-800 dark:text-white"
-                      value={laudoParams.horometro}
-                      onChange={e => setLaudoParams({ ...laudoParams, horometro: e.target.value })}
+                      value={laudoParams.horimetro}
+                      onChange={e => setLaudoParams({ ...laudoParams, horimetro: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1328,7 +1336,6 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
                   <div className="text-left font-mono text-[9px] uppercase tracking-widest text-slate-400 space-y-0.5">
                     <p className="font-black text-slate-800">VL Engenharia S/A</p>
                     <p>Crea: 1822299490 – PE</p>
-                    <p>CNPJ: 41.200.334/0001-90</p>
                   </div>
                   
                   <Logo variant="print" className="h-16" />
@@ -1443,7 +1450,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
                       <tr><td className="p-3 font-bold bg-slate-50">Altura Máxima Içamento</td><td className="p-3">{laudoParams.maxIcationHeight}</td></tr>
                       <tr><td className="p-3 font-bold bg-slate-50">Comprimento de Lança</td><td className="p-3">{laudoParams.boomLength}</td></tr>
                       <tr><td className="p-3 font-bold bg-slate-50">Identificador / TAG</td><td className="p-3 font-bold text-red-600">{laudoParams.tag}</td></tr>
-                      <tr><td className="p-3 font-bold bg-slate-50">Horômetro / KM Registrados</td><td className="p-3">{laudoParams.horometro} h</td></tr>
+                      <tr><td className="p-3 font-bold bg-slate-50">Horímetro / KM Registrados</td><td className="p-3">{laudoParams.horimetro} h</td></tr>
                       <tr><td className="p-3 font-bold bg-slate-50">Tipo de Acionamento</td><td className="p-3">{laudoParams.driveType}</td></tr>
                     </tbody>
                   </table>
@@ -1679,20 +1686,45 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
               </div>
 
               {/* SEÇÃO 16: LIMITAÇÕES DA AVALIAÇÃO */}
-              <div className="py-12 border-b space-y-6">
+              <div className="py-12 border-b space-y-6 print-avoid-break">
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 16: Limitações e Observações Técnicas Finais</h2>
                 <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_18}</p>
               </div>
 
-              {/* SIGNATURE BLOCK */}
-              <div className="py-12 flex justify-between items-center text-xs font-mono">
-                <div className="space-y-1">
-                  <p className="font-bold">Emitido eletronicamente em {laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
-                  <p className="text-slate-500">VL Engenharia S/A pericial</p>
+              {/* CENTERED SIGNATURE BLOCK AS SPECIFIED */}
+              <div className="py-12 text-center space-y-6 print-avoid-break border-t border-slate-200 mt-8">
+                <div className="pt-4 space-y-1">
+                  <p className="text-base font-black text-slate-950">Vitor Leonardo Cordeiro Linhares</p>
+                  <p className="text-xs text-slate-700 font-medium">Eng. Mecânico | Esp. Projetos Mecânicos | Esp. Engenharia da Manutenção</p>
+                  <p className="text-xs text-slate-700 font-medium">Esp.Adequações  de  máquinas e equipamentos.</p>
+                  <p className="text-xs text-slate-600 font-bold font-mono uppercase">CREA PE</p>
+                  <p className="text-xs text-slate-900 font-extrabold uppercase tracking-wider">VL Engenharia</p>
                 </div>
-                <div className="text-right space-y-1 border-t pt-4 border-slate-300 w-64">
-                  <p className="font-bold">Eng. Vitor Leonardo</p>
-                  <p className="text-slate-500">CREA-PE: 1822299490</p>
+              </div>
+
+              {/* ANEXOS SECTION (PÁGINA FINAL DO PDF) */}
+              <div className="page-break-before py-12 space-y-8 min-h-[85vh] flex flex-col justify-between border-t border-slate-200 print-avoid-break">
+                <div className="space-y-6 text-left">
+                  <div className="flex items-center gap-2 border-b-2 border-slate-800 pb-3">
+                    <h2 className="text-xl font-black uppercase text-slate-900 tracking-tight">ANEXOS</h2>
+                  </div>
+                  <div className="p-8 border-2 border-dashed border-slate-300 rounded-3xl bg-slate-50/50 text-center space-y-4 py-16">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                      <FileText className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Anexo I: Anotação de Responsabilidade Técnica (ART)</h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                        Espaço reservado para inserção e anexação do PDF da **ART (Anotação de Responsabilidade Técnica)** devidamente emitida e quitada junto ao CREA, vinculada a esta inspeção técnica pericial.
+                      </p>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono">
+                      [O PDF da ART assinado e quitado deve ser inserido nesta página]
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center font-mono text-[9px] text-slate-400">
+                  <p>Laudo Técnico de Inspeção • VL Engenharia • Página de Anexos</p>
                 </div>
               </div>
 

@@ -112,7 +112,7 @@ function getHRNClassification(score: number) {
 // --- HEAVY MACHINERY DEFAULT CHECKLIST TEMPLATE ---
 const HEAVY_CHECKLIST_TEMPLATE = [
   { id: "chk_1", text: "Placa de identificação / TAG visível", ref: "Item 1" },
-  { id: "chk_2", text: "Horômetro funcionando", ref: "Item 2" },
+  { id: "chk_2", text: "Horímetro funcionando", ref: "Item 2" },
   { id: "chk_3", text: "ROPS instalado e homologado (Estrutura de Proteção contra Capotamento)", ref: "Item 3" },
   { id: "chk_4", text: "FOPS instalado (Estrutura de Proteção contra Queda de Objetos)", ref: "Item 4" },
   { id: "chk_5", text: "Cinto de segurança na cabine em bom estado", ref: "Item 5" },
@@ -192,8 +192,16 @@ Os valores paramétricos utilizados seguem estritamente as matrizes internaciona
   };
 }
 
-export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => void }) {
+export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = false }: { onBack?: () => void, initialPrefilled?: boolean }) {
   const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
+
+  // Automatically prefill and show preview if requested
+  useEffect(() => {
+    if (initialPrefilled) {
+      generateExampleReport();
+      setActiveTab("preview");
+    }
+  }, [initialPrefilled]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -212,7 +220,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
     serialNumber: "",
     year: "2020",
     tag: "",
-    horometro: "3500",
+    horimetro: "3500",
     inspectionCity: "Recife",
     inspectionDate: new Date().toISOString().split("T")[0],
     notes: ""
@@ -489,7 +497,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
         address: laudoParams.address,
         tag: laudoParams.tag,
         laudoNumber: laudoParams.laudoNumber,
-        horometro: laudoParams.horometro,
+        horimetro: laudoParams.horimetro,
         inspectionCity: laudoParams.inspectionCity,
         inspectionDate: laudoParams.inspectionDate,
         notes: aiPrompt || laudoParams.notes,
@@ -930,12 +938,12 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-slate-400 font-mono text-[10px] uppercase">Horômetro (h)</label>
+                  <label className="text-slate-400 font-mono text-[10px] uppercase">Horímetro (h)</label>
                   <input
                     type="text"
                     className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:outline-none"
-                    value={laudoParams.horometro}
-                    onChange={e => setLaudoParams({ ...laudoParams, horometro: e.target.value })}
+                    value={laudoParams.horimetro}
+                    onChange={e => setLaudoParams({ ...laudoParams, horimetro: e.target.value })}
                   />
                 </div>
               </div>
@@ -1641,7 +1649,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
                 <div className="max-w-lg mx-auto bg-slate-50/50 border rounded-2xl p-6 space-y-3.5 text-left text-xs font-medium">
                   <p><strong>EQUIPAMENTO AUDITADO:</strong> <span className="uppercase font-bold text-slate-800">{laudoParams.equipmentName}</span></p>
                   <p><strong>FABRICANTE:</strong> {laudoParams.brand} | <strong>MODELO:</strong> {laudoParams.model}</p>
-                  <p><strong>ANO FABRICAÇÃO:</strong> {laudoParams.year} | <strong>HORÔMETRO:</strong> {laudoParams.horometro} h</p>
+                  <p><strong>ANO FABRICAÇÃO:</strong> {laudoParams.year} | <strong>HORÍMETRO:</strong> {laudoParams.horimetro} h</p>
                   <p><strong>TAG DO ATIVO:</strong> <span className="font-mono text-red-600 font-bold">{laudoParams.tag}</span></p>
                   <p><strong>EMPRESA CONTRATANTE:</strong> {laudoParams.clientName}</p>
                 </div>
@@ -1736,7 +1744,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
                     <tr><td className="p-3 font-bold bg-slate-50">Número de Série</td><td className="p-3">{laudoParams.serialNumber}</td></tr>
                     <tr><td className="p-3 font-bold bg-slate-50">Ano de Fabricação</td><td className="p-3">{laudoParams.year}</td></tr>
                     <tr><td className="p-3 font-bold bg-slate-50">Identificador / TAG</td><td className="p-3 font-bold text-red-600">{laudoParams.tag}</td></tr>
-                    <tr><td className="p-3 font-bold bg-slate-50">Horômetro de Trabalho</td><td className="p-3">{laudoParams.horometro} h</td></tr>
+                    <tr><td className="p-3 font-bold bg-slate-50">Horímetro de Trabalho</td><td className="p-3">{laudoParams.horimetro} h</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1953,24 +1961,50 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
                   {conclusaoParecer}
                 </p>
 
-                <div className="pt-8 border-t border-red-600/20 grid grid-cols-1 md:grid-cols-2 gap-4 items-end text-xs font-mono text-slate-500">
-                  <div className="text-center md:text-left space-y-1">
-                    <p className="font-bold text-slate-800">Eng. Mecânico Vitor Leonardo</p>
-                    <p className="text-[10px]">Especialista de Segurança • CREA-PE 1822299490</p>
-                    <p className="text-[10px]">VL Engenharia • Consultoria e Laudos Técnicos</p>
-                  </div>
-                  <div className="text-center md:text-right">
-                    <p className="font-bold text-slate-800">{laudoParams.inspectionCity}</p>
-                    <p>{laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* SEÇÃO 15: LIMITAÇÕES */}
-            <div className="py-12 space-y-4">
+            <div className="py-12 space-y-4 print-avoid-break">
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 15: Limitações e Observações Técnicas de Campo</h2>
               <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans whitespace-pre-wrap">{secoesLaudo.secao_18}</p>
+            </div>
+
+            {/* CENTERED SIGNATURE BLOCK AS SPECIFIED */}
+            <div className="py-12 text-center space-y-6 print-avoid-break border-t border-slate-200 mt-8">
+              <div className="pt-4 space-y-1">
+                <p className="text-base font-black text-slate-950">Vitor Leonardo Cordeiro Linhares</p>
+                <p className="text-xs text-slate-700 font-medium">Eng. Mecânico | Esp. Projetos Mecânicos | Esp. Engenharia da Manutenção</p>
+                <p className="text-xs text-slate-700 font-medium">Esp.Adequações  de  máquinas e equipamentos.</p>
+                <p className="text-xs text-slate-600 font-bold font-mono uppercase">CREA PE</p>
+                <p className="text-xs text-slate-900 font-extrabold uppercase tracking-wider">VL Engenharia</p>
+              </div>
+            </div>
+
+            {/* ANEXOS SECTION (PÁGINA FINAL DO PDF) */}
+            <div className="page-break-before py-12 space-y-8 min-h-[85vh] flex flex-col justify-between border-t border-slate-200 print-avoid-break">
+              <div className="space-y-6 text-left">
+                <div className="flex items-center gap-2 border-b-2 border-slate-800 pb-3">
+                  <h2 className="text-xl font-black uppercase text-slate-900 tracking-tight">ANEXOS</h2>
+                </div>
+                <div className="p-8 border-2 border-dashed border-slate-300 rounded-3xl bg-slate-50/50 text-center space-y-4 py-16">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Anexo I: Anotação de Responsabilidade Técnica (ART)</h3>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                      Espaço reservado para inserção e anexação do PDF da **ART (Anotação de Responsabilidade Técnica)** devidamente emitida e quitada junto ao CREA, vinculada a esta inspeção técnica pericial de conformidade para máquinas pesadas.
+                    </p>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    [O PDF da ART assinado e quitado deve ser inserido nesta página]
+                  </div>
+                </div>
+              </div>
+              <div className="text-center font-mono text-[9px] text-slate-400">
+                <p>Laudo Técnico de Inspeção • VL Engenharia • Página de Anexos</p>
+              </div>
             </div>
 
           </div>

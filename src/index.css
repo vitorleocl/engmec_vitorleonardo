@@ -63,4 +63,13 @@
     page-break-before: always !important;
     break-before: page !important;
   }
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm;
+  }
 }

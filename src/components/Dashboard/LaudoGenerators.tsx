@@ -1,22 +1,28 @@
 import { useState } from 'react';
-import { Shield, Cpu, Sparkles, Wand2, Truck } from 'lucide-react';
+import { Shield, Cpu, Sparkles, Wand2, Truck, FileText, ArrowRight } from 'lucide-react';
 import LaudoNR12Indep from './LaudoNR12Indep';
 import LaudoMaquinasPesadasIndep from './LaudoMaquinasPesadasIndep';
 import LaudoCaminhaoMunckGuindasteIndep from './LaudoCaminhaoMunckGuindasteIndep';
 
 export default function LaudoGenerators() {
   const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane'>('none');
+  const [prefilled, setPrefilled] = useState(false);
+
+  const selectPrefilled = (type: 'heavy' | 'crane') => {
+    setPrefilled(true);
+    setSelected(type);
+  };
 
   if (selected === 'nr12') {
-    return <LaudoNR12Indep onBack={() => setSelected('none')} />;
+    return <LaudoNR12Indep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   if (selected === 'heavy') {
-    return <LaudoMaquinasPesadasIndep onBack={() => setSelected('none')} />;
+    return <LaudoMaquinasPesadasIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   if (selected === 'crane') {
-    return <LaudoCaminhaoMunckGuindasteIndep onBack={() => setSelected('none')} />;
+    return <LaudoCaminhaoMunckGuindasteIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   return (
@@ -31,6 +37,49 @@ export default function LaudoGenerators() {
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
           Gere laudos técnicos robustos, relatórios fotográficos de campo e apreciação de risco regulamentar através de nossos motores de Inteligência Artificial especializados.
         </p>
+      </div>
+
+      {/* SEPARATE BUTTONS SECTION: MODELO DE LAUDO EXEMPLO */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-950 text-white rounded-3xl p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <FileText className="w-48 h-48 text-[#4895EF]" />
+        </div>
+        
+        <div className="max-w-3xl space-y-6 relative z-10">
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#4895EF]/20 border border-[#4895EF]/30 rounded-full text-[#4895EF] text-[10px] font-bold font-mono tracking-wider uppercase">
+              NOVO RECURSO DE DEMONSTRAÇÃO
+            </span>
+            <h3 className="text-2xl font-black tracking-tight font-sans">Visualizar Laudo Técnico de Exemplo</h3>
+            <p className="text-slate-300 text-xs leading-relaxed max-w-2xl font-sans">
+              Explore o modelo de laudo preenchido com dados fictícios técnicos e imagens reais para testar a qualidade visual do formato final antes de iniciar o seu laudo real. O documento foi aperfeiçoado para **Tamanho A4 padrão de impressão**, com **controle inteligente de quebra de páginas por seção**, assinatura centralizada oficial da **VL Engenharia** e uma **página final dedicada para os Anexos da ART**.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <button 
+              onClick={() => selectPrefilled('crane')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-white hover:bg-slate-50 text-slate-950 font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Truck className="w-5 h-5 text-[#134074]" />
+                <span className="font-sans text-left">Exemplo: Caminhão Munck & Guindastes</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            <button 
+              onClick={() => selectPrefilled('heavy')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-[#134074] hover:bg-[#134074]/90 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-[#134074]/20"
+            >
+              <div className="flex items-center gap-2.5">
+                <Cpu className="w-5 h-5 text-amber-400" />
+                <span className="font-sans text-left">Exemplo: Ativos e Máquinas Pesadas</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-300" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Grid of generators */}
