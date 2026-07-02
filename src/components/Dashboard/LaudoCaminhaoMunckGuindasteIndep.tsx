@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+// @ts-ignore
+import html2pdf from "html2pdf.js";
 import Logo from "../Logo";
 import { 
   Shield, 
@@ -514,8 +516,6 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
   const handleDownloadPDF = async () => {
     setIsDownloadingPdf(true);
     try {
-      // @ts-ignore
-      const html2pdf = (await import("html2pdf.js")).default;
       const element = document.getElementById("laudo-crane-printable-area");
       if (!element) return;
 
@@ -525,9 +525,11 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
         filename:     `Laudo_${laudoParams.tag || "Caminhao_Munck"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
         image:        { type: "jpeg" as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const }
+        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const },
+        pagebreak:    { mode: ["avoid-all", "css", "legacy"] }
       };
 
+      // @ts-ignore
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
@@ -1425,7 +1427,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
             <div id="laudo-crane-printable-area" className="space-y-12 font-sans text-slate-800">
               
               {/* CAPA DO LAUDO */}
-              <div className="py-20 border-b-4 border-[#134074] space-y-12 text-center flex flex-col justify-between min-h-[90vh]">
+              <div className="py-12 border-b-4 border-[#134074] space-y-8 text-center flex flex-col justify-between" style={{ pageBreakAfter: "always" }}>
                 <div className="flex justify-between items-center border-b pb-4">
                   <div className="text-left font-mono text-[9px] uppercase tracking-widest text-slate-400 space-y-0.5">
                     <p className="font-black text-slate-800">VL Engenharia S/A</p>
@@ -1474,7 +1476,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               </div>
 
               {/* CARTA DE APRESENTAÇÃO */}
-              <div className="py-12 border-b space-y-6">
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">Carta de Apresentação Técnica</h2>
                 <div className="text-xs text-slate-700 space-y-4 leading-relaxed font-sans">
                   <p>Prezados Senhores,</p>
@@ -1497,7 +1499,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               </div>
 
               {/* SUMÁRIO */}
-              <div className="py-12 border-b space-y-6 page-break-after">
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">Sumário Geral do Documento</h2>
                 <div className="space-y-2 font-mono text-xs leading-relaxed text-slate-600">
                   <div className="flex justify-between"><span>SEÇÃO 1: Introdução, Escopo e Metodologia de Inspeção</span><span>03</span></div>
@@ -1520,7 +1522,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               </div>
 
               {/* SEÇÕES 1, 2, 3 */}
-              <div className="py-12 border-b space-y-6">
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
                 <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
 
@@ -1775,7 +1777,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               </div>
 
               {/* SEÇÃO 15: CONCLUSÃO TÉCNICA E PARECER PERICIAL */}
-              <div className="py-12 border-b space-y-6">
+              <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 15: Conclusão Técnica e Parecer Pericial Final</h2>
                 <div className="p-6 border-2 border-[#134074]/30 rounded-2xl bg-[#134074]/5 text-center space-y-4">
                   <span className={`inline-block px-4 py-1.5 rounded-full font-mono text-xs font-black uppercase ${

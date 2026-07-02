@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+// @ts-ignore
+import html2pdf from "html2pdf.js";
 import Logo from "../Logo";
 import { 
   Shield, 
@@ -624,8 +626,6 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
   const handleDownloadPDF = async () => {
     setIsDownloadingPdf(true);
     try {
-      // @ts-ignore
-      const html2pdf = (await import("html2pdf.js")).default;
       const element = document.getElementById("laudo-heavy-printable-area");
       if (!element) return;
 
@@ -635,9 +635,11 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
         filename:     `Laudo_${laudoParams.tag || "Maquina_Pesada"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
         image:        { type: "jpeg" as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const }
+        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const },
+        pagebreak:    { mode: ["avoid-all", "css", "legacy"] }
       };
 
+      // @ts-ignore
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
@@ -1722,7 +1724,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
           <div id="laudo-heavy-printable-area" className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
             
             {/* CAPA PROFISSIONAL */}
-            <div className="min-h-[850px] flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0">
+            <div className="flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0" style={{ pageBreakAfter: "always" }}>
               
               <div className="flex flex-col sm:flex-row justify-between items-center border-b-2 border-red-600 pb-6 gap-4">
                 <Logo variant="print" className="h-14" />
@@ -1768,7 +1770,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </div>
 
             {/* CARTA DE APRESENTAÇÃO */}
-            <div className="py-12 border-b space-y-6 page-break-after">
+            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Carta de Apresentação</h2>
               <p className="text-xs text-slate-600 font-mono text-right">Recife, {new Date().toLocaleDateString("pt-BR")}</p>
               
@@ -1793,7 +1795,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </div>
 
             {/* SUMÁRIO */}
-            <div className="py-12 border-b space-y-4 page-break-after">
+            <div className="py-12 border-b space-y-4" style={{ pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">Sumário Geral do Documento</h2>
               <div className="space-y-2 font-mono text-[11px] text-slate-600 font-medium">
                 <div className="flex justify-between"><span>SEÇÃO 1: Introdução, Escopo e Metodologia Pericial</span><span>03</span></div>
@@ -1815,7 +1817,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </div>
 
             {/* SEÇÕES 1, 2, 3 */}
-            <div className="py-12 border-b space-y-6">
+            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
               <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
 
@@ -2051,7 +2053,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </div>
 
             {/* SEÇÃO 14: CONCLUSÃO */}
-            <div className="py-12 border-b space-y-6">
+            <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 14: Conclusão Técnica e Parecer Pericial</h2>
               
               <div className="p-6 border-2 border-red-600 bg-red-50/10 rounded-2xl space-y-4">
