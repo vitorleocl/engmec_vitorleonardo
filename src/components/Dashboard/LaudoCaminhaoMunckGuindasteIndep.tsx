@@ -657,7 +657,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
       document.body.classList.add("generating-pdf");
 
       // Replace modern unsupported OKLCH colors in styles with standard rgb values temporarily
-      await preprocessStylesheets();
+      await preprocessStylesheets(element);
 
       // Set options - using a margin of 5mm (with our CSS padding, it becomes very elegant)
       const opt = {
@@ -879,7 +879,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <button
             type="button"
             onClick={generateExampleReport}

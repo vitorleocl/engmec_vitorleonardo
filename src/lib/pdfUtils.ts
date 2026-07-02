@@ -41,52 +41,66 @@ export function oklchToRgb(l: number, c: number, h: number, a: number = 1): stri
 
 // Replaces any instances of oklch(...) in CSS text with standard rgb/rgba fallbacks
 export function replaceOklchInCss(cssText: string): string {
-  return cssText.replace(/oklch\(([^)]+)\)/g, (match, content) => {
-    try {
-      const parts = content.trim().split(/\s+/);
-      
-      if (parts.includes('from')) {
-        return 'rgb(100, 100, 100)';
-      }
-      
-      const lVal = parseFloat(parts[0]);
-      const cVal = parseFloat(parts[1]);
-      const hVal = parseFloat(parts[2]);
-      
-      let alpha = 1;
-      const slashIndex = parts.indexOf('/');
-      if (slashIndex !== -1 && parts[slashIndex + 1]) {
-        const aPart = parts[slashIndex + 1];
-        if (aPart.endsWith('%')) {
-          alpha = parseFloat(aPart) / 100;
-        } else {
-          alpha = parseFloat(aPart);
-        }
-      } else if (parts[3] === '/' && parts[4]) {
-        const aPart = parts[4];
-        if (aPart.endsWith('%')) {
-          alpha = parseFloat(aPart) / 100;
-        } else {
-          alpha = parseFloat(aPart);
-        }
-      } else if (parts[3] && parts[3].startsWith('/')) {
-        const aPart = parts[3].substring(1);
-        if (aPart.endsWith('%')) {
-          alpha = parseFloat(aPart) / 100;
-        } else {
-          alpha = parseFloat(aPart);
-        }
-      }
-      
-      if (isNaN(lVal) || isNaN(cVal) || isNaN(hVal)) {
-        return 'rgb(100, 100, 100)';
-      }
-      
-      return oklchToRgb(lVal, cVal, hVal, isNaN(alpha) ? 1 : alpha);
-    } catch (e) {
+  if (!cssText) return "";
+  
+  // Replace standard oklch(L C H / A) or oklch(L C H)
+  let result = cssText.replace(/oklch\(([^)]+)\)/g, (match, content) => {
+    return parseAndConvertOklch(content);
+  });
+  
+  // Replace color(oklch L C H / A) or color(oklch L C H)
+  result = result.replace(/color\(\s*oklch\s+([^)]+)\)/g, (match, content) => {
+    return parseAndConvertOklch(content);
+  });
+  
+  return result;
+}
+
+function parseAndConvertOklch(content: string): string {
+  try {
+    const parts = content.trim().split(/\s+/);
+    
+    if (parts.includes('from')) {
       return 'rgb(100, 100, 100)';
     }
-  });
+    
+    const lVal = parseFloat(parts[0]);
+    const cVal = parseFloat(parts[1]);
+    const hVal = parseFloat(parts[2]);
+    
+    let alpha = 1;
+    const slashIndex = parts.indexOf('/');
+    if (slashIndex !== -1 && parts[slashIndex + 1]) {
+      const aPart = parts[slashIndex + 1];
+      if (aPart.endsWith('%')) {
+        alpha = parseFloat(aPart) / 100;
+      } else {
+        alpha = parseFloat(aPart);
+      }
+    } else if (parts[3] === '/' && parts[4]) {
+      const aPart = parts[4];
+      if (aPart.endsWith('%')) {
+        alpha = parseFloat(aPart) / 100;
+      } else {
+        alpha = parseFloat(aPart);
+      }
+    } else if (parts[3] && parts[3].startsWith('/')) {
+      const aPart = parts[3].substring(1);
+      if (aPart.endsWith('%')) {
+        alpha = parseFloat(aPart) / 100;
+      } else {
+        alpha = parseFloat(aPart);
+      }
+    }
+    
+    if (isNaN(lVal) || isNaN(cVal) || isNaN(hVal)) {
+      return 'rgb(100, 100, 100)';
+    }
+    
+    return oklchToRgb(lVal, cVal, hVal, isNaN(alpha) ? 1 : alpha);
+  } catch (e) {
+    return 'rgb(100, 100, 100)';
+  }
 }
 
 interface RestoredStyle {
@@ -96,31 +110,79 @@ interface RestoredStyle {
 }
 
 let restoredStyles: RestoredStyle[] = [];
+let originalGetComputedStyle: typeof window.getComputedStyle | null = null;
 
 /**
  * Preprocess all style tags and stylesheets to eliminate oklch() color functions
  * before generating a canvas/PDF. Fully compatible with CSSOM programmatically
  * inserted styles (Vite dev server) and link elements.
  */
-export async function preprocessStylesheets(): Promise<void> {
+export async function preprocessStylesheets(element?: HTMLElement | null): Promise<void> {
   restoredStyles = [];
-  const sheets = Array.from(document.styleSheets);
+  
+  // 1. Intercept getComputedStyle dynamically. This is critical because modern browsers 
+  // resolve Tailwind v4 CSS variable colors to active "oklch" or "color(oklch)" strings,
+  // which html2canvas reads and crashes on when retrieving computed styles!
+  if (!originalGetComputedStyle) {
+    originalGetComputedStyle = window.getComputedStyle;
+    window.getComputedStyle = function (el, pseudo) {
+      const style = originalGetComputedStyle!(el, pseudo);
+      return new Proxy(style, {
+        get(target, prop) {
+          if (prop === 'getPropertyValue') {
+            return (name: string) => {
+              const val = target.getPropertyValue(name);
+              if (typeof val === 'string' && (val.includes('oklch') || val.includes('color('))) {
+                return replaceOklchInCss(val);
+              }
+              return val;
+            };
+          }
+          const value = Reflect.get(target, prop);
+          if (typeof value === 'string' && (value.includes('oklch') || value.includes('color('))) {
+            return replaceOklchInCss(value);
+          }
+          if (typeof value === 'function') {
+            return value.bind(target);
+          }
+          return value;
+        }
+      });
+    };
+  }
 
-  // Process all active stylesheets
+  // 2. Scan and sanitize any inline style attributes inside the printed element
+  if (element) {
+    try {
+      const styledElements = element.querySelectorAll('[style]');
+      styledElements.forEach(el => {
+        const styleAttr = el.getAttribute('style');
+        if (styleAttr && (styleAttr.includes('oklch') || styleAttr.includes('color('))) {
+          el.setAttribute('style', replaceOklchInCss(styleAttr));
+        }
+      });
+      const rootStyle = element.getAttribute('style');
+      if (rootStyle && (rootStyle.includes('oklch') || rootStyle.includes('color('))) {
+        element.setAttribute('style', replaceOklchInCss(rootStyle));
+      }
+    } catch (err) {
+      console.warn("Could not preprocess inline styles:", err);
+    }
+  }
+
+  // 3. Process all active stylesheets
+  const sheets = Array.from(document.styleSheets);
   for (const sheet of sheets) {
     try {
       const ownerNode = sheet.ownerNode;
       if (!ownerNode) continue;
 
-      // Skip elements we already created
       if ((ownerNode as any).dataset?.tempPdfStyle === "true") continue;
 
-      // Extract rules text
       let cssText = "";
       try {
         cssText = Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
       } catch (e) {
-        // Fallback to reading innerHTML or fetching same-origin links
         if (ownerNode.nodeName === "STYLE") {
           cssText = (ownerNode as HTMLStyleElement).innerHTML;
         } else if (ownerNode.nodeName === "LINK") {
@@ -137,16 +199,14 @@ export async function preprocessStylesheets(): Promise<void> {
         }
       }
 
-      if (cssText && cssText.includes('oklch')) {
+      if (cssText && (cssText.includes('oklch') || cssText.includes('color('))) {
         const cleanText = replaceOklchInCss(cssText);
         
-        // Create temporary style element
         const tempStyle = document.createElement('style');
         tempStyle.innerHTML = cleanText;
         tempStyle.dataset.tempPdfStyle = "true";
         document.head.appendChild(tempStyle);
 
-        // Disable original owner node to avoid conflict
         (ownerNode as any).disabled = true;
 
         restoredStyles.push({
@@ -159,18 +219,18 @@ export async function preprocessStylesheets(): Promise<void> {
     }
   }
 
-  // Also catch any raw style tags by text content just in case they were skipped
+  // 4. Catch any raw style tags by text content
   const styleElements = Array.from(document.querySelectorAll('style:not([data-temp-pdf-style])'));
   for (const styleEl of styleElements) {
     try {
       const text = styleEl.innerHTML;
-      if (text && text.includes('oklch') && !restoredStyles.some(r => r.ownerNode === styleEl)) {
+      if (text && (text.includes('oklch') || text.includes('color(')) && !restoredStyles.some(r => r.ownerNode === styleEl)) {
         restoredStyles.push({ ownerNode: styleEl, originalText: text });
         const cleanText = replaceOklchInCss(text);
         styleEl.innerHTML = cleanText;
       }
     } catch (e) {
-      // Safely ignore individual read errors
+      // Safely ignore
     }
   }
 }
@@ -179,6 +239,12 @@ export async function preprocessStylesheets(): Promise<void> {
  * Restore all style tags and stylesheets to their original state after PDF generation.
  */
 export function restoreStylesheets(): void {
+  // Restore window.getComputedStyle
+  if (originalGetComputedStyle) {
+    window.getComputedStyle = originalGetComputedStyle;
+    originalGetComputedStyle = null;
+  }
+
   for (const item of restoredStyles) {
     try {
       if (item.tempStyleEl) {

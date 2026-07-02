@@ -655,7 +655,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
       document.body.classList.add("generating-pdf");
 
       // Replace modern unsupported OKLCH colors in styles with standard rgb values temporarily
-      await preprocessStylesheets();
+      await preprocessStylesheets(element);
 
       // Set options - using a margin of 5mm (with our CSS padding, it becomes very elegant)
       const opt = {
@@ -1734,7 +1734,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
         <div className="p-6 md:p-10 flex-grow bg-slate-100 dark:bg-slate-950 font-sans overflow-y-auto">
           
           {/* Quick Download Buttons */}
-          <div className="max-w-4xl mx-auto mb-6 flex items-center justify-end gap-3 print:hidden">
+          <div className="max-w-4xl mx-auto mb-6 flex flex-wrap items-center justify-center sm:justify-end gap-3 print:hidden">
             <button
               onClick={() => window.print()}
               className="flex items-center gap-2 bg-slate-900 text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer"

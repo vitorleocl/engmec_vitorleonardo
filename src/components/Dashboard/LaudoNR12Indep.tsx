@@ -543,7 +543,7 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
       document.body.classList.add("generating-pdf");
 
       // Clean stylesheets of oklch to avoid html2canvas crashing
-      await preprocessStylesheets();
+      await preprocessStylesheets(element);
 
       // Set options - using margin: 5 combined with container's 12mm padding
       // yields exactly 17mm professional margins and avoids compressing columns.
@@ -1729,7 +1729,7 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
           </div>
 
           {/* Quick utility download button bar */}
-          <div className="max-w-4xl mx-auto mb-6 flex items-center justify-end gap-3 print:hidden">
+          <div className="max-w-4xl mx-auto mb-6 flex flex-wrap items-center justify-center sm:justify-end gap-3 print:hidden">
             <button
               onClick={() => window.print()}
               className="flex items-center gap-2 bg-slate-900 text-white hover:bg-slate-850 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer"
