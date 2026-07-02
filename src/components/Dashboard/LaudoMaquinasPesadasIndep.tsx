@@ -2190,21 +2190,21 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
               <div className="py-12 border-b space-y-6">
                 <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 10: Checklist de Conformidade da NR-12 / NR-18</h2>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border border-collapse">
+                <div className="overflow-hidden">
+                  <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                     <thead>
                       <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                        <th className="p-3">Ref</th>
-                        <th className="p-3">Item Inspecionado</th>
-                        <th className="p-3 text-center">Conformidade</th>
-                        <th className="p-3">Observação / Nota Técnica</th>
+                        <th className="p-3 w-[12%]">Ref</th>
+                        <th className="p-3 w-[43%]">Item Inspecionado</th>
+                        <th className="p-3 text-center w-[15%]">Conformidade</th>
+                        <th className="p-3 w-[30%]">Observação / Nota Técnica</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {checklist.map((item) => (
                         <tr key={item.id} className="text-[11px] leading-relaxed">
-                          <td className="p-3 font-mono font-bold">{item.id.replace("chk_", "Nº ")}</td>
-                          <td className="p-3 font-semibold text-slate-800">{item.text}</td>
+                          <td className="p-3 font-mono font-bold break-all">{item.id.replace("chk_", "Nº ")}</td>
+                          <td className="p-3 font-semibold text-slate-800 break-words">{item.text}</td>
                           <td className="p-3 text-center">
                             <span className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-black ${
                               item.resposta === "SIM" 
@@ -2216,7 +2216,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                               {item.resposta === "SIM" ? "CONFORME" : item.resposta === "NÃO" ? "IRREGULAR" : "N/A"}
                             </span>
                           </td>
-                          <td className="p-3 text-slate-600 font-medium">{item.nota}</td>
+                          <td className="p-3 text-slate-600 font-medium break-words">{item.nota}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -2301,29 +2301,29 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
               <div className="py-12 border-b space-y-6">
                 <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 13: Cronograma de Plano de Ação Recomendado</h2>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border border-collapse">
+                <div className="overflow-hidden">
+                  <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                     <thead>
                       <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                        <th className="p-3">Ação</th>
-                        <th className="p-3">Irregularidade / Problema</th>
-                        <th className="p-3">Medida de Controle Recomendada</th>
-                        <th className="p-3 text-center">Prioridade</th>
-                        <th className="p-3">Prazo</th>
+                        <th className="p-3 w-[8%]">Ação</th>
+                        <th className="p-3 w-[32%]">Irregularidade / Problema</th>
+                        <th className="p-3 w-[35%]">Medida de Controle Recomendada</th>
+                        <th className="p-3 text-center w-[15%]">Prioridade</th>
+                        <th className="p-3 w-[10%]">Prazo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y font-medium text-[11px]">
                       {planoAcao.map((ap) => (
                         <tr key={ap.id} className="hover:bg-slate-50/30">
-                          <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.id}</td>
-                          <td className="p-3 text-slate-800 font-semibold">{ap.problema}</td>
-                          <td className="p-3 text-slate-600 leading-relaxed">{ap.recomendacao}</td>
+                          <td className="p-3 font-mono font-bold text-[#1C3144] break-all">{ap.id}</td>
+                          <td className="p-3 text-slate-800 font-semibold break-words">{ap.problema}</td>
+                          <td className="p-3 text-slate-600 leading-relaxed break-words">{ap.recomendacao}</td>
                           <td className="p-3 text-center">
                             <span className="bg-slate-100 text-slate-800 border px-2 py-0.5 rounded text-[9px] font-bold font-mono">
                               {ap.prioridade}
                             </span>
                           </td>
-                          <td className="p-3 font-mono font-bold text-[#1C3144]">{ap.prazo}</td>
+                          <td className="p-3 font-mono font-bold text-[#1C3144] break-all">{ap.prazo}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -21,6 +21,8 @@
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
   }
 
   /* Use the visibility trick to hide system UI and show only the active printable report */
@@ -47,7 +49,8 @@
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 1.5cm !important;
+    padding: 15mm 15mm 15mm 15mm !important; /* Controlled elegant page margin */
+    box-sizing: border-box !important;
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
@@ -70,7 +73,7 @@
 
   @page {
     size: A4 portrait;
-    margin: 15mm 15mm;
+    margin: 0 !important; /* Completely removes default browser headers and footers (date, title, url) */
   }
 }
 

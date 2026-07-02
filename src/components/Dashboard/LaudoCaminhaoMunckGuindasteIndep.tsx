@@ -2112,22 +2112,22 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               {printConfig.secao11 && (
                 <div className="py-12 border-b space-y-6">
                   <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 11: Checklist de Conformidade da NR-11 / ABNT NBR 11139</h2>
-                  <div className="overflow-x-auto text-slate-700">
-                    <table className="w-full text-xs text-left border border-collapse">
+                  <div className="overflow-hidden text-slate-700">
+                    <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                       <thead>
                         <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                          <th className="p-3">Ref</th>
-                          <th className="p-3">Item Inspecionado</th>
-                          <th className="p-3 text-center">Conformidade</th>
-                          <th className="p-3">Observação / Nota Técnica</th>
-                          <th className="p-3 text-center">Foto</th>
+                          <th className="p-3 w-[12%]">Ref</th>
+                          <th className="p-3 w-[38%]">Item Inspecionado</th>
+                          <th className="p-3 text-center w-[15%]">Conformidade</th>
+                          <th className="p-3 w-[23%]">Observação / Nota Técnica</th>
+                          <th className="p-3 text-center w-[12%]">Foto</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y text-slate-700 leading-relaxed text-[11px]">
                         {checklist.map((item) => (
                           <tr key={item.id}>
-                            <td className="p-3 font-mono font-bold text-[#134074]">{item.id.replace("chk_", "Nº ")}</td>
-                            <td className="p-3 font-semibold text-slate-800">{item.text}</td>
+                            <td className="p-3 font-mono font-bold text-[#134074] break-all">{item.id.replace("chk_", "Nº ")}</td>
+                            <td className="p-3 font-semibold text-slate-800 break-words">{item.text}</td>
                             <td className="p-3 text-center">
                               <span className={`px-2 py-0.5 rounded text-[9px] font-bold font-mono uppercase ${
                                 item.resposta === "SIM"
@@ -2139,12 +2139,12 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                                 {item.resposta}
                               </span>
                             </td>
-                            <td className="p-3 text-slate-600 font-sans">{item.nota}</td>
+                            <td className="p-3 text-slate-600 font-sans break-words">{item.nota}</td>
                             <td className="p-3 text-center">
                               {item.image ? (
-                                <img src={item.image} className="w-28 h-28 object-cover rounded-xl border shadow-sm mx-auto" />
+                                <img src={item.image} className="w-20 h-20 object-cover rounded-xl border shadow-sm mx-auto" />
                               ) : (
-                                <span className="text-[9px] font-mono text-slate-300">Sem foto</span>
+                                <span className="text-[9px] font-mono text-slate-300 block whitespace-nowrap">Sem foto</span>
                               )}
                             </td>
                           </tr>
@@ -2211,33 +2211,33 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               {printConfig.secao14 && (
                 <div className="py-12 border-b space-y-6">
                   <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 14: Plano de Ação e Cronograma de Adequação</h2>
-                  <div className="overflow-x-auto text-slate-700">
-                    <table className="w-full text-xs text-left border rounded-xl border-collapse font-mono">
+                  <div className="overflow-hidden text-slate-700">
+                    <table className="w-full text-xs text-left border rounded-xl border-collapse font-mono" style={{ tableLayout: "fixed" }}>
                       <thead>
                         <tr className="bg-slate-200 text-slate-800">
-                          <th className="p-3 w-12 text-center">Ref</th>
-                          <th className="p-3">Não Conformidade / Medida Corretiva de Engenharia</th>
-                          <th className="p-3 text-center">Prioridade</th>
-                          <th className="p-3">Responsável</th>
-                          <th className="p-3 w-24">Prazo</th>
+                          <th className="p-3 w-[8%] text-center">Ref</th>
+                          <th className="p-3 w-[52%]">Não Conformidade / Medida Corretiva de Engenharia</th>
+                          <th className="p-3 text-center w-[15%]">Prioridade</th>
+                          <th className="p-3 w-[15%]">Responsável</th>
+                          <th className="p-3 w-[10%]">Prazo</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y text-[11px] leading-relaxed">
                         {planoAcao.map((ap) => (
                           <tr key={ap.id}>
-                            <td className="p-3 text-center font-bold text-[#134074]">{ap.id}</td>
+                            <td className="p-3 text-center font-bold text-[#134074] break-all">{ap.id}</td>
                             <td className="p-3 space-y-1">
-                              <p className="font-bold text-slate-900">{ap.problema}</p>
-                              <p className="text-slate-500 font-sans text-justify">{ap.recomendacao}</p>
-                              <p className="text-[#134074] text-[9px]">Fundamentação: {ap.norma}</p>
+                              <p className="font-bold text-slate-900 break-words">{ap.problema}</p>
+                              <p className="text-slate-500 font-sans text-justify break-words">{ap.recomendacao}</p>
+                              <p className="text-[#134074] text-[9px] break-words">Fundamentação: {ap.norma}</p>
                             </td>
                             <td className="p-3 text-center">
                               <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
                                 ap.prioridade === "IMEDIATO" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"
                               }`}>{ap.prioridade}</span>
                             </td>
-                            <td className="p-3 font-semibold text-slate-600">{ap.responsavel}</td>
-                            <td className="p-3 font-bold text-slate-800">{ap.prazo}</td>
+                            <td className="p-3 font-semibold text-slate-600 break-words">{ap.responsavel}</td>
+                            <td className="p-3 font-bold text-slate-800 break-all">{ap.prazo}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -1990,21 +1990,21 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
               <div className="py-12 border-b space-y-6">
                 <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5">SEÇÃO 9: Checklist de Conformidade da NR-12</h2>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border border-collapse">
+                <div className="overflow-hidden">
+                  <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                     <thead>
                       <tr className="bg-[#0b2545] text-white uppercase font-mono text-[9px]">
-                        <th className="p-3 pl-2">Norma</th>
-                        <th className="p-3">Requisito Técnico Auditado</th>
-                        <th className="p-3 text-center">Conformidade</th>
-                        <th className="p-3 pl-4">Observações Periciais de Campo</th>
+                        <th className="p-3 pl-2 w-[15%]">Norma</th>
+                        <th className="p-3 w-[40%]">Requisito Técnico Auditado</th>
+                        <th className="p-3 text-center w-[15%]">Conformidade</th>
+                        <th className="p-3 pl-4 w-[30%]">Observações Periciais de Campo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y font-medium leading-relaxed">
                       {NR12_CHECKLIST_TEMPLATE.map((item) => (
                         <tr key={item.id} className="hover:bg-slate-50/50">
-                          <td className="p-3 pl-2 font-mono font-bold text-slate-500">{item.ref}</td>
-                          <td className="p-3 pr-4 max-w-xs">{item.text}</td>
+                          <td className="p-3 pl-2 font-mono font-bold text-slate-500 break-all">{item.ref}</td>
+                          <td className="p-3 pr-4 break-words">{item.text}</td>
                           <td className="p-3 text-center">
                             <span className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase ${
                               checklistAnswers[item.id]?.answer === "SIM"
@@ -2016,7 +2016,7 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                               {checklistAnswers[item.id]?.answer}
                             </span>
                           </td>
-                          <td className="p-3 pl-4 text-slate-500 text-[11px] leading-relaxed italic">
+                          <td className="p-3 pl-4 text-slate-500 text-[11px] leading-relaxed italic break-words">
                             {checklistAnswers[item.id]?.note}
                           </td>
                         </tr>
