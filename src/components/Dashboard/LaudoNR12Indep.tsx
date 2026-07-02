@@ -1632,12 +1632,15 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
               </div>
             </div>
 
-            {/* SEÇÕES 1, 2, 3 */}
+            {/* SEÇÃO 1: INTRODUÇÃO (PÁGINA DEDICADA NO PDF) */}
             <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
               <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
+            </div>
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5 pt-6">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
+            {/* SEÇÕES 2 E 3 */}
+            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+              <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-slate-50 border p-4 rounded-xl leading-relaxed">
                 <p><strong>Razão Social:</strong> {laudoParams.clientName}</p>
                 <p><strong>CNPJ:</strong> {laudoParams.cnpj}</p>
@@ -1879,8 +1882,8 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
               </div>
             </div>
 
-            {/* SEÇÃO 16 E 17: CONCLUSÃO E LIMITAÇÕES */}
-            <div className="py-12 space-y-8" style={{ pageBreakBefore: "always" }}>
+            {/* SEÇÃO 16: CONCLUSÃO PERICIAL */}
+            <div className="py-12 space-y-8" style={{ pageBreakBefore: "always", pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5">SEÇÃO 16: Conclusão Pericial e Parecer Conclusivo</h2>
               
               <div className="p-5 border rounded-xl space-y-4 text-justify text-xs font-semibold leading-relaxed bg-slate-50/50">
@@ -1899,8 +1902,10 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                 <p className="text-slate-700 leading-relaxed font-medium">{conclusaoParecer}</p>
               </div>
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5 pt-6">SEÇÃO 17: Limitações Técnico-Periciais da Avaliação</h2>
-              <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_17}</p>
+              <div className="py-6 space-y-6" style={{ pageBreakBefore: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#0B2545] border-b pb-1.5 pt-6">SEÇÃO 17: Limitações Técnico-Periciais da Avaliação</h2>
+                <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_17}</p>
+              </div>
 
               {/* CENTERED SIGNATURE BLOCK AS SPECIFIED */}
               <div className="py-12 text-center space-y-6 print-avoid-break border-t border-slate-200 mt-8">

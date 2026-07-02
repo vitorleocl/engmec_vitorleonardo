@@ -1816,12 +1816,15 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
               </div>
             </div>
 
-            {/* SEÇÕES 1, 2, 3 */}
+            {/* SEÇÃO 1: INTRODUÇÃO (PÁGINA DEDICADA NO PDF) */}
             <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
               <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
+            </div>
 
-              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5 pt-6">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
+            {/* SEÇÕES 2 E 3 */}
+            <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+              <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-slate-50 border p-4 rounded-xl leading-relaxed">
                 <p><strong>Razão Social:</strong> {laudoParams.clientName}</p>
                 <p><strong>CNPJ:</strong> {laudoParams.cnpj}</p>
@@ -2053,7 +2056,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
             </div>
 
             {/* SEÇÃO 14: CONCLUSÃO */}
-            <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always" }}>
+            <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always", pageBreakAfter: "always" }}>
               <h2 className="text-lg font-bold font-mono uppercase text-[#1C3144] border-b pb-1.5">SEÇÃO 14: Conclusão Técnica e Parecer Pericial</h2>
               
               <div className="p-6 border-2 border-red-600 bg-red-50/10 rounded-2xl space-y-4">

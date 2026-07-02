@@ -38,6 +38,7 @@ interface UploadedImage {
 interface ChecklistItem {
   id: string;
   text: string;
+  category?: string;
   resposta: "SIM" | "NÃO" | "N/A";
   nota: string;
   image?: string; // Optional image for each specific checklist item
@@ -102,26 +103,134 @@ function getHRNClassification(score: number) {
 
 // Check list items
 const CRANE_CHECKLIST_TEMPLATE = [
-  { id: "chk_1", text: "Placa de capacidade nominal de carga visível e legível no braço/lança" },
-  { id: "chk_2", text: "Limitador de momento de carga (LMI) operando e calibrado" },
-  { id: "chk_3", text: "Limitador de içamento máximo (fim de curso superior do moitão)" },
-  { id: "chk_4", text: "Trava de segurança do gancho de carga ativa e com boa retenção" },
-  { id: "chk_5", text: "Gancho sem sinais visíveis de deformação, abertura de garganta ou trincas" },
-  { id: "chk_6", text: "Cabo de aço principal sem arames rompidos, dobras, torção ou oxidação" },
-  { id: "chk_7", text: "Patolas estabilizadoras hidráulicas sem vazamentos ou empenamentos" },
-  { id: "chk_8", text: "Estrutura metálica da lança sem trincas de fadiga nas soldas de reforço" },
-  { id: "chk_9", text: "Vazamento nulo no sistema hidráulico de controle e elevação" },
-  { id: "chk_10", text: "Freio mecânico automático de retenção de carga atuando perfeitamente" },
-  { id: "chk_11", text: "Anemômetro instalado e operacional (para guindastes com lança > 20m)" },
-  { id: "chk_12", text: "Alarme sonoro/visual de sobrecarga de carga ativo" },
-  { id: "chk_13", text: "Operador de guindaste qualificado com habilitação NR-11" },
-  { id: "chk_14", text: "Sinaleiro com rádio de comunicação de apoio e treinamento" },
-  { id: "chk_15", text: "ART de responsabilidade técnica emitida e ativa para a operação" },
-  { id: "chk_16", text: "Plano de Rigging / Içamento estruturado para movimentações críticas" },
-  { id: "chk_17", text: "Solo compactado com sapatas de madeira ou pranchas sob as patolas" },
-  { id: "chk_18", text: "Distanciamento físico de segurança em relação a linhas elétricas aéreas" },
-  { id: "chk_19", text: "Acessórios de amarração (cintas, manilhas) identificados e sem cortes" },
-  { id: "chk_20", text: "Laudo técnico de integridade estrutural e funcional dentro da validade" }
+  // 2. DOCUMENTAÇÃO
+  { id: "m_2_crlv_valido", category: "2. DOCUMENTAÇÃO", text: "CRLV válido" },
+  { id: "m_2_manual_equipamento", category: "2. DOCUMENTAÇÃO", text: "Manual do equipamento disponível" },
+  { id: "m_2_manual_veiculo", category: "2. DOCUMENTAÇÃO", text: "Manual do veículo disponível" },
+  { id: "m_2_plano_preventiva", category: "2. DOCUMENTAÇÃO", text: "Plano de manutenção preventiva" },
+  { id: "m_2_historico_manutencao", category: "2. DOCUMENTAÇÃO", text: "Histórico de manutenção disponível" },
+  { id: "m_2_art_laudo_anterior", category: "2. DOCUMENTAÇÃO", text: "ART ou Laudo anterior disponível" },
+  { id: "m_2_tabela_carga", category: "2. DOCUMENTAÇÃO", text: "Tabela de carga disponível" },
+  { id: "m_2_certificados_acessorios", category: "2. DOCUMENTAÇÃO", text: "Certificados de acessórios de içamento" },
+
+  // 3. CHASSI E ESTRUTURA DO VEÍCULO
+  { id: "m_3_longarinas_sem_trincas", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Longarinas sem trincas" },
+  { id: "m_3_longarinas_sem_deformacoes", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Longarinas sem deformações" },
+  { id: "m_3_estado_chassi", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Estado geral do chassi" },
+  { id: "m_3_fixacao_munck", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Fixação do Munck ao chassi" },
+  { id: "m_3_estado_suportes", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Estado dos suportes estruturais" },
+  { id: "m_3_parafusos_fixacao", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Estado dos parafusos de fixação" },
+  { id: "m_3_corrosao_estrutural", category: "3. CHASSI E ESTRUTURA DO VEÍCULO", text: "Corrosão estrutural" },
+
+  // 4. ESTRUTURA DO MUNCK
+  { id: "m_4_coluna_principal", category: "4. ESTRUTURA DO MUNCK", text: "Coluna principal sem trincas" },
+  { id: "m_4_bracos_articulados", category: "4. ESTRUTURA DO MUNCK", text: "Braços articulados íntegros" },
+  { id: "m_4_ausencia_deformacoes", category: "4. ESTRUTURA DO MUNCK", text: "Ausência de deformações" },
+  { id: "m_4_estado_soldas", category: "4. ESTRUTURA DO MUNCK", text: "Estado das soldas" },
+  { id: "m_4_linhas_articulacao", category: "4. ESTRUTURA DO MUNCK", text: "Estado dos pontos de articulação" },
+  { id: "m_4_estado_pinos", category: "4. ESTRUTURA DO MUNCK", text: "Estado dos pinos" },
+  { id: "m_4_estado_buchas", category: "4. ESTRUTURA DO MUNCK", text: "Estado das buchas" },
+
+  // 5. SISTEMA HIDRÁULICO
+  { id: "m_5_vazamentos_hidraulicos", category: "5. SISTEMA HIDRÁULICO", text: "Vazamentos hidráulicos" },
+  { id: "m_5_estado_mangueiras", category: "5. SISTEMA HIDRÁULICO", text: "Estado das mangueiras" },
+  { id: "m_5_estado_conexoes", category: "5. SISTEMA HIDRÁULICO", text: "Estado das conexões" },
+  { id: "m_5_cilindros_hidraulicos", category: "5. SISTEMA HIDRÁULICO", text: "Estado dos cilindros hidráulicos" },
+  { id: "m_5_bomba_hidraulica", category: "5. SISTEMA HIDRÁULICO", text: "Funcionamento da bomba hidráulica" },
+  { id: "m_5_funcionamento_valvulas", category: "5. SISTEMA HIDRÁULICO", text: "Funcionamento das válvulas" },
+  { id: "m_5_pressao_adequada", category: "5. SISTEMA HIDRÁULICO", text: "Pressão operacional adequada" },
+
+  // 6. LANÇA E EXTENSÕES
+  { id: "m_6_integridade_lanca_princ", category: "6. LANÇA E EXTENSÕES", text: "Integridade da lança principal" },
+  { id: "m_6_integridade_extensoes", category: "6. LANÇA E EXTENSÕES", text: "Integridade das extensões" },
+  { id: "m_6_alinhamento_lanca", category: "6. LANÇA E EXTENSÕES", text: "Alinhamento da lança" },
+  { id: "m_6_patins_deslizamento", category: "6. LANÇA E EXTENSÕES", text: "Estado dos patins de deslizamento" },
+  { id: "m_6_curso_completo", category: "6. LANÇA E EXTENSÕES", text: "Curso completo operacional" },
+  { id: "m_6_folgas_excessivas", category: "6. LANÇA E EXTENSÕES", text: "Folgas excessivas" },
+
+  // 7. CABOS, POLIAS E GANCHO
+  { id: "m_7_estado_cabo_aco", category: "7. CABOS, POLIAS E GANCHO", text: "Estado geral do cabo de aço" },
+  { id: "m_7_fios_rompidos", category: "7. CABOS, POLIAS E GANCHO", text: "Fios rompidos acima do limite" },
+  { id: "m_7_corrosao_cabo", category: "7. CABOS, POLIAS E GANCHO", text: "Corrosão no cabo" },
+  { id: "m_7_torcoes_amassamentos", category: "7. CABOS, POLIAS E GANCHO", text: "Torções ou amassamentos" },
+  { id: "m_7_lubrificacao_adequada", category: "7. CABOS, POLIAS E GANCHO", text: "Lubrificação adequada" },
+  { id: "m_7_estado_polias", category: "7. CABOS, POLIAS E GANCHO", text: "Estado das polias" },
+  { id: "m_7_estado_gancho", category: "7. CABOS, POLIAS E GANCHO", text: "Estado do gancho" },
+  { id: "m_7_trava_seguranca_gancho", category: "7. CABOS, POLIAS E GANCHO", text: "Trava de segurança do gancho" },
+
+  // 8. PATOLAS E ESTABILIZADORES
+  { id: "m_8_funcionamento_patolas", category: "8. PATOLAS E ESTABILIZADORES", text: "Funcionamento das patolas" },
+  { id: "m_8_vazamentos_cilindros_patolas", category: "8. PATOLAS E ESTABILIZADORES", text: "Vazamentos nos cilindros das patolas" },
+  { id: "m_8_travamento_adequado", category: "8. PATOLAS E ESTABILIZADORES", text: "Travamento adequado" },
+  { id: "m_8_integridade_patolas", category: "8. PATOLAS E ESTABILIZADORES", text: "Integridade estrutural das patolas" },
+  { id: "m_8_sapatas_apoio_disponiveis", category: "8. PATOLAS E ESTABILIZADORES", text: "Sapatas de apoio disponíveis" },
+  { id: "m_8_estado_sapatas", category: "8. PATOLAS E ESTABILIZADORES", text: "Estado das sapatas" },
+  { id: "m_8_nivel_estabilizacao", category: "8. PATOLAS E ESTABILIZADORES", text: "Nível de estabilização adequado" },
+
+  // 9. SISTEMAS DE SEGURANÇA
+  { id: "m_9_limitador_carga", category: "9. SISTEMAS DE SEGURANÇA", text: "Limitador de carga operacional" },
+  { id: "m_9_indicador_carga", category: "9. SISTEMAS DE SEGURANÇA", text: "Indicador de carga operacional" },
+  { id: "m_9_sistema_anti_sobrecarga", category: "9. SISTEMAS DE SEGURANÇA", text: "Sistema anti-sobrecarga" },
+  { id: "m_9_alarme_sonoro", category: "9. SISTEMAS DE SEGURANÇA", text: "Alarme sonoro operacional" },
+  { id: "m_9_botao_emergencia", category: "9. SISTEMAS DE SEGURANÇA", text: "Botão de emergência" },
+  { id: "m_9_adesivos_seguranca", category: "9. SISTEMAS DE SEGURANÇA", text: "Adesivos de segurança legíveis" },
+  { id: "m_9_tabela_carga_legivel", category: "9. SISTEMAS DE SEGURANÇA", text: "Tabela de carga legível" },
+  { id: "m_9_giroflex", category: "9. SISTEMAS DE SEGURANÇA", text: "Giroflex operacional" },
+
+  // 10. SISTEMA ELÉTRICO
+  { id: "m_10_estado_bateria", category: "10. SISTEMA ELÉTRICO", text: "Estado da bateria" },
+  { id: "m_10_fixacao_bateria", category: "10. SISTEMA ELÉTRICO", text: "Fixação da bateria" },
+  { id: "m_10_chicote_eletrico", category: "10. SISTEMA ELÉTRICO", text: "Chicote elétrico" },
+  { id: "m_10_painel_controle", category: "10. SISTEMA ELÉTRICO", text: "Painel de controle operacional" },
+  { id: "m_10_iluminacao_trabalho", category: "10. SISTEMA ELÉTRICO", text: "Iluminação de trabalho" },
+  { id: "m_10_luzes_advertencia", category: "10. SISTEMA ELÉTRICO", text: "Luzes de advertência" },
+
+  // 11. CABINE DO VEÍCULO
+  { id: "m_11_estado_cabine", category: "11. CABINE DO VEÍCULO", text: "Estado geral da cabine" },
+  { id: "m_11_cinto_seguranca", category: "11. CABINE DO VEÍCULO", text: "Cinto de segurança" },
+  { id: "m_11_banco_motorista", category: "11. CABINE DO VEÍCULO", text: "Banco do motorista" },
+  { id: "m_11_vidros_integros", category: "11. CABINE DO VEÍCULO", text: "Vidros íntegros" },
+  { id: "m_11_retrovisores", category: "11. CABINE DO VEÍCULO", text: "Retrovisores" },
+  { id: "m_11_limpadores", category: "11. CABINE DO VEÍCULO", text: "Limpadores de para-brisa" },
+  { id: "m_11_buzina", category: "11. CABINE DO VEÍCULO", text: "Buzina" },
+  { id: "m_11_ar_condicionado", category: "11. CABINE DO VEÍCULO", text: "Ar-condicionado" },
+
+  // 12. SISTEMA MECÂNICO DO CAMINHÃO
+  { id: "m_12_motor_sem_vazamentos", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Motor sem vazamentos" },
+  { id: "m_12_sistema_transmissao", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Sistema de transmissão" },
+  { id: "m_12_sistema_direcao", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Sistema de direção" },
+  { id: "m_12_sistema_freios", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Sistema de freios" },
+  { id: "m_12_sistema_suspensao", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Sistema de suspensão" },
+  { id: "m_12_sistema_escapamento", category: "12. SISTEMA MECÂNICO DO CAMINHÃO", text: "Sistema de escapamento" },
+
+  // 13. PNEUS E RODADOS
+  { id: "m_13_pneus_dianteiros", category: "13. PNEUS E RODADOS", text: "Estado dos pneus dianteiros" },
+  { id: "m_13_pneus_traseiros", category: "13. PNEUS E RODADOS", text: "Estado dos pneus traseiros" },
+  { id: "m_13_sulco_limite_legal", category: "13. PNEUS E RODADOS", text: "Sulco dentro do limite legal" },
+  { id: "m_13_ausencia_cortes", category: "13. PNEUS E RODADOS", text: "Ausência de cortes ou avarias" },
+  { id: "m_13_estado_rodas", category: "13. PNEUS E RODADOS", text: "Estado das rodas" },
+  { id: "m_13_torque_rodas_adequado", category: "13. PNEUS E RODADOS", text: "Torque das rodas adequado" },
+
+  // 14. TESTE OPERACIONAL
+  { id: "m_14_elevacao_carga", category: "14. TESTE OPERACIONAL", text: "Elevação da carga" },
+  { id: "m_14_descida_carga", category: "14. TESTE OPERACIONAL", text: "Descida da carga" },
+  { id: "m_14_giro_lanca", category: "14. TESTE OPERACIONAL", text: "Giro da lança" },
+  { id: "m_14_extensao_lanca", category: "14. TESTE OPERACIONAL", text: "Extensão da lança" },
+  { id: "m_14_retracao_lanca", category: "14. TESTE OPERACIONAL", text: "Retração da lança" },
+  { id: "m_14_funcionamento_patolas_op", category: "14. TESTE OPERACIONAL", text: "Funcionamento das patolas" },
+  { id: "m_14_funcionamento_comandos", category: "14. TESTE OPERACIONAL", text: "Funcionamento dos comandos" },
+  { id: "m_14_ausencia_ruidos", category: "14. TESTE OPERACIONAL", text: "Ausência de ruídos anormais" },
+  { id: "m_14_ausencia_vibracoes", category: "14. TESTE OPERACIONAL", text: "Ausência de vibrações excessivas" },
+  { id: "m_14_desempenho_geral", category: "14. TESTE OPERACIONAL", text: "Desempenho geral" },
+
+  // 15. ENSAIO DE CARGA (QUANDO APLICÁVEL)
+  { id: "m_15_carga_aplicada", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Carga aplicada (kg)" },
+  { id: "m_15_percentual_carga", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Percentual da carga nominal (%)" },
+  { id: "m_15_suportou_carga", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Equipamento suportou a carga" },
+  { id: "m_15_deformacao_estrutural", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Houve deformação estrutural" },
+  { id: "m_15_falha_operacional", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Houve falha operacional" },
+  { id: "m_15_perda_estabilidade", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Houve perda de estabilidade" },
+  { id: "m_15_resultado_ensaio", category: "15. ENSAIO DE CARGA (QUANDO APLICÁVEL)", text: "Resultado do ensaio" }
 ];
 
 // Subsystems text template
@@ -219,7 +328,8 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
     inspectionCity: "Recife",
     inspectionDate: new Date().toISOString().split("T")[0],
     notes: "",
-    coverImage: ""
+    coverImage: "",
+    loadChartImage: ""
   });
 
   // --- CHECKLIST STATE ---
@@ -230,6 +340,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
     const initial = CRANE_CHECKLIST_TEMPLATE.map(item => ({
       id: item.id,
       text: item.text,
+      category: item.category,
       resposta: "SIM" as const,
       nota: "Observado em condições operacionais perfeitas e seguras durante a auditoria visual.",
       image: undefined
@@ -560,7 +671,8 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
       inspectionCity: "Recife",
       inspectionDate: "2026-07-01",
       notes: "Vistoria técnica presencial ordinária de conformidade mecânica periódica para validação de segurança de guindaste veicular e acessórios de içamento de carga em conformidade com as normas regulamentadoras.",
-      coverImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop"
+      coverImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop",
+      loadChartImage: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop"
     });
 
     // 2. Imagens reais (sem ser IA) de equipamentos/campo
@@ -589,7 +701,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
       hidraulico: "Pressão de trabalho nominal estável de 210 bar. Válvulas piloto de bloqueio mecânico de cilindros atuando sem vazamento.",
       gancho_moitao: "Moitão do gancho sem sinais de folga nos rolamentos do pinhão de giro. Gancho forjado com trava de segurança com mola helicoidal de retorno funcional.",
       estabilizadores: "Cilindros estabilizadores de dupla ação estendem e recolhem fluidamente. Sem vazamentos mecânicos ou perda de sustentação em teste estático.",
-      rotacao: "Coroa de giro e pinhão de acionamento engraxados, operando com giro macio e contínuo de 360 graus. Sem vibração ou ressaltos anômalos.",
+      rotacao: "Coroa de giro e pinhão de acionamento engraxados, operando with giro macio e contínuo de 360 graus. Sem vibração ou ressaltos anômalos.",
       cabine_comandos: "Mesa de controle lateral de alavancas de comando em excelente estado. Resposta rápida de reversão e botões protegidos contra acidentes.",
       eletrico: "Fiação de comando elétrico protegida por conduítes plásticos sanfonados. Sinaleiras operacionais e faróis de iluminação de lança funcionando.",
       chassi_veicular: "Apoio e fixação estrutural do subchassi do Munck ao chassi do caminhão realizada com grampos de alta tensão perfeitamente ajustados.",
@@ -600,26 +712,16 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
 
     // 4. Preencher o checklist de conformidade com comentários técnicos detalhados
     const checklistComentarios: Record<string, { resposta: "SIM" | "NÃO" | "N/A"; nota: string }> = {
-      chk_1: { resposta: "SIM", nota: "Placa metálica rebitada de fábrica com tabelas de carga de fácil leitura pelo operador." },
-      chk_2: { resposta: "SIM", nota: "Limitador de momento calibrado com carga padrão de 10.000 kg. Corte de sobrecarga operando perfeitamente." },
-      chk_3: { resposta: "SIM", nota: "Chave fim de curso tipo 'anti-two-block' desliga o circuito de subida quando moitão aproxima-se do topo." },
-      chk_4: { resposta: "SIM", nota: "Trava com mola helicoidal forte instalada e com excelente pressão." },
-      chk_5: { resposta: "SIM", nota: "Abertura de garganta medida com paquímetro dentro da tolerância de 5% de desgaste do projeto." },
-      chk_6: { resposta: "SIM", nota: "Cabo de aço de elevação de alma de fibra bem lubrificado, sem arames rompidos ou esmagamento." },
-      chk_7: { resposta: "SIM", nota: "Ausência de riscos no cromo ou vazamento de óleo hidráulico nas gaxetas." },
-      chk_8: { resposta: "SIM", nota: "Soldas de fábrica inspecionadas por ensaio visual e líquido penetrante ordinário sem descontinuidade." },
-      chk_9: { resposta: "SIM", nota: "Conexões secas, mangueiras prensadas de alta pressão de duas tramas sem sinais de vazamento." },
-      chk_10: { resposta: "SIM", nota: "Freio mecânico automático multidisco em banho de óleo sustenta carga suspensa sem escorregamento." },
-      chk_11: { resposta: "N/A", nota: "Braço articulado com comprimento menor de 20 metros, não exigindo anemômetro por norma." },
-      chk_12: { resposta: "SIM", nota: "Alarme sonoro interligado ao painel do veículo aciona em caso de aproximação do limite de carga." },
-      chk_13: { resposta: "SIM", nota: "Operador de guindaste qualificado com habilitação NR-11 atualizada e portador de CNH C." },
-      chk_14: { resposta: "SIM", nota: "Rigger/Sinaleiro de apoio treinado em comunicação por gestos padronizados e rádio." },
-      chk_15: { resposta: "SIM", nota: "ART técnica emitida para o serviço de inspeção de integridade ordinária atualizada." },
-      chk_16: { resposta: "SIM", nota: "Plano de Rigging para movimentação de vigas de aço devidamente assinado e aprovado." },
-      chk_17: { resposta: "SIM", nota: "Sapatas quadradas de madeira tratada de 50x50cm utilizadas sob todas as patolas estabilizadoras." },
-      chk_18: { resposta: "SIM", nota: "Operação realizada com distanciamento seguro de 5 metros de fiação de energia elétrica aérea." },
-      chk_19: { resposta: "SIM", nota: "Cintas de poliéster com costura e alma intactas e manilhas sem deformações." },
-      chk_20: { resposta: "SIM", nota: "Laudo com validade de 12 meses emitido e arquivado no prontuário do veículo." }
+      m_2_crlv_valido: { resposta: "SIM", nota: "CRLV impresso com licenciamento vigente." },
+      m_2_manual_equipamento: { resposta: "SIM", nota: "Manual original Madal Palfinger guardado na cabine." },
+      m_2_tabela_carga: { resposta: "SIM", nota: "Tabela original plastificada disponível na cabine." },
+      m_3_longarinas_sem_trincas: { resposta: "SIM", nota: "Chassi inspecionado visualmente e sem trincas detectadas." },
+      m_4_coluna_principal: { resposta: "SIM", nota: "Coluna principal íntegra, soldas em perfeito estado." },
+      m_5_vazamentos_hidraulicos: { resposta: "SIM", nota: "Nenhum sinal de vazamento ou gotejamento de fluido hidráulico." },
+      m_6_integridade_lanca_princ: { resposta: "SIM", nota: "Lança sem amassamentos ou deformações visuais." },
+      m_7_estado_gancho: { resposta: "SIM", nota: "Gancho sem sinais de desgaste, com rotação livre." },
+      m_8_funcionamento_patolas: { resposta: "SIM", nota: "Estabilizadores abrem e travam normalmente sob pressão." },
+      m_9_botao_emergencia: { resposta: "SIM", nota: "Botão cogumelo vermelho interrompe comandos imediatamente." }
     };
 
     setChecklist(prev => prev.map(item => {
@@ -631,7 +733,11 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
           nota: match.nota
         };
       }
-      return item;
+      return {
+        ...item,
+        resposta: "SIM" as const,
+        nota: "Inspecionado e em perfeitas condições de conformidade operacional."
+      };
     }));
 
     // 5. Matrizes HRN
@@ -1082,7 +1188,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                           <td className="p-3 text-center">
                             {item.image ? (
                               <div className="relative group inline-block">
-                                <img src={item.image} className="w-12 h-12 object-cover rounded-lg border shadow-sm" />
+                                <img src={item.image} className="w-24 h-24 object-cover rounded-xl border shadow-md hover:scale-105 transition-all cursor-zoom-in" />
                                 <button
                                   type="button"
                                   onClick={() => removeChecklistImage(index)}
@@ -1119,72 +1225,127 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                 </div>
 
                 <div className="bg-slate-50 dark:bg-slate-950 p-6 border dark:border-slate-800 rounded-2xl space-y-4">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                    Insira os raios de operação, ângulo de lança e a Capacidade Nominal de Carga (CNC) correspondente informada no manual técnico do fabricante.
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-                    <input
-                      type="text"
-                      placeholder="Raio (ex: Raio de 5.0m)"
-                      className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-                      value={newRow.raio}
-                      onChange={e => setNewRow({ ...newRow, raio: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Ângulo (ex: 55°)"
-                      className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-                      value={newRow.angulo}
-                      onChange={e => setNewRow({ ...newRow, angulo: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      placeholder="CNC (ex: CNC: 4.200 kg)"
-                      className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-                      value={newRow.cnc}
-                      onChange={e => setNewRow({ ...newRow, cnc: e.target.value })}
-                    />
-                    <button
-                      type="button"
-                      onClick={addCapacityRow}
-                      className="bg-[#134074] hover:bg-[#0B2545] text-white font-mono font-bold p-2 rounded-xl transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Adicionar</span>
-                    </button>
+                  {/* Método de preenchimento da tabela de carga */}
+                  <div className="border-b dark:border-slate-800 pb-4">
+                    <label className="font-mono font-bold text-xs text-slate-500 uppercase tracking-wider block mb-2">Método de Exibição da Tabela de Carga</label>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button
+                        type="button"
+                        className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold font-mono transition-all cursor-pointer ${!laudoParams.loadChartImage ? 'bg-[#134074] text-white border-[#134074]' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        onClick={() => setLaudoParams(prev => ({ ...prev, loadChartImage: "" }))}
+                      >
+                        Preencher Manualmente (Tabela)
+                      </button>
+                      <label
+                        className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold font-mono text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${laudoParams.loadChartImage ? 'bg-[#134074] text-white border-[#134074]' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>{laudoParams.loadChartImage ? "Foto da Tabela Ativa" : "Upload da Foto da Tabela"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setLaudoParams(prev => ({ ...prev, loadChartImage: reader.result as string }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
 
-                  <div className="overflow-x-auto pt-2">
-                    <table className="w-full text-xs text-left border rounded-xl overflow-hidden border-collapse font-mono">
-                      <thead>
-                        <tr className="bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                          <th className="p-3">Raio de Operação</th>
-                          <th className="p-3">Ângulo da Lança</th>
-                          <th className="p-3">Capacidade Nominal (CNC)</th>
-                          <th className="p-3 text-center w-20">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y dark:divide-slate-800 bg-white dark:bg-slate-950">
-                        {capacityTable.map((row, i) => (
-                          <tr key={i}>
-                            <td className="p-3">{row.raio}</td>
-                            <td className="p-3">{row.angulo}</td>
-                            <td className="p-3 font-bold text-red-600">{row.cnc}</td>
-                            <td className="p-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => removeCapacityRow(i)}
-                                className="text-red-500 hover:text-red-700 font-bold p-1"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  {laudoParams.loadChartImage ? (
+                    <div className="space-y-3 border dark:border-slate-800 p-4 rounded-xl bg-white dark:bg-slate-900">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold font-mono text-slate-600 dark:text-slate-300">Foto da Tabela de Carga do Equipamento Carregada:</span>
+                        <button
+                          type="button"
+                          onClick={() => setLaudoParams(prev => ({ ...prev, loadChartImage: "" }))}
+                          className="text-xs font-bold font-mono text-red-500 hover:text-red-700"
+                        >
+                          Remover Foto e Voltar para Tabela
+                        </button>
+                      </div>
+                      <div className="max-w-md mx-auto aspect-video rounded-lg overflow-hidden border dark:border-slate-800">
+                        <img src={laudoParams.loadChartImage} className="w-full h-full object-contain bg-slate-50 dark:bg-slate-950" alt="Tabela de Carga do Equipamento" referrerPolicy="no-referrer" />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                        Insira os raios de operação, ângulo de lança e a Capacidade Nominal de Carga (CNC) correspondente informada no manual técnico do fabricante.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                        <input
+                          type="text"
+                          placeholder="Raio (ex: Raio de 5.0m)"
+                          className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
+                          value={newRow.raio}
+                          onChange={e => setNewRow({ ...newRow, raio: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Ângulo (ex: 55°)"
+                          className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
+                          value={newRow.angulo}
+                          onChange={e => setNewRow({ ...newRow, angulo: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="CNC (ex: CNC: 4.200 kg)"
+                          className="border dark:border-slate-800 rounded-xl p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
+                          value={newRow.cnc}
+                          onChange={e => setNewRow({ ...newRow, cnc: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          onClick={addCapacityRow}
+                          className="bg-[#134074] hover:bg-[#0B2545] text-white font-mono font-bold p-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Adicionar</span>
+                        </button>
+                      </div>
+
+                      <div className="overflow-x-auto pt-2">
+                        <table className="w-full text-xs text-left border rounded-xl overflow-hidden border-collapse font-mono">
+                          <thead>
+                            <tr className="bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+                              <th className="p-3">Raio de Operação</th>
+                              <th className="p-3">Ângulo da Lança</th>
+                              <th className="p-3">Capacidade Nominal (CNC)</th>
+                              <th className="p-3 text-center w-20">Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y dark:divide-slate-800 bg-white dark:bg-slate-950">
+                            {capacityTable.map((row, i) => (
+                              <tr key={i}>
+                                <td className="p-3">{row.raio}</td>
+                                <td className="p-3">{row.angulo}</td>
+                                <td className="p-3 font-bold text-red-600">{row.cnc}</td>
+                                <td className="p-3 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCapacityRow(i)}
+                                    className="text-red-500 hover:text-red-700 font-bold p-1 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1521,12 +1682,15 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                 </div>
               </div>
 
-              {/* SEÇÕES 1, 2, 3 */}
+              {/* SEÇÃO 1: INTRODUÇÃO (PÁGINA DEDICADA NO PDF) */}
               <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 1: Introdução, Escopo e Metodologia</h2>
                 <p className="text-xs text-slate-700 text-justify leading-relaxed font-sans">{secoesLaudo.secao_1}</p>
+              </div>
 
-                <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5 pt-6">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
+              {/* SEÇÕES 2 E 3 */}
+              <div className="py-12 border-b space-y-6" style={{ pageBreakAfter: "always" }}>
+                <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 2: Dados do Estabelecimento Contratante</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono bg-slate-50 border p-4 rounded-xl leading-relaxed">
                   <p><strong>Razão Social:</strong> {laudoParams.clientName || "Não informada"}</p>
                   <p><strong>CNPJ:</strong> {laudoParams.cnpj || "Não informado"}</p>
@@ -1624,26 +1788,42 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               {/* SEÇÃO 10: TABELA DE CAPACIDADE DE CARGA */}
               <div className="py-12 border-b space-y-6">
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 10: Tabela de Capacidade de Carga (CNC/CNA) por Raio</h2>
-                <div className="overflow-x-auto text-slate-700">
-                  <table className="w-full text-xs text-left border rounded-xl overflow-hidden border-collapse font-mono">
-                    <thead>
-                      <tr className="bg-slate-100 dark:bg-slate-900 text-slate-800">
-                        <th className="p-3">Raio de Operação (m)</th>
-                        <th className="p-3">Ângulo da Lança (°)</th>
-                        <th className="p-3">Capacidade Nominal de Carga (CNC)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {capacityTable.map((row, i) => (
-                        <tr key={i} className="hover:bg-slate-50">
-                          <td className="p-3 font-semibold">{row.raio}</td>
-                          <td className="p-3">{row.angulo}</td>
-                          <td className="p-3 font-bold text-red-600">{row.cnc}</td>
+                {laudoParams.loadChartImage ? (
+                  <div className="space-y-4">
+                    <p className="text-xs text-slate-500 font-sans italic text-center">
+                      Foto da tabela original de capacidade nominal de carga (CNC) anexada do próprio equipamento:
+                    </p>
+                    <div className="max-w-xl mx-auto border rounded-xl overflow-hidden shadow-sm bg-white p-2">
+                      <img
+                        src={laudoParams.loadChartImage}
+                        className="w-full max-h-[400px] object-contain mx-auto rounded-lg"
+                        alt="Tabela de Capacidade de Carga do Equipamento"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto text-slate-700">
+                    <table className="w-full text-xs text-left border rounded-xl overflow-hidden border-collapse font-mono">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-slate-900 text-slate-800">
+                          <th className="p-3">Raio de Operação (m)</th>
+                          <th className="p-3">Ângulo da Lança (°)</th>
+                          <th className="p-3">Capacidade Nominal de Carga (CNC)</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y">
+                        {capacityTable.map((row, i) => (
+                          <tr key={i} className="hover:bg-slate-50">
+                            <td className="p-3 font-semibold">{row.raio}</td>
+                            <td className="p-3">{row.angulo}</td>
+                            <td className="p-3 font-bold text-red-600">{row.cnc}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
               {/* SEÇÃO 11: CHECKLIST DE INSPEÇÃO */}
@@ -1679,7 +1859,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                           <td className="p-3 text-slate-600 font-sans">{item.nota}</td>
                           <td className="p-3 text-center">
                             {item.image ? (
-                              <img src={item.image} className="w-8 h-8 object-cover rounded border" />
+                              <img src={item.image} className="w-28 h-28 object-cover rounded-xl border shadow-sm mx-auto" />
                             ) : (
                               <span className="text-[9px] font-mono text-slate-300">Sem foto</span>
                             )}
@@ -1777,7 +1957,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
               </div>
 
               {/* SEÇÃO 15: CONCLUSÃO TÉCNICA E PARECER PERICIAL */}
-              <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always" }}>
+              <div className="py-12 border-b space-y-6" style={{ pageBreakBefore: "always", pageBreakAfter: "always" }}>
                 <h2 className="text-lg font-bold font-mono uppercase text-[#134074] border-b pb-1.5">SEÇÃO 15: Conclusão Técnica e Parecer Pericial Final</h2>
                 <div className="p-6 border-2 border-[#134074]/30 rounded-2xl bg-[#134074]/5 text-center space-y-4">
                   <span className={`inline-block px-4 py-1.5 rounded-full font-mono text-xs font-black uppercase ${
