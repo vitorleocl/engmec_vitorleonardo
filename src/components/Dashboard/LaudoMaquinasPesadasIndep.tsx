@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+import Logo from "../Logo";
 import { 
   Shield, 
   FileText, 
@@ -154,7 +155,8 @@ function generateSectionDrafts(params: any) {
   const eq = params.equipmentName || "Equipamento Pesado";
   const cli = params.clientName || "Empresa Contratante S/A";
   const city = params.inspectionCity || "Recife";
-  const date = params.inspectionDate || "27/06/2026";
+  const rawDate = params.inspectionDate || "27/06/2026";
+  const date = rawDate.includes("-") ? rawDate.split("-").reverse().join("/") : rawDate;
 
   return {
     secao_1: `Este Laudo Técnico de Inspeção e Segurança de Máquinas Pesadas visa auditar e atestar as condições físicas de conformidade do ativo "${eq}", à luz das diretrizes legais estabelecidas pelas Normas Regulamentadoras NR-12, NR-11 e NR-18, aplicando-se também os ensaios normativos internacionais ABNT NBR ISO 12100 e sistemas de proteção veicular ROPS (ISO 3471) e FOPS (ISO 3449). O escopo técnico abrange vistorias físicas in loco, ensaio funcional mecânico, verificação dos sistemas de frenagem, circuito de alta pressão hidráulica, e quantificação de riscos pelo algoritmo Hazard Rating Number (HRN).`,
@@ -609,6 +611,139 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
     }
   };
 
+  const generateExampleReport = () => {
+    // 1. Popular parâmetros gerais com dados genéricos realistas
+    setLaudoParams({
+      laudoNumber: "LMP-88321/2026-A",
+      clientName: "MINERAÇÃO SERRA DA BOREMA S.A.",
+      cnpj: "33.987.654/0001-21",
+      address: "Fazenda Caraíba, s/n - Zona Rural, Caruaru - PE",
+      equipmentName: "Escavadeira Hidráulica 36T",
+      brand: "Caterpillar",
+      model: "CAT 336",
+      serialNumber: "CAT336HEX2024-0019",
+      year: "2024",
+      tag: "ESC-08",
+      operators: "3 operadores em escala",
+      power: "235",
+      voltage: "24",
+      inspectionDate: "2026-07-01",
+      inspectionCity: "Caruaru",
+      notes: "Equipamento de escavação pesada de alta performance. Encontra-se em excelente estado de conservação mecânica e conformidade protetiva sob inspeção pericial de Vitor Leonardo."
+    });
+
+    // 2. Imagens reais (sem ser IA) de equipamentos/campo
+    setUploadedImages([
+      {
+        name: "escavadeira_cat_campo.jpg",
+        data: "https://images.unsplash.com/photo-1579684389782-64d84b5e901a?q=80&w=800&auto=format&fit=crop",
+        description: "Vista lateral da Escavadeira Hidráulica CAT 336 operando em escavação de talude."
+      },
+      {
+        name: "cabine_rops_fops.jpg",
+        data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=800&auto=format&fit=crop",
+        description: "Cabine blindada com estrutura ROPS/FOPS certificada integrada sem deformações visuais."
+      },
+      {
+        name: "inspecao_material.jpg",
+        data: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop",
+        description: "Inspeção dimensional visual das esteiras de tração e cilindros de elevação do braço hidráulico."
+      }
+    ]);
+
+    // 3. Atualizar sistemas com comentários de engenharia de campo reais
+    setSistemasInspecao({
+      propulsao: "Motor Caterpillar C7.1 em perfeitas condições mecânicas. Ausência de gases anômalos no escapamento.",
+      hidraulico: "Circuito de alta pressão calibrado a 350 bar estável. Mangueiras de dupla trama sem desgaste ou vazamentos.",
+      eletrico: "Fiação nova em conduítes vedados antichama. Sem folga em conectores ou bornes de bateria.",
+      freios: "Frenagem mecânica hidráulica de estacionamento atuando perfeitamente nos testes estáticos.",
+      estrutura: "Estrutura do chassi principal e longarinas de sustentação sem deformações permanentes detectáveis.",
+      cabine: "Cabine fechada equipada com estrutura ROPS certificada. Espaço interno higienizado para o condutor.",
+      implementos: "Implementos de escavação instalados de forma rígida, sem fadiga metálica ou folgas graves no acoplamento.",
+      rodagem: "Sapatas metálicas das esteiras e roletes guias sem sinais de desgaste extremo.",
+      seguranca: "Giroscópio visual, buzina e faróis de longo alcance operando. Alarme de ré automático ativo.",
+      motor: "Motor de combustão interna lubrificado, sem oscilações de rotação ou fumaça preta no escape."
+    });
+
+    // 4. Preencher checklist
+    const checklistComentarios = {
+      chk_1: "Alarme sonoro interligado operando e ativo com 97 dB a 1 metro.",
+      chk_2: "Cinto de segurança retrátil de 3 pontos com recolhimento rápido funcional.",
+      chk_3: "Vidros temperados originais Caterpillar intactos e sem trincas de esforço.",
+      chk_4: "Estrutura metálica ROPS de cabine devidamente gravada de fábrica.",
+      chk_5: "Proteção contra objetos cadentes FOPS ativa, sem amassados ou furos.",
+      chk_6: "Manômetros de óleo e água de arrefecimento calibrados e limpos.",
+      chk_7: "Espelhos esféricos e retrovisores planos sem quebras.",
+      chk_8: "Extintor de pó químico ABC pressurizado de 4kg com validade em dia.",
+      chk_9: "Sapatas antiderrapantes e guarda-corpos laterais rígidos instalados.",
+      chk_10: "Dispositivo corta-fluxo geral do sistema hidráulico atuando rápido.",
+      chk_11: "Chave geral de corte de bateria estanque na lateral do chassi.",
+      chk_12: "Proteções mecânicas em todas as polias do motor aparafusadas.",
+      chk_13: "Sinalizadores de perigo e tabelas de carga de fácil visualização.",
+      chk_14: "Manual de operação Caterpillar original em português na cabine.",
+      chk_15: "Operador de escavadeira habilitado e com ficha de treinamento NR-12.",
+      chk_16: "ART pericial emitida e recolhida para esta inspeção ordinária.",
+      chk_17: "Plano físico de manutenções preventivas Caterpillar assinado.",
+      chk_18: "Sinalização de área de giro com cones listrados vermelhos e brancos."
+    };
+
+    setChecklist(prev => prev.map(item => ({
+      ...item,
+      resposta: "SIM",
+      nota: checklistComentarios[item.id as keyof typeof checklistComentarios] || item.nota
+    })));
+
+    // 5. Matrizes HRN
+    setHrnBefore({
+      lo: 5.0,
+      fe: 2.5,
+      dph: 15.0,
+      np: 1.0,
+      score: 187.5,
+      explicacao: "Perigo de atropelamento severo ou esmagamento devido à movimentação do maquinário pesado no canteiro de obras sem sinalização."
+    });
+
+    setHrnAfter({
+      lo: 0.033,
+      fe: 2.5,
+      dph: 15.0,
+      np: 1.0,
+      score: 1.23,
+      explicacao: "Risco mitigado a níveis desprezíveis através de treinamento do operador, sinalização de isolamento e alarme acústico ativo."
+    });
+
+    // 6. Não conformidades resolvidas
+    setNaoConformidades([
+      {
+        id: "NC-01",
+        descricao: "Pequeno desgaste superficial na demarcação de piso antiderrapante no degrau de acesso principal.",
+        criticidade: "LEVE",
+        risco: "Escorregamento ao subir na cabine",
+        norma: "NR-12 item 12.11"
+      }
+    ]);
+
+    // 7. Plano de ação
+    setPlanoAcao([
+      {
+        id: "AP-01",
+        problema: "Degrau gasta",
+        norma: "NR-12 item 12.11",
+        recomendacao: "Limpar e aplicar fita adesiva antiderrapante zebrada de alta aderência sobre o primeiro degrau de acesso à cabine.",
+        prioridade: "LONGO PRAZO",
+        responsavel: "Equipe de Manutenção Local",
+        prazo: "15 dias"
+      }
+    ]);
+
+    // 8. Parecer
+    setConclusaoStatus("APTO PARA OPERAÇÃO");
+    setConclusaoParecer("Após minuciosa inspeção técnica visual, ensaios funcionais mecânicos e análise detalhada dos itens de conformidade da NR-12, NR-11 e NR-18, atesta-se que a Escavadeira Hidráulica CAT 336 (ESC-08) encontra-se em perfeitas condições mecânicas e de segurança física operacionais, estando TOTALMENTE APTA para os trabalhos ordinários de escavação e terraplenagem.");
+
+    // 9. Mudar para preview
+    setActiveTab("preview");
+  };
+
   return (
     <div className={
       isFullscreen
@@ -630,7 +765,16 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={generateExampleReport}
+            className="px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 border border-red-500 shadow-md animate-bounce"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+            <span>Gerar Modelo Exemplo</span>
+          </button>
+
           {onBack && (
             <button
               onClick={onBack}
@@ -1474,16 +1618,13 @@ export default function LaudoMaquinasPesadasIndep({ onBack }: { onBack?: () => v
           </div>
 
           {/* Core print page container layout */}
-          <div className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
+          <div id="laudo-heavy-printable-area" className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
             
             {/* CAPA PROFISSIONAL */}
             <div className="min-h-[850px] flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0">
               
-              <div className="flex justify-between items-center border-b-2 border-red-600 pb-4">
-                <div className="text-left font-mono">
-                  <span className="font-extrabold text-lg text-[#1C3144] tracking-tight">VL ENGENHARIA</span>
-                  <p className="text-[9px] text-red-600 font-bold">Responsabilidade Civil e Segurança de Equipamentos Pesados</p>
-                </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center border-b-2 border-red-600 pb-6 gap-4">
+                <Logo variant="print" className="h-14" />
                 <div className="text-right text-xs font-mono text-slate-400">
                   <p>Laudo de Inspeção LMP</p>
                   <p className="font-bold text-slate-800 pt-0.5">{laudoParams.laudoNumber}</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+import Logo from "../Logo";
 import { 
   Shield, 
   FileText, 
@@ -141,7 +142,8 @@ function generateSectionDrafts(params: any) {
   const eq = params.equipmentName || "Caminhão Munck";
   const cli = params.clientName || "Empresa Contratante S/A";
   const city = params.inspectionCity || "Recife";
-  const date = params.inspectionDate || "01/07/2026";
+  const rawDate = params.inspectionDate || "01/07/2026";
+  const date = rawDate.includes("-") ? rawDate.split("-").reverse().join("/") : rawDate;
 
   return {
     secao_1: `Este Laudo Técnico de Inspeção e Conformidade de Segurança em Equipamentos de Içamento visa certificar e atestar as condições físicas do ativo "${eq}", à luz das diretrizes normativas das NR-11, NR-12 e NR-18, aplicando-se também os requisitos das normas técnicas ABNT NBR 11139:2019, ABNT NBR ISO 4301, ABNT NBR 6327 e os códigos ASME B30.5. O escopo técnico envolve verificação in loco da lança, moitão, patolas, limitador de carga (LMI), cálculo de riscos Hazard Rating Number (HRN) e emissão de laudo pericial assinado pelo Eng. Vitor Leonardo.`,
@@ -499,6 +501,155 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
     }
   };
 
+  const generateExampleReport = () => {
+    // 1. Popular parâmetros gerais com dados genéricos realistas
+    setLaudoParams({
+      laudoNumber: "LMG-45007/2026-A",
+      clientName: "CONSTRUTORA PERNAMBUCANA LTDA",
+      cnpj: "12.345.678/0001-90",
+      address: "Av. Governador Agamenon Magalhães, 2500 - Espinheiro, Recife - PE",
+      equipmentName: "Caminhão Munck Articulado 45T",
+      brand: "Madal Palfinger",
+      model: "MD 45007",
+      serialNumber: "MP-2023-8842-X",
+      year: "2023",
+      tag: "MUNCK-14",
+      capacityNominal: "45 toneladas-metro (Capacidade máx. 12.500 kg)",
+      maxIcationHeight: "22.5 metros",
+      boomLength: "19.8 metros",
+      horometro: "1850",
+      driveType: "Acoplamento hidráulico por tomada de força (PTO)",
+      inspectionCity: "Recife",
+      inspectionDate: "2026-07-01",
+      notes: "Vistoria técnica presencial ordinária de conformidade mecânica periódica para validação de segurança de guindaste veicular e acessórios de içamento de carga em conformidade com as normas regulamentadoras."
+    });
+
+    // 2. Imagens reais (sem ser IA) de equipamentos/campo
+    setUploadedImages([
+      {
+        name: "caminhao_munck_campo.jpg",
+        data: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=800&auto=format&fit=crop",
+        description: "Vista geral do caminhão Munck posicionado para início de testes operacionais em canteiro de obras."
+      },
+      {
+        name: "moitao_inspecao.jpg",
+        data: "https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=800&auto=format&fit=crop",
+        description: "Inspeção dimensional do moitão de carga e gancho forjado com respectiva trava de retenção de cabo ativa."
+      },
+      {
+        name: "patolas_estabilizadoras.jpg",
+        data: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop",
+        description: "Estabilizadores hidráulicos estendidos sob pranchas de apoio de alta resistência para distribuição de pressão no solo."
+      }
+    ]);
+
+    // 3. Atualizar sistemas com comentários de engenharia de campo reais
+    setSistemasInspecao({
+      lança_pluma: "Braço articulado com quatro extensões telescópicas em perfeito alinhamento. Ausência de deformação plástica nas chapas estruturais de aço de alta resistência.",
+      içamento: "Guincho de cabo operando suavemente durante testes de elevação e descida. Cabo de aço enrolando uniformemente nas ranhuras do tambor carretel.",
+      hidraulico: "Pressão de trabalho nominal estável de 210 bar. Válvulas piloto de bloqueio mecânico de cilindros atuando sem vazamento.",
+      gancho_moitao: "Moitão do gancho sem sinais de folga nos rolamentos do pinhão de giro. Gancho forjado com trava de segurança com mola helicoidal de retorno funcional.",
+      estabilizadores: "Cilindros estabilizadores de dupla ação estendem e recolhem fluidamente. Sem vazamentos mecânicos ou perda de sustentação em teste estático.",
+      rotacao: "Coroa de giro e pinhão de acionamento engraxados, operando com giro macio e contínuo de 360 graus. Sem vibração ou ressaltos anômalos.",
+      cabine_comandos: "Mesa de controle lateral de alavancas de comando em excelente estado. Resposta rápida de reversão e botões protegidos contra acidentes.",
+      eletrico: "Fiação de comando elétrico protegida por conduítes plásticos sanfonados. Sinaleiras operacionais e faróis de iluminação de lança funcionando.",
+      chassi_veicular: "Apoio e fixação estrutural do subchassi do Munck ao chassi do caminhão realizada com grampos de alta tensão perfeitamente ajustados.",
+      dispositivos_seguranca: "Limitador de momento de carga (LMI) operando e calibrado, emitindo dados precisos de peso e ângulo na tela digital da cabine operacional.",
+      acessorios: "As cintas de poliéster e manilhas de içamento inspecionadas encontram-se em perfeitas condições, com capacidade gravada legível e sem desgaste.",
+      sinalizacao: "Sinalização visual das faixas refletivas de segurança das patolas em perfeitas condições de reflexão e tabelas de carga limpas e legíveis."
+    });
+
+    // 4. Preencher o checklist de conformidade com comentários técnicos detalhados
+    const checklistComentarios: Record<string, { resposta: "SIM" | "NÃO" | "N/A"; nota: string }> = {
+      chk_1: { resposta: "SIM", nota: "Placa metálica rebitada de fábrica com tabelas de carga de fácil leitura pelo operador." },
+      chk_2: { resposta: "SIM", nota: "Limitador de momento calibrado com carga padrão de 10.000 kg. Corte de sobrecarga operando perfeitamente." },
+      chk_3: { resposta: "SIM", nota: "Chave fim de curso tipo 'anti-two-block' desliga o circuito de subida quando moitão aproxima-se do topo." },
+      chk_4: { resposta: "SIM", nota: "Trava com mola helicoidal forte instalada e com excelente pressão." },
+      chk_5: { resposta: "SIM", nota: "Abertura de garganta medida com paquímetro dentro da tolerância de 5% de desgaste do projeto." },
+      chk_6: { resposta: "SIM", nota: "Cabo de aço de elevação de alma de fibra bem lubrificado, sem arames rompidos ou esmagamento." },
+      chk_7: { resposta: "SIM", nota: "Ausência de riscos no cromo ou vazamento de óleo hidráulico nas gaxetas." },
+      chk_8: { resposta: "SIM", nota: "Soldas de fábrica inspecionadas por ensaio visual e líquido penetrante ordinário sem descontinuidade." },
+      chk_9: { resposta: "SIM", nota: "Conexões secas, mangueiras prensadas de alta pressão de duas tramas sem sinais de vazamento." },
+      chk_10: { resposta: "SIM", nota: "Freio mecânico automático multidisco em banho de óleo sustenta carga suspensa sem escorregamento." },
+      chk_11: { resposta: "N/A", nota: "Braço articulado com comprimento menor de 20 metros, não exigindo anemômetro por norma." },
+      chk_12: { resposta: "SIM", nota: "Alarme sonoro interligado ao painel do veículo aciona em caso de aproximação do limite de carga." },
+      chk_13: { resposta: "SIM", nota: "Operador de guindaste qualificado com habilitação NR-11 atualizada e portador de CNH C." },
+      chk_14: { resposta: "SIM", nota: "Rigger/Sinaleiro de apoio treinado em comunicação por gestos padronizados e rádio." },
+      chk_15: { resposta: "SIM", nota: "ART técnica emitida para o serviço de inspeção de integridade ordinária atualizada." },
+      chk_16: { resposta: "SIM", nota: "Plano de Rigging para movimentação de vigas de aço devidamente assinado e aprovado." },
+      chk_17: { resposta: "SIM", nota: "Sapatas quadradas de madeira tratada de 50x50cm utilizadas sob todas as patolas estabilizadoras." },
+      chk_18: { resposta: "SIM", nota: "Operação realizada com distanciamento seguro de 5 metros de fiação de energia elétrica aérea." },
+      chk_19: { resposta: "SIM", nota: "Cintas de poliéster com costura e alma intactas e manilhas sem deformações." },
+      chk_20: { resposta: "SIM", nota: "Laudo com validade de 12 meses emitido e arquivado no prontuário do veículo." }
+    };
+
+    setChecklist(prev => prev.map(item => {
+      const match = checklistComentarios[item.id];
+      if (match) {
+        return {
+          ...item,
+          resposta: match.resposta,
+          nota: match.nota
+        };
+      }
+      return item;
+    }));
+
+    // 5. Matrizes HRN
+    setHrnBefore({
+      lo: 1.5,
+      fe: 2.5,
+      dph: 15.0,
+      np: 1.0,
+      score: 56.25,
+      classification: "Risco Alto",
+      explicacao: "Probabilidade aceitável de acidentes na movimentação de grandes volumes em canteiro se os limites nominais de carga não fossem rigidamente observados."
+    });
+
+    setHrnAfter({
+      lo: 0.033,
+      fe: 2.5,
+      dph: 15.0,
+      np: 1.0,
+      score: 1.24,
+      classification: "Risco Muito Baixo",
+      explicacao: "Redução drástica do perigo após calibração total do LMI, fixação de sapatas e isolamento físico de área de segurança de queda."
+    });
+
+    // 6. Não conformidades resolvidas
+    setNaoConformidades([
+      {
+        id: "NC-01",
+        descricao: "Pequena folga nas proteções laterais de articulação do subchassi, sanada temporariamente por ajuste de parafuso de fixação de aço comum.",
+        criticidade: "LEVE",
+        risco: " Vibração excessiva em tráfego rodoviário",
+        norma: "NR-12 item 12.38"
+      }
+    ]);
+
+    // 7. Plano de ação
+    setPlanoAcao([
+      {
+        id: "AP-01",
+        problema: "Vibração de proteção",
+        norma: "NR-12 item 12.38",
+        recomendacao: "Manter o aperto periódico preventivo semanal do parafuso limitador de vibração de proteção metálica lateral do subchassi.",
+        prioridade: "LONGO PRAZO",
+        responsavel: "Operador ou equipe de manutenção diária",
+        prazo: "30 dias"
+      }
+    ]);
+
+    // 8. Conclusão Apto
+    setConclusao({
+      status: "APTO PARA OPERAÇÃO",
+      parecer: "Após análise detalhada visual, funcional e paramétrica do equipamento de içamento Caminhão Munck de TAG MUNCK-14, certifica-se que este encontra-se em conformidade mecânica e operacional com as exigências técnicas da NR-11, NR-12 e NR-18. O ativo está TOTALMENTE APTO para realizar movimentações de carga dentro de sua curva nominal oficial de projeto."
+    });
+
+    // 9. Mudar para a aba de visualização
+    setActiveTab("preview");
+  };
+
   return (
     <div className={`space-y-8 text-left ${isFullscreen ? 'max-w-full' : 'max-w-7xl mx-auto'}`}>
       
@@ -527,6 +678,15 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={generateExampleReport}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold border border-[#134074] dark:border-[#4895EF] rounded-xl bg-[#134074]/5 text-[#134074] dark:text-[#4895EF] hover:bg-[#134074]/10 transition-all shadow-sm cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+            <span>Gerar Modelo Exemplo</span>
+          </button>
+
           <button
             onClick={() => setActiveTab(activeTab === "form" ? "preview" : "form")}
             className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm"
@@ -1164,22 +1324,17 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
               
               {/* CAPA DO LAUDO */}
               <div className="py-20 border-b-4 border-[#134074] space-y-12 text-center flex flex-col justify-between min-h-[90vh]">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-center border-b pb-4">
                   <div className="text-left font-mono text-[9px] uppercase tracking-widest text-slate-400 space-y-0.5">
                     <p className="font-black text-slate-800">VL Engenharia S/A</p>
                     <p>Crea: 1822299490 – PE</p>
                     <p>CNPJ: 41.200.334/0001-90</p>
                   </div>
                   
-                  {/* Custom VL Logo Box */}
-                  <div className="border-4 border-[#134074] p-3 rounded-xl inline-block bg-[#134074]/5">
-                    <span className="font-sans font-black tracking-tighter text-2xl text-[#134074] block">VL ENGENHARIA</span>
-                    <span className="font-mono text-[8px] font-bold tracking-widest text-slate-500 block uppercase border-t pt-1 mt-1">Auditado por IA</span>
-                  </div>
+                  <Logo variant="print" className="h-16" />
                 </div>
 
                 <div className="space-y-4 py-8">
-                  <p className="text-[#134074] font-black text-xs font-mono uppercase tracking-widest">SISTEMA INTELIGENTE DE ENGENHARIA</p>
                   <h1 className="text-4xl sm:text-5xl font-black font-sans tracking-tight text-slate-900 leading-none">
                     Laudo Técnico de Inspeção e Integridade Física
                   </h1>
@@ -1194,7 +1349,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
                   <p><strong>MODELO / SÉRIE:</strong> {laudoParams.model} / {laudoParams.serialNumber}</p>
                   <p><strong>PLACA / TAG:</strong> <span className="text-red-600 font-bold">{laudoParams.tag}</span></p>
                   <p><strong>LAUDO N°:</strong> {laudoParams.laudoNumber}</p>
-                  <p><strong>EMISSÃO:</strong> {laudoParams.inspectionDate}</p>
+                  <p><strong>EMISSÃO:</strong> {laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
                   <p><strong>CIDADE:</strong> {laudoParams.inspectionCity}</p>
                   <p><strong>N° ART:</strong> <span className="text-slate-500 underline font-bold">ART-PE-{Math.floor(1000000 + Math.random() * 9000000)}</span></p>
                 </div>
@@ -1532,7 +1687,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack }: { onBack?: 
               {/* SIGNATURE BLOCK */}
               <div className="py-12 flex justify-between items-center text-xs font-mono">
                 <div className="space-y-1">
-                  <p className="font-bold">Emitido eletronicamente em {laudoParams.inspectionDate}</p>
+                  <p className="font-bold">Emitido eletronicamente em {laudoParams.inspectionDate.split("-").reverse().join("/")}</p>
                   <p className="text-slate-500">VL Engenharia S/A pericial</p>
                 </div>
                 <div className="text-right space-y-1 border-t pt-4 border-slate-300 w-64">

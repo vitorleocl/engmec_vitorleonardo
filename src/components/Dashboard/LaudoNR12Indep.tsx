@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+import Logo from "../Logo";
 
 interface UploadedImage {
   name: string;
@@ -103,7 +104,8 @@ function generateSectionDrafts(params: any) {
   const num = params.laudoNumber || "LNR12-2026";
   const cli = params.clientName || "Empresa Contratante S/A";
   const city = params.inspectionCity || "Recife";
-  const date = params.inspectionDate || "27/06/2026";
+  const rawDate = params.inspectionDate || "27/06/2026";
+  const date = rawDate.includes("-") ? rawDate.split("-").reverse().join("/") : rawDate;
 
   return {
     secao_1: `Este Laudo Técnico de Apreciação de Riscos e Diagnóstico de Conformidade visa avaliar as condições de segurança operacional do equipamento "${eq}", sob a égide da Norma Regulamentadora Nº 12 (NR-12) do Ministério do Trabalho e Emprego, e em estrito alinhamento com a ABNT NBR ISO 12100:2013. A metodologia adotada compreende a inspeção física detalhada in loco, análise de documentações técnicas, identificação de perigos biomecânicos e elétricos, e classificação quantitativa do nível de risco residual através do Hazard Rating Number (HRN).`,
@@ -496,6 +498,124 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
     }
   };
 
+  const generateExampleReport = () => {
+    // 1. Popular parâmetros gerais com dados genéricos realistas
+    setLaudoParams({
+      laudoNumber: "LNR12-3209/2026-A",
+      clientName: "METALÚRGICA PLANALTO NORDESTE S.A.",
+      cnpj: "09.123.456/0001-88",
+      address: "Av. Governador Agamenon Magalhães, 2500, Recife - PE",
+      equipmentName: "Prensa Excêntrica de Engrenagem Helicoidal",
+      brand: "Schuler Mecânica",
+      model: "PE-150-T",
+      serialNumber: "SCH-2015-8844",
+      year: "2015",
+      tag: "PR-EX-02",
+      operators: "2 operadores por turno",
+      power: "22",
+      voltage: "380",
+      inspectionDate: "2026-07-01",
+      inspectionCity: "Recife",
+      notes: "Equipamento de estampagem pesada. Encontra-se em excelente estado de conformidade após implantação integral das proteções físicas e sistemas de barreira óptica sob as diretrizes de Vitor Leonardo."
+    });
+
+    // 2. Imagens reais (sem ser IA) de equipamentos/campo
+    setUploadedImages([
+      {
+        name: "prensa_excentrica_schuler.jpg",
+        data: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop",
+        description: "Vista frontal da Prensa Excêntrica Schuler de 150T operando em conformidade com as cortinas de segurança ativas."
+      },
+      {
+        name: "painel_comando.jpg",
+        data: "https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?q=80&w=800&auto=format&fit=crop",
+        description: "Painel de comando elétrico com relé de segurança e botão de emergência duplo canal devidamente aterrado."
+      },
+      {
+        name: "protecoes_enclausuramento.jpg",
+        data: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=800&auto=format&fit=crop",
+        description: "Enclausuramento fixo da transmissão por polia e correia fabricado em chapa de aço rígida."
+      }
+    ]);
+
+    // 3. Preencher checklist
+    setChecklistAnswers({
+      chk_1: { answer: "SIM", note: "Plano impresso de manutenção preventiva preventiva de 12 meses assinado." },
+      chk_2: { answer: "SIM", note: "Placas amarelas de advertência de perigo de esmagamento bem posicionadas." },
+      chk_3: { answer: "SIM", note: "Placa metálica de alumínio do fabricante Schuler com número de série e peso." },
+      chk_4: { answer: "SIM", note: "Cópia encadernada do manual original em português disponível no armário do setor." },
+      chk_5: { answer: "SIM", note: "Fichas de capacitação da NR-12 com carga horária de 16 horas ativas no RH." },
+      chk_6: { answer: "SIM", note: "Grade de metal fixa enclausura toda a transmissão por polias do motor superior." },
+      chk_7: { answer: "SIM", note: "Botões de emergência cogumelo de duplo canal integrados com relé categoria 4." },
+      chk_8: { answer: "SIM", note: "Fiação nova em conduítes de PVC antichapa e caixa metálica blindada." },
+      chk_9: { answer: "SIM", note: "Cabo terra verde conectado à carcaça do motor e medido com terrômetro." },
+      chk_10: { answer: "SIM", note: "Demarcação amarela de circulação de 1.2m respeitada ao redor de toda a prensa." },
+      chk_11: { answer: "SIM", note: "Cortina de luz de segurança impede descida do martelo se zona de perigo for invadida." },
+      chk_12: { answer: "SIM", note: "Prontuário técnico emitido e arquivado assinado por Vitor Leonardo." }
+    });
+
+    // 4. Matrizes HRN
+    setHrnBefore({
+      lo: 5.0,
+      fe: 5.0,
+      dph: 4.0,
+      np: 1.0,
+      score: 100.0,
+      classification: "Risco Alto",
+      explicacao: "Perigo alto de esmagamento mecânico e aprisionamento nas áreas móveis sem sistemas de intertravamento ativo."
+    });
+
+    setHrnAfter({
+      lo: 0.033,
+      fe: 5.0,
+      dph: 4.0,
+      np: 1.0,
+      score: 0.66,
+      classification: "Risco Desprezível",
+      explicacao: "Mitigação total das zonas de contato por meio de barreiras mecânicas fixas e cortinas de luz monitoradas."
+    });
+
+    // 5. Categoria
+    setNbrCategory({
+      s: "S2",
+      f: "F2",
+      p: "P1",
+      category: "4",
+      explanation: "Requisitos de categoria 4 de segurança cumpridos através de redundância total e monitoramento dinâmico de chaves."
+    });
+
+    // 6. Não conformidades resolvidas
+    setNaoConformidades([
+      {
+        id: "NC-01",
+        descricao: "Pequeno desgaste superficial na demarcação de piso na lateral esquerda da área de alimentação de chapas.",
+        criticidade: "LEVE",
+        risco: "Escorregamento menor de operador",
+        norma: "NR-12 item 12.11"
+      }
+    ]);
+
+    // 7. Plano de ação
+    setPlanoAcao([
+      {
+        id: "AP-01",
+        problema: "Demarcação de piso gasta",
+        norma: "NR-12 item 12.11",
+        recomendacao: "Realizar pintura de demarcação de piso amarela epóxi antiderrapante ao redor do equipamento perimetral.",
+        prioridade: "LONGO PRAZO",
+        responsavel: "Equipe de Manutenção de Instalações",
+        prazo: "30 dias"
+      }
+    ]);
+
+    // 8. Parecer
+    setConclusaoStatus("CONFORME");
+    setConclusaoParecer("Com base nas análises periciais e funcionais executadas sob as diretrizes legais da NR-12, atesta-se que o equipamento Prensa Excêntrica Schuler PR-EX-02 encontra-se TOTALMENTE CONFORME frente aos quesitos da Portaria MTE 916/2019. O ativo está APTO para operar sem restrições de segurança física.");
+
+    // 9. Mudar de aba
+    setActiveTab("preview");
+  };
+
   return (
     <div className={
       isFullscreen
@@ -509,12 +629,20 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
             <Shield className="w-7 h-7" />
           </span>
           <div className="text-left leading-none">
-            <span className="text-[10px] font-mono tracking-widest text-[#4895EF] font-bold uppercase">SISTEMA INTELIGENTE DE ENGENHARIA</span>
             <h2 className="text-xl font-bold tracking-tight font-sans text-white pt-1">Laudo NR-12 Autônomo</h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={generateExampleReport}
+            className="px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider uppercase transition-all cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 border border-emerald-500 shadow-md animate-bounce"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+            <span>Gerar Modelo Exemplo</span>
+          </button>
+
           {onBack && (
             <button
               onClick={onBack}
@@ -1307,16 +1435,13 @@ export default function LaudoNR12Indep({ onBack }: { onBack?: () => void }) {
           </div>
 
           {/* Core print page container layout */}
-          <div className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
+          <div id="laudo-nr12-printable-area" className="max-w-4xl mx-auto bg-white border border-slate-200 shadow-2xl p-8 md:p-14 text-left leading-relaxed text-slate-900 rounded-3xl print:border-none print:shadow-none print:p-0 print:rounded-none">
             
             {/* CAPA PROFISSIONAL */}
             <div className="min-h-[850px] flex flex-col justify-between text-center border-b pb-8 print:border-b-0 print:pb-0">
               
-              <div className="flex justify-between items-center border-b-2 border-[#134074] pb-4">
-                <div className="text-left font-mono">
-                  <span className="font-extrabold text-lg text-[#0B2545] tracking-tight">VL ENGENHARIA</span>
-                  <p className="text-[9px] text-[#4895EF] font-bold">Responsabilidade Civil e Segurança Industrial</p>
-                </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center border-b-2 border-[#134074] pb-6 gap-4">
+                <Logo variant="print" className="h-14" />
                 <div className="text-right text-xs font-mono text-slate-400">
                   <p>Laudo Técnico de Auditoria NR-12</p>
                   <p className="font-bold text-slate-800 pt-0.5">{laudoParams.laudoNumber}</p>
