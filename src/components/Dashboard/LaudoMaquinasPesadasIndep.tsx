@@ -204,6 +204,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
   }, [initialPrefilled]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -223,7 +224,8 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
     horimetro: "3500",
     inspectionCity: "Recife",
     inspectionDate: new Date().toISOString().split("T")[0],
-    notes: ""
+    notes: "",
+    coverImage: ""
   });
 
   // --- CHECKLIST STATE ---
@@ -619,6 +621,32 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
     }
   };
 
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      // @ts-ignore
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = document.getElementById("laudo-heavy-printable-area");
+      if (!element) return;
+
+      // Set options
+      const opt = {
+        margin:       10,
+        filename:     `Laudo_${laudoParams.tag || "Maquina_Pesada"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
+        image:        { type: "jpeg" as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert("Houve um erro ao gerar o PDF. Por favor, tente novamente.");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const generateExampleReport = () => {
     // 1. Popular parâmetros gerais com dados genéricos realistas
     setLaudoParams({
@@ -637,7 +665,8 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
       voltage: "24",
       inspectionDate: "2026-07-01",
       inspectionCity: "Caruaru",
-      notes: "Equipamento de escavação pesada de alta performance. Encontra-se em excelente estado de conservação mecânica e conformidade protetiva sob inspeção pericial de Vitor Leonardo."
+      notes: "Equipamento de escavação pesada de alta performance. Encontra-se em excelente estado de conservação mecânica e conformidade protetiva sob inspeção pericial de Vitor Leonardo.",
+      coverImage: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800&auto=format&fit=crop"
     });
 
     // 2. Imagens reais (sem ser IA) de equipamentos/campo
@@ -966,6 +995,53 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                     value={laudoParams.inspectionDate}
                     onChange={e => setLaudoParams({ ...laudoParams, inspectionDate: e.target.value })}
                   />
+                </div>
+              </div>
+
+              {/* Campo para importar foto para a capa */}
+              <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label className="text-slate-400 font-mono text-[10px] uppercase block font-bold">Foto de Destaque da Capa do Laudo</label>
+                <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border dark:border-slate-800">
+                  {laudoParams.coverImage ? (
+                    <div className="relative w-full sm:w-48 h-28 rounded-xl overflow-hidden border">
+                      <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Cover preview" referrerPolicy="no-referrer" />
+                      <button
+                        type="button"
+                        onClick={() => setLaudoParams({ ...laudoParams, coverImage: "" })}
+                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow transition-all cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full sm:w-48 h-28 bg-slate-100 dark:bg-slate-900 rounded-xl flex items-center justify-center border text-slate-300">
+                      <FileText className="w-8 h-8" />
+                    </div>
+                  )}
+                  <div className="flex-1 text-center sm:text-left space-y-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-sans leading-normal">
+                      Selecione uma imagem para a capa do laudo de ativos pesados. Ela será exibida no centro da capa profissional do PDF.
+                    </p>
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-lg cursor-pointer transition-all">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Selecionar Imagem</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setLaudoParams(prev => ({ ...prev, coverImage: reader.result as string }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1606,7 +1682,24 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
               className="flex items-center gap-2 bg-slate-900 text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimir / Gerar PDF</span>
+              <span>Imprimir</span>
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isDownloadingPdf}
+              className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer disabled:cursor-not-allowed"
+            >
+              {isDownloadingPdf ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Gerando PDF...</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4" />
+                  <span>Baixar PDF</span>
+                </>
+              )}
             </button>
             <button
               onClick={() => {
@@ -1639,14 +1732,26 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                 </div>
               </div>
 
-              <div className="my-auto py-12 space-y-8">
-                <span className="text-[11px] font-mono tracking-widest text-red-600 uppercase font-black bg-red-50 px-4 py-1.5 rounded-full">LAUDO TÉCNICO PERICIAL DE ATIVO PESADO</span>
+              <div className="my-auto py-6 space-y-6">
+                <span className="text-[10px] font-mono tracking-widest text-red-600 uppercase font-black bg-red-50 px-4 py-1.5 rounded-full">LAUDO TÉCNICO PERICIAL DE ATIVO PESADO</span>
                 
-                <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight font-sans py-4 leading-tight">
+                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight font-sans py-2 leading-tight">
                   INSPEÇÃO & LAUDO TÉCNICO DE SEGURANÇA MÁQUINAS PESADAS
                 </h1>
 
-                <div className="max-w-lg mx-auto bg-slate-50/50 border rounded-2xl p-6 space-y-3.5 text-left text-xs font-medium">
+                {/* Espaço para Foto do Equipamento na Capa */}
+                <div className="my-4 max-w-xl mx-auto w-full h-56 bg-slate-50 border rounded-2xl overflow-hidden shadow-sm flex items-center justify-center relative print:border print:shadow-none print:my-2">
+                  {laudoParams.coverImage ? (
+                    <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Equipamento Vistoriado" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="text-center p-6 space-y-2 text-slate-300">
+                      <p className="text-xs font-mono font-bold uppercase tracking-wider">Foto do Equipamento Vistoriado</p>
+                      <p className="text-[10px] font-sans max-w-xs mx-auto">Nenhuma imagem carregada para a capa. Insira no formulário de edição.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="max-w-lg mx-auto bg-slate-50/50 border rounded-2xl p-5 space-y-3 text-left text-xs font-medium">
                   <p><strong>EQUIPAMENTO AUDITADO:</strong> <span className="uppercase font-bold text-slate-800">{laudoParams.equipmentName}</span></p>
                   <p><strong>FABRICANTE:</strong> {laudoParams.brand} | <strong>MODELO:</strong> {laudoParams.model}</p>
                   <p><strong>ANO FABRICAÇÃO:</strong> {laudoParams.year} | <strong>HORÍMETRO:</strong> {laudoParams.horimetro} h</p>

@@ -192,6 +192,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
   }, [initialPrefilled]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -215,7 +216,8 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
     driveType: "Hidráulico tomada de força",
     inspectionCity: "Recife",
     inspectionDate: new Date().toISOString().split("T")[0],
-    notes: ""
+    notes: "",
+    coverImage: ""
   });
 
   // --- CHECKLIST STATE ---
@@ -509,6 +511,32 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
     }
   };
 
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      // @ts-ignore
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = document.getElementById("laudo-crane-printable-area");
+      if (!element) return;
+
+      // Set options
+      const opt = {
+        margin:       10,
+        filename:     `Laudo_${laudoParams.tag || "Caminhao_Munck"}_${laudoParams.laudoNumber.replace(/\//g, "-")}.pdf`,
+        image:        { type: "jpeg" as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert("Houve um erro ao gerar o PDF. Por favor, tente novamente.");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const generateExampleReport = () => {
     // 1. Popular parâmetros gerais com dados genéricos realistas
     setLaudoParams({
@@ -529,7 +557,8 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
       driveType: "Acoplamento hidráulico por tomada de força (PTO)",
       inspectionCity: "Recife",
       inspectionDate: "2026-07-01",
-      notes: "Vistoria técnica presencial ordinária de conformidade mecânica periódica para validação de segurança de guindaste veicular e acessórios de içamento de carga em conformidade com as normas regulamentadoras."
+      notes: "Vistoria técnica presencial ordinária de conformidade mecânica periódica para validação de segurança de guindaste veicular e acessórios de içamento de carga em conformidade com as normas regulamentadoras.",
+      coverImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop"
     });
 
     // 2. Imagens reais (sem ser IA) de equipamentos/campo
@@ -718,7 +747,25 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
             className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 text-white rounded-xl transition-all shadow-md shadow-[#134074]/20"
           >
             <Printer className="w-4 h-4" />
-            <span>Imprimir / PDF</span>
+            <span>Imprimir</span>
+          </button>
+
+          <button
+            onClick={handleDownloadPDF}
+            disabled={activeTab === "form" || isDownloadingPdf}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {isDownloadingPdf ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Gerando PDF...</span>
+              </>
+            ) : (
+              <>
+                <FileDown className="w-4 h-4" />
+                <span>Baixar PDF</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -924,6 +971,53 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                       value={laudoParams.inspectionCity}
                       onChange={e => setLaudoParams({ ...laudoParams, inspectionCity: e.target.value })}
                     />
+                  </div>
+
+                  {/* Campo para importar foto para a capa */}
+                  <div className="md:col-span-3 space-y-1.5 pt-2">
+                    <label className="font-mono font-bold text-slate-500 block">Foto de Destaque da Capa do Laudo</label>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border dark:border-slate-800">
+                      {laudoParams.coverImage ? (
+                        <div className="relative w-full sm:w-48 h-28 rounded-xl overflow-hidden border">
+                          <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Cover preview" referrerPolicy="no-referrer" />
+                          <button
+                            type="button"
+                            onClick={() => setLaudoParams({ ...laudoParams, coverImage: "" })}
+                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow transition-all cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full sm:w-48 h-28 bg-slate-100 dark:bg-slate-900 rounded-xl flex items-center justify-center border text-slate-300">
+                          <FileText className="w-8 h-8" />
+                        </div>
+                      )}
+                      <div className="flex-1 text-center sm:text-left space-y-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-sans leading-normal">
+                          Selecione uma imagem para a capa do laudo técnico. Ela será exibida no centro da capa profissional do PDF.
+                        </p>
+                        <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-lg cursor-pointer transition-all">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Selecionar Imagem</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setLaudoParams(prev => ({ ...prev, coverImage: reader.result as string }));
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1341,13 +1435,25 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                   <Logo variant="print" className="h-16" />
                 </div>
 
-                <div className="space-y-4 py-8">
-                  <h1 className="text-4xl sm:text-5xl font-black font-sans tracking-tight text-slate-900 leading-none">
+                <div className="space-y-4 py-4">
+                  <h1 className="text-2xl sm:text-3xl font-black font-sans tracking-tight text-slate-900 leading-tight">
                     Laudo Técnico de Inspeção e Integridade Física
                   </h1>
-                  <p className="text-base text-slate-500 font-mono tracking-widest uppercase">
+                  <p className="text-xs text-slate-500 font-mono tracking-widest uppercase">
                     CAMINHÕES MUNCK, GUINDASTES E ACESSÓRIOS DE IÇAMENTO
                   </p>
+                </div>
+
+                {/* Espaço para Foto do Equipamento na Capa */}
+                <div className="my-6 max-w-xl mx-auto w-full h-64 bg-slate-50 border rounded-2xl overflow-hidden shadow-sm flex items-center justify-center relative print:border print:shadow-none print:my-4">
+                  {laudoParams.coverImage ? (
+                    <img src={laudoParams.coverImage} className="w-full h-full object-cover" alt="Equipamento Vistoriado" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="text-center p-6 space-y-2 text-slate-300">
+                      <p className="text-xs font-mono font-bold uppercase tracking-wider">Foto do Equipamento Vistoriado</p>
+                      <p className="text-[10px] font-sans max-w-xs mx-auto">Nenhuma imagem carregada para a capa. Insira no formulário de edição.</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left max-w-2xl mx-auto border-t border-b py-8 font-mono text-xs leading-relaxed">
