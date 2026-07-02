@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, ChangeEvent } from "react";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
 import Logo from "../Logo";
-import { preprocessStylesheets, restoreStylesheets } from "../../lib/pdfUtils";
+import { preprocessStylesheets, restoreStylesheets, exportToWord, copyRichText } from "../../lib/pdfUtils";
 
 
 interface UploadedImage {
@@ -32,7 +32,8 @@ import {
   ChevronDown,
   Upload,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Copy
 } from "lucide-react";
 
 // --- HRN VALUES ---
@@ -1752,6 +1753,25 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                   <span>Baixar PDF</span>
                 </>
               )}
+            </button>
+            <button
+              onClick={async () => {
+                const success = await copyRichText("laudo-nr12-printable-area");
+                if (success) {
+                  alert("Laudo copiado em formato rico! Agora você pode colar (Ctrl+V) no Google Docs ou Word.");
+                }
+              }}
+              className="flex items-center gap-2 bg-slate-100 border text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer"
+            >
+              <Copy className="w-4 h-4 text-indigo-500" />
+              <span>Copiar p/ Google Docs</span>
+            </button>
+            <button
+              onClick={() => exportToWord("laudo-nr12-printable-area", `Laudo_NR12_${laudoParams.tag || "equip"}_${laudoParams.laudoNumber.replace(/\//g, "-")}`)}
+              className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 px-4 py-2.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider transition-all shadow cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-blue-500" />
+              <span>Exportar p/ Word</span>
             </button>
             <button
               onClick={() => {

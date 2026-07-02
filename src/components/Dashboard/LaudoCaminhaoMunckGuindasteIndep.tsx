@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
-import { preprocessStylesheets, restoreStylesheets } from "../../lib/pdfUtils";
+import { preprocessStylesheets, restoreStylesheets, exportToWord, copyRichText } from "../../lib/pdfUtils";
 import Logo from "../Logo";
 import { 
   Shield, 
@@ -27,7 +27,8 @@ import {
   Maximize2,
   Minimize2,
   Anchor,
-  Truck
+  Truck,
+  Copy
 } from "lucide-react";
 
 interface UploadedImage {
@@ -908,7 +909,7 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
           <button
             onClick={() => window.print()}
             disabled={activeTab === "form"}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 text-white rounded-xl transition-all shadow-md shadow-[#134074]/20"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-[#134074] hover:bg-[#0B2545] disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 text-white rounded-xl transition-all shadow-md shadow-[#134074]/20 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Imprimir</span>
@@ -930,6 +931,29 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                 <span>Baixar PDF</span>
               </>
             )}
+          </button>
+
+          <button
+            onClick={async () => {
+              const success = await copyRichText("laudo-crane-printable-area");
+              if (success) {
+                alert("Laudo copiado em formato rico! Agora você pode colar (Ctrl+V) no Google Docs ou Word.");
+              }
+            }}
+            disabled={activeTab === "form"}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-slate-100 border hover:bg-slate-200 text-slate-700 rounded-xl transition-all shadow-sm cursor-pointer"
+          >
+            <Copy className="w-4 h-4 text-indigo-500" />
+            <span>Copiar p/ Google Docs</span>
+          </button>
+
+          <button
+            onClick={() => exportToWord("laudo-crane-printable-area", `Laudo_${laudoParams.tag || "Caminhao_Munck"}_${laudoParams.laudoNumber.replace(/\//g, "-")}`)}
+            disabled={activeTab === "form"}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 rounded-xl transition-all shadow-sm cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-blue-500" />
+            <span>Exportar p/ Word</span>
           </button>
         </div>
       </div>

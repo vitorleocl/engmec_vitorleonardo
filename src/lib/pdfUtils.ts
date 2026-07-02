@@ -90,55 +90,87 @@ export function replaceOklchInCss(cssText: string): string {
 }
 
 interface RestoredStyle {
-  el: HTMLStyleElement | HTMLLinkElement;
-  type: 'style' | 'link';
-  originalText?: string;
+  ownerNode: any;
   tempStyleEl?: HTMLStyleElement;
+  originalText?: string;
 }
 
 let restoredStyles: RestoredStyle[] = [];
 
 /**
  * Preprocess all style tags and stylesheets to eliminate oklch() color functions
- * before generating a canvas/PDF.
+ * before generating a canvas/PDF. Fully compatible with CSSOM programmatically
+ * inserted styles (Vite dev server) and link elements.
  */
 export async function preprocessStylesheets(): Promise<void> {
   restoredStyles = [];
-  const styleElements = Array.from(document.querySelectorAll('style'));
-  const linkElements = Array.from(document.querySelectorAll('link[rel="stylesheet"]')) as HTMLLinkElement[];
+  const sheets = Array.from(document.styleSheets);
 
-  // Process <style> tags
-  for (const styleEl of styleElements) {
-    const text = styleEl.innerHTML;
-    if (text.includes('oklch')) {
-      restoredStyles.push({ el: styleEl, type: 'style', originalText: text });
-      const cleanText = replaceOklchInCss(text);
-      styleEl.innerHTML = cleanText;
+  // Process all active stylesheets
+  for (const sheet of sheets) {
+    try {
+      const ownerNode = sheet.ownerNode;
+      if (!ownerNode) continue;
+
+      // Skip elements we already created
+      if ((ownerNode as any).dataset?.tempPdfStyle === "true") continue;
+
+      // Extract rules text
+      let cssText = "";
+      try {
+        cssText = Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+      } catch (e) {
+        // Fallback to reading innerHTML or fetching same-origin links
+        if (ownerNode.nodeName === "STYLE") {
+          cssText = (ownerNode as HTMLStyleElement).innerHTML;
+        } else if (ownerNode.nodeName === "LINK") {
+          const href = (ownerNode as HTMLLinkElement).href;
+          if (href) {
+            const url = new URL(href, window.location.origin);
+            if (url.origin === window.location.origin) {
+              const res = await fetch(href);
+              if (res.ok) {
+                cssText = await res.text();
+              }
+            }
+          }
+        }
+      }
+
+      if (cssText && cssText.includes('oklch')) {
+        const cleanText = replaceOklchInCss(cssText);
+        
+        // Create temporary style element
+        const tempStyle = document.createElement('style');
+        tempStyle.innerHTML = cleanText;
+        tempStyle.dataset.tempPdfStyle = "true";
+        document.head.appendChild(tempStyle);
+
+        // Disable original owner node to avoid conflict
+        (ownerNode as any).disabled = true;
+
+        restoredStyles.push({
+          ownerNode,
+          tempStyleEl: tempStyle
+        });
+      }
+    } catch (err) {
+      console.warn("Could not preprocess style sheet:", err);
     }
   }
 
-  // Process <link> tags from same-origin
-  for (const linkEl of linkElements) {
+  // Also catch any raw style tags by text content just in case they were skipped
+  const styleElements = Array.from(document.querySelectorAll('style:not([data-temp-pdf-style])'));
+  for (const styleEl of styleElements) {
     try {
-      if (!linkEl.href) continue;
-      const url = new URL(linkEl.href, window.location.origin);
-      if (url.origin !== window.location.origin) continue;
-
-      const response = await fetch(linkEl.href);
-      if (response.ok) {
-        const text = await response.text();
-        if (text.includes('oklch')) {
-          const cleanText = replaceOklchInCss(text);
-          const tempStyle = document.createElement('style');
-          tempStyle.innerHTML = cleanText;
-          document.head.appendChild(tempStyle);
-          
-          linkEl.disabled = true;
-          restoredStyles.push({ el: linkEl, type: 'link', tempStyleEl: tempStyle });
-        }
+      const text = styleEl.innerHTML;
+      if (text && text.includes('oklch') && !restoredStyles.some(r => r.ownerNode === styleEl)) {
+        restoredStyles.push({ ownerNode: styleEl, originalText: text });
+        const cleanText = replaceOklchInCss(text);
+        styleEl.innerHTML = cleanText;
       }
-    } catch (err) {
-      console.warn("Could not preprocess stylesheet:", linkEl.href, err);
+    } catch (e) {
+      // Safely ignore individual read errors
     }
   }
 }
@@ -148,14 +180,250 @@ export async function preprocessStylesheets(): Promise<void> {
  */
 export function restoreStylesheets(): void {
   for (const item of restoredStyles) {
-    if (item.type === 'style' && item.originalText !== undefined) {
-      (item.el as HTMLStyleElement).innerHTML = item.originalText;
-    } else if (item.type === 'link') {
-      (item.el as HTMLLinkElement).disabled = false;
+    try {
       if (item.tempStyleEl) {
         item.tempStyleEl.remove();
       }
+      if (item.ownerNode) {
+        item.ownerNode.disabled = false;
+        if (item.originalText !== undefined) {
+          item.ownerNode.innerHTML = item.originalText;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not restore stylesheet:", e);
     }
   }
   restoredStyles = [];
 }
+
+/**
+ * Clean clone helper that prepares the HTML element for external editor compatibility
+ */
+function prepareHtmlClone(elementId: string): HTMLElement | null {
+  const element = document.getElementById(elementId);
+  if (!element) return null;
+
+  const clone = element.cloneNode(true) as HTMLElement;
+
+  // Strip elements designed to be hidden when printing or in export
+  const hiddenElements = clone.querySelectorAll('button, input, textarea, select, .print\\:hidden, [class*="print:hidden"]');
+  hiddenElements.forEach(el => el.remove());
+
+  // Convert modern visual classes like grid / flex to basic table / block styles for Word/Docs compatibility
+  clone.querySelectorAll('.flex').forEach(flexEl => {
+    (flexEl as HTMLElement).style.display = 'block';
+  });
+
+  return clone;
+}
+
+/**
+ * Exports an HTML container to a .doc format file compatible with Microsoft Word & Google Docs.
+ */
+export function exportToWord(elementId: string, filename: string): void {
+  const clone = prepareHtmlClone(elementId);
+  if (!clone) {
+    alert("Erro ao exportar: Elemento do laudo não encontrado.");
+    return;
+  }
+
+  // Format all tables specifically for Word / Google Docs editor support
+  const tables = clone.querySelectorAll('table');
+  tables.forEach(table => {
+    table.setAttribute('border', '1');
+    table.setAttribute('cellspacing', '0');
+    table.setAttribute('cellpadding', '6');
+    table.style.borderCollapse = 'collapse';
+    table.style.width = '100%';
+    table.style.marginTop = '15px';
+    table.style.marginBottom = '15px';
+    table.style.borderColor = '#cccccc';
+    
+    table.querySelectorAll('th').forEach(th => {
+      th.style.backgroundColor = '#f1f5f9';
+      th.style.border = '1px solid #cccccc';
+      th.style.fontWeight = 'bold';
+      th.style.color = '#1e293b';
+      th.style.padding = '8px';
+      th.style.fontSize = '10pt';
+    });
+
+    table.querySelectorAll('td').forEach(td => {
+      td.style.border = '1px solid #cccccc';
+      td.style.padding = '8px';
+      td.style.fontSize = '10pt';
+    });
+  });
+
+  // Highlight headings in Word / Google Docs
+  clone.querySelectorAll('h1').forEach(h1 => {
+    h1.style.fontSize = '22pt';
+    h1.style.color = '#1e3a8a';
+    h1.style.fontWeight = 'bold';
+    h1.style.borderBottom = '2px solid #1e3a8a';
+    h1.style.paddingBottom = '6px';
+    h1.style.marginBottom = '15px';
+    h1.style.fontFamily = 'Arial, sans-serif';
+  });
+
+  clone.querySelectorAll('h2').forEach(h2 => {
+    h2.style.fontSize = '15pt';
+    h2.style.color = '#0f172a';
+    h2.style.fontWeight = 'bold';
+    h2.style.borderBottom = '1px solid #cbd5e1';
+    h2.style.paddingBottom = '4px';
+    h2.style.marginTop = '20px';
+    h2.style.marginBottom = '10px';
+    h2.style.fontFamily = 'Arial, sans-serif';
+  });
+
+  const styles = `
+    <style>
+      body {
+        font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+        line-height: 1.5;
+        color: #333333;
+        margin: 20px;
+      }
+      p { margin-bottom: 8px; }
+      table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+      th, td { border: 1px solid #cbd5e1; padding: 6px; font-size: 10pt; }
+      th { background-color: #f8fafc; font-weight: bold; text-align: left; }
+      h1, h2, h3 { font-family: 'Arial', sans-serif; color: #1e293b; }
+      .text-center { text-align: center; }
+      .text-right { text-align: right; }
+      .font-mono { font-family: 'Courier New', monospace; }
+      .font-bold { font-weight: bold; }
+      .bg-slate-50 { background-color: #f8fafc; }
+      .bg-slate-100 { background-color: #f1f5f9; }
+      .text-slate-500 { color: #64748b; }
+      .text-slate-600 { color: #475569; }
+      .text-slate-800 { color: #1e293b; }
+      .border-b { border-bottom: 1px solid #cbd5e1; }
+      .pb-1.5 { padding-bottom: 6px; }
+      .py-12 { padding-top: 24px; padding-bottom: 24px; }
+    </style>
+  `;
+
+  const htmlContent = `
+    <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office' 
+          xmlns:w='urn:schemas-microsoft-microsoft-com:office:word' 
+          xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset="utf-8">
+        <title>${filename}</title>
+        ${styles}
+      </head>
+      <body>
+        ${clone.innerHTML}
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Copies the formatted document to the user's clipboard as Rich Text (HTML)
+ * allowing direct, flawless Ctrl+V pasting into Google Docs, Word or email.
+ */
+export async function copyRichText(elementId: string): Promise<boolean> {
+  const clone = prepareHtmlClone(elementId);
+  if (!clone) {
+    alert("Erro ao copiar: Elemento do laudo não encontrado.");
+    return false;
+  }
+
+  // Format tables
+  const tables = clone.querySelectorAll('table');
+  tables.forEach(table => {
+    table.setAttribute('border', '1');
+    table.setAttribute('cellspacing', '0');
+    table.setAttribute('cellpadding', '6');
+    table.style.borderCollapse = 'collapse';
+    table.style.width = '100%';
+    table.style.margin = '15px 0';
+    table.style.borderColor = '#cbd5e1';
+
+    table.querySelectorAll('th').forEach(th => {
+      th.style.backgroundColor = '#f8fafc';
+      th.style.border = '1px solid #cbd5e1';
+      th.style.fontWeight = 'bold';
+      th.style.color = '#1e293b';
+      th.style.padding = '8px';
+      th.style.fontSize = '10pt';
+    });
+
+    table.querySelectorAll('td').forEach(td => {
+      td.style.border = '1px solid #cbd5e1';
+      td.style.padding = '8px';
+      td.style.fontSize = '10pt';
+    });
+  });
+
+  const styles = `
+    <style>
+      body {
+        font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+        line-height: 1.5;
+        color: #333333;
+      }
+      p { margin-bottom: 8px; }
+      table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1; }
+      th, td { border: 1px solid #cbd5e1; padding: 6px; font-size: 10pt; }
+      th { background-color: #f8fafc; font-weight: bold; text-align: left; }
+      h1 { font-size: 22pt; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 6px; margin-bottom: 15px; }
+      h2 { font-size: 15pt; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-top: 20px; }
+      h3 { font-size: 11pt; color: #333333; font-weight: bold; }
+      .text-center { text-align: center; }
+      .font-mono { font-family: 'Courier New', monospace; }
+      .font-bold { font-weight: bold; }
+    </style>
+  `;
+
+  const htmlContent = `
+    <html>
+      <head>
+        <meta charset="utf-8">
+        ${styles}
+      </head>
+      <body>
+        ${clone.innerHTML}
+      </body>
+    </html>
+  `;
+
+  const plainText = (document.getElementById(elementId) as HTMLElement).innerText;
+
+  try {
+    const blobHtml = new Blob([htmlContent], { type: "text/html" });
+    const blobText = new Blob([plainText], { type: "text/plain" });
+    
+    const clipboardItem = new ClipboardItem({
+      "text/html": blobHtml,
+      "text/plain": blobText
+    });
+    
+    await navigator.clipboard.write([clipboardItem]);
+    return true;
+  } catch (err) {
+    console.error("Erro ao copiar como Rich Text:", err);
+    try {
+      await navigator.clipboard.writeText(plainText);
+      return true;
+    } catch (e) {
+      console.error("Clipboard API failed completely", e);
+      return false;
+    }
+  }
+}
+
