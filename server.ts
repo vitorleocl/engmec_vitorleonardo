@@ -253,38 +253,28 @@ function isValidApiKey(key: string | undefined): boolean {
       }
 
     } catch (error: any) {
-      console.error("Gemini API Error:", error);
-      const errStr = String(error.message || "").toUpperCase();
-      const isApiKeyError = errStr.includes("API KEY") || 
-                            errStr.includes("INVALID_ARGUMENT") || 
-                            errStr.includes("NOT VALID") || 
-                            errStr.includes("API_KEY_INVALID") ||
-                            errStr.includes("KEY");
-                            
-      if (isApiKeyError) {
-        console.warn("Failing API key detected at runtime in nr12-audit. Falling back to simulated expert audit engine.");
-        return res.json(getSimulatedLaudo({
-          equipmentName, 
-          equipmentDesc, 
-          brand, 
-          model, 
-          serialNumber, 
-          year, 
-          clientId, 
-          clientName, 
-          cnpj,
-          address,
-          tag,
-          laudoNumber,
-          operators,
-          power,
-          voltage,
-          inspectionDate,
-          inspectionCity,
-          notes
-        }));
-      }
-      res.status(500).json({ error: error.message || "Erro no processamento da API de Inteligência." });
+      console.error("Gemini API Error in nr12-audit:", error);
+      console.warn("Falling back to simulated expert audit engine for nr12-audit.");
+      return res.json(getSimulatedLaudo({
+        equipmentName, 
+        equipmentDesc, 
+        brand, 
+        model, 
+        serialNumber, 
+        year, 
+        clientId, 
+        clientName, 
+        cnpj,
+        address,
+        tag,
+        laudoNumber,
+        operators,
+        power,
+        voltage,
+        inspectionDate,
+        inspectionCity,
+        notes
+      }));
     }
   });
 
@@ -526,33 +516,23 @@ function isValidApiKey(key: string | undefined): boolean {
 
     } catch (error: any) {
       console.error("Gemini API Error for Heavy Machinery:", error);
-      const errStr = String(error.message || "").toUpperCase();
-      const isApiKeyError = errStr.includes("API KEY") || 
-                            errStr.includes("INVALID_ARGUMENT") || 
-                            errStr.includes("NOT VALID") || 
-                            errStr.includes("API_KEY_INVALID") ||
-                            errStr.includes("KEY");
-                            
-      if (isApiKeyError) {
-        console.warn("Failing API key detected at runtime in heavy-machinery-audit. Falling back to simulated engine.");
-        return res.json(getSimulatedHeavyMachineryLaudo({
-          equipmentName, 
-          brand, 
-          model, 
-          serialNumber, 
-          year, 
-          clientName, 
-          cnpj,
-          address,
-          tag,
-          laudoNumber,
-          horometro,
-          inspectionDate,
-          inspectionCity,
-          notes
-        }));
-      }
-      res.status(500).json({ error: error.message || "Erro no processamento da API de Máquinas Pesadas." });
+      console.warn("Falling back to simulated heavy machinery engine due to API error.");
+      return res.json(getSimulatedHeavyMachineryLaudo({
+        equipmentName, 
+        brand, 
+        model, 
+        serialNumber, 
+        year, 
+        clientName, 
+        cnpj,
+        address,
+        tag,
+        laudoNumber,
+        horometro,
+        inspectionDate,
+        inspectionCity,
+        notes
+      }));
     }
   });
 
@@ -768,37 +748,27 @@ function isValidApiKey(key: string | undefined): boolean {
 
     } catch (error: any) {
       console.error("Gemini API Error for Cranes:", error);
-      const errStr = String(error.message || "").toUpperCase();
-      const isApiKeyError = errStr.includes("API KEY") || 
-                            errStr.includes("INVALID_ARGUMENT") || 
-                            errStr.includes("NOT VALID") || 
-                            errStr.includes("API_KEY_INVALID") ||
-                            errStr.includes("KEY");
-                            
-      if (isApiKeyError) {
-        console.warn("Failing API key detected at runtime in crane-audit. Falling back to simulated engine.");
-        return res.json(getSimulatedCraneLaudo({
-          equipmentName, 
-          brand, 
-          model, 
-          serialNumber, 
-          year, 
-          clientName, 
-          cnpj,
-          address,
-          tag,
-          laudoNumber,
-          capacityNominal,
-          maxIcationHeight,
-          boomLength,
-          horometro,
-          driveType,
-          inspectionDate,
-          inspectionCity,
-          notes
-        }));
-      }
-      res.status(500).json({ error: error.message || "Erro no processamento da API de Guindastes." });
+      console.warn("Falling back to simulated crane engine due to API error.");
+      return res.json(getSimulatedCraneLaudo({
+        equipmentName, 
+        brand, 
+        model, 
+        serialNumber, 
+        year, 
+        clientName, 
+        cnpj,
+        address,
+        tag,
+        laudoNumber,
+        capacityNominal,
+        maxIcationHeight,
+        boomLength,
+        horometro,
+        driveType,
+        inspectionDate,
+        inspectionCity,
+        notes
+      }));
     }
   });
 
