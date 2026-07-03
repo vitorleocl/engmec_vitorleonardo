@@ -1278,8 +1278,8 @@ export default function LaudoCaminhaoMunckGuindasteIndep({ onBack, initialPrefil
                                 </button>
                               </div>
                             ) : (
-                              <label className="flex items-center justify-center gap-1.5 cursor-pointer px-2 py-1.5 border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg text-slate-400 font-mono text-[10px] uppercase font-bold transition-all">
-                                <Upload className="w-3.5 h-3.5 text-slate-400" />
+                              <label className="flex items-center justify-center gap-1.5 cursor-pointer px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 rounded-lg text-slate-500 hover:text-emerald-600 font-mono text-[10px] uppercase font-bold transition-all mx-auto w-28">
+                                <Upload className="w-3.5 h-3.5" />
                                 <span>Anexar</span>
                                 <input
                                   type="file"

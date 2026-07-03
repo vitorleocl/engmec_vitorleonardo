@@ -226,7 +226,7 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
   });
 
   // --- CHECKLIST ANSWERS STATE ---
-  const [checklistAnswers, setChecklistAnswers] = useState<Record<string, { answer: "SIM" | "NÃO" | "N/A"; note: string }>>(
+  const [checklistAnswers, setChecklistAnswers] = useState<Record<string, { answer: "SIM" | "NÃO" | "N/A"; note: string; image?: string }>>(
     NR12_CHECKLIST_TEMPLATE.reduce((acc, q) => {
       acc[q.id] = { answer: "NÃO", note: "Não foi possível confirmar este requisito apenas por meio da inspeção visual." };
       return acc;
@@ -994,6 +994,7 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                       <th className="pb-3">Requisito Obrigatório</th>
                       <th className="pb-3 text-center">Conformidade</th>
                       <th className="pb-3 pl-4">Nota de Campo / Auditoria</th>
+                      <th className="pb-3 text-center w-32">Foto Anexa</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
@@ -1040,6 +1041,48 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                             placeholder="Adicione observações periciais de conformidade..."
                             className="w-full p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none"
                           />
+                        </td>
+                        <td className="py-3 pl-4 text-center">
+                          {checklistAnswers[item.id]?.image ? (
+                            <div className="relative group inline-block">
+                              <img src={checklistAnswers[item.id]?.image} className="w-12 h-12 object-cover rounded-lg border shadow-sm hover:scale-110 transition-all cursor-zoom-in" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setChecklistAnswers({
+                                    ...checklistAnswers,
+                                    [item.id]: { ...checklistAnswers[item.id], image: undefined }
+                                  });
+                                }}
+                                className="absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full p-0.5 hover:bg-red-700 shadow-md"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex items-center justify-center gap-1 cursor-pointer px-2 py-1 border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg text-slate-400 font-mono text-[9px] uppercase font-bold transition-all w-24 mx-auto">
+                              <Upload className="w-3 h-3 text-slate-400" />
+                              <span>Anexar</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setChecklistAnswers({
+                                        ...checklistAnswers,
+                                        [item.id]: { ...checklistAnswers[item.id], image: reader.result as string }
+                                      });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -2014,10 +2057,11 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                   <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                     <thead>
                       <tr className="bg-[#0b2545] text-white uppercase font-mono text-[9px]">
-                        <th className="p-3 pl-2 w-[15%]">Norma</th>
-                        <th className="p-3 w-[40%]">Requisito Técnico Auditado</th>
-                        <th className="p-3 text-center w-[15%]">Conformidade</th>
-                        <th className="p-3 pl-4 w-[30%]">Observações Periciais de Campo</th>
+                        <th className="p-3 pl-2 w-[12%]">Norma</th>
+                        <th className="p-3 w-[36%]">Requisito Técnico Auditado</th>
+                        <th className="p-3 text-center w-[12%]">Conformidade</th>
+                        <th className="p-3 pl-4 w-[28%]">Observações Periciais de Campo</th>
+                        <th className="p-3 text-center w-[12%]">Foto</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y font-medium leading-relaxed">
@@ -2038,6 +2082,13 @@ export default function LaudoNR12Indep({ onBack, initialPrefilled = false }: { o
                           </td>
                           <td className="p-3 pl-4 text-slate-500 text-[11px] leading-relaxed italic break-words">
                             {checklistAnswers[item.id]?.note}
+                          </td>
+                          <td className="p-3 text-center">
+                            {checklistAnswers[item.id]?.image ? (
+                              <img src={checklistAnswers[item.id]?.image} alt={item.id} className="w-12 h-12 object-cover rounded mx-auto border" />
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-mono">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}

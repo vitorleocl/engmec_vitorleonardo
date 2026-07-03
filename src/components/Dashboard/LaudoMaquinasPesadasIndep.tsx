@@ -42,6 +42,7 @@ interface ChecklistItem {
   text: string;
   resposta: "SIM" | "NÃO" | "N/A";
   nota: string;
+  image?: string;
 }
 
 interface NaoConformidade {
@@ -372,7 +373,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
   }, [laudoParams.equipmentName, laudoParams.clientName, laudoParams.cnpj, laudoParams.address, laudoParams.inspectionCity, laudoParams.inspectionDate]);
 
   // --- HANDLERS ---
-  const handleChecklistChange = (id: string, key: "resposta" | "nota", val: any) => {
+  const handleChecklistChange = (id: string, key: "resposta" | "nota" | "image", val: any) => {
     setChecklist(prev => prev.map(item => item.id === id ? { ...item, [key]: val } : item));
   };
 
@@ -1122,6 +1123,7 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                       <th className="pb-3">Parâmetro de Inspeção Obrigatório</th>
                       <th className="pb-3 text-center">Resposta</th>
                       <th className="pb-3 pl-4">Nota Explicativa de Campo</th>
+                      <th className="pb-3 text-center w-32">Foto Anexa</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
@@ -1153,6 +1155,40 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                             value={item.nota}
                             onChange={e => handleChecklistChange(item.id, "nota", e.target.value)}
                           />
+                        </td>
+                        <td className="py-3.5 pl-4 text-center">
+                          {item.image ? (
+                            <div className="relative group inline-block">
+                              <img src={item.image} className="w-12 h-12 object-cover rounded-lg border shadow-sm hover:scale-110 transition-all cursor-zoom-in" />
+                              <button
+                                type="button"
+                                onClick={() => handleChecklistChange(item.id, "image", undefined)}
+                                className="absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full p-0.5 hover:bg-red-700 shadow-md"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex items-center justify-center gap-1 cursor-pointer px-2 py-1 border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg text-slate-400 font-mono text-[9px] uppercase font-bold transition-all w-24 mx-auto">
+                              <Upload className="w-3 h-3 text-slate-400" />
+                              <span>Anexar</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      handleChecklistChange(item.id, "image", reader.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -2214,10 +2250,11 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                   <table className="w-full text-xs text-left border border-collapse" style={{ tableLayout: "fixed" }}>
                     <thead>
                       <tr className="bg-slate-100 text-slate-800 font-bold border-b text-[10px] uppercase font-mono">
-                        <th className="p-3 w-[12%]">Ref</th>
-                        <th className="p-3 w-[43%]">Item Inspecionado</th>
+                        <th className="p-3 w-[10%]">Ref</th>
+                        <th className="p-3 w-[38%]">Item Inspecionado</th>
                         <th className="p-3 text-center w-[15%]">Conformidade</th>
-                        <th className="p-3 w-[30%]">Observação / Nota Técnica</th>
+                        <th className="p-3 w-[25%]">Observação / Nota Técnica</th>
+                        <th className="p-3 text-center w-[12%]">Foto</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -2237,6 +2274,13 @@ export default function LaudoMaquinasPesadasIndep({ onBack, initialPrefilled = f
                             </span>
                           </td>
                           <td className="p-3 text-slate-600 font-medium break-words">{item.nota}</td>
+                          <td className="p-3 text-center">
+                            {item.image ? (
+                              <img src={item.image} alt={item.id} className="w-12 h-12 object-cover rounded mx-auto border" />
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-mono">—</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
