@@ -22,7 +22,8 @@ import {
   Users, 
   Cpu, 
   Wrench,
-  Activity
+  Activity,
+  CheckSquare
 } from "lucide-react";
 import { 
   DEFAULT_PMOC_CHECKLIST, 
@@ -65,6 +66,24 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
   const [secoes, setSecoes] = useState<Record<string, string>>(DEFAULT_PMOC_SECOES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [blankPlanning, setBlankPlanning] = useState(false);
+  const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({
+    capa: true,
+    apresentacao: true,
+    sumario: true,
+    secoes1_2: true,
+    secoes3_4_5: true,
+    secao6: true,
+    secao7: true,
+    secao8: true,
+    secoes9_10: true,
+    secao11: true,
+    secao12: true,
+    secao13: true,
+    secao14: true,
+    secao15: true,
+    fichasIndividuais: true,
+    anexoArt: true
+  });
   const [artPdf, setArtPdf] = useState<{ name: string; size: string; data: string } | null>(null);
   const [showPreCadastro, setShowPreCadastro] = useState(false);
 
@@ -1336,6 +1355,74 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
               </div>
             </div>
 
+            {/* Seletor de Seções Visíveis no Relatório */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4 font-sans">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-[#134074] dark:text-blue-400" />
+                    Seletor de Seções do Relatório Final (Opcional)
+                  </h4>
+                  <p className="text-[11px] text-slate-500">Marque ou desmarque as seções que deseja exibir no preview e na impressão/PDF.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const updated = { ...visibleSections };
+                      Object.keys(updated).forEach(k => updated[k] = true);
+                      setVisibleSections(updated);
+                    }}
+                    className="px-2.5 py-1 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 rounded-lg font-bold transition-all"
+                  >
+                    Marcar Todas
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updated = { ...visibleSections };
+                      Object.keys(updated).forEach(k => updated[k] = false);
+                      setVisibleSections(updated);
+                    }}
+                    className="px-2.5 py-1 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 rounded-lg font-bold transition-all"
+                  >
+                    Desmarcar Todas
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { key: "capa", label: "Capa do Relatório (Pág. 1)" },
+                  { key: "apresentacao", label: "Carta de Apresentação (Pág. 2)" },
+                  { key: "sumario", label: "Sumário das Seções (Pág. 3)" },
+                  { key: "secoes1_2", label: "Seção 1 & 2: Base Legal e Dados (Pág. 4)" },
+                  { key: "secoes3_4_5", label: "Seção 3, 4 & 5: RT e Contato (Pág. 5)" },
+                  { key: "secao6", label: "Seção 6: Ambientes Climatizados (Pág. 6)" },
+                  { key: "secao7", label: "Seção 7: Requisitos e Filtragem (Pág. 7)" },
+                  { key: "secao8", label: "Seção 8: Cronograma de Manutenção (Pág. 8)" },
+                  { key: "secoes9_10", label: "Seção 9 & 10: Qualidade do Ar (Pág. 9)" },
+                  { key: "secao11", label: "Seção 11: Ficha Mensal Manual (Pág. 10)" },
+                  { key: "secao12", label: "Seção 12: Checklist Geral do PMOC (Pág. 11)" },
+                  { key: "secao13", label: "Seção 13: Relatório de Não Conformidades (Pág. 12)" },
+                  { key: "secao14", label: "Seção 14: Registro Fotográfico (Pág. 13)" },
+                  { key: "secao15", label: "Seção 15: Parecer e Conclusão (Pág. 14)" },
+                  { key: "fichasIndividuais", label: "Anexo A: Fichas Técnicas Individuais" },
+                  { key: "anexoArt", label: "Anexo B: Cópia da ART de Engenharia" }
+                ].map(sec => (
+                  <label key={sec.key} className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950/40 cursor-pointer select-none transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={!!visibleSections[sec.key]}
+                      onChange={(e) => setVisibleSections(prev => ({ ...prev, [sec.key]: e.target.checked }))}
+                      className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-800 text-[#134074] focus:ring-[#134074] cursor-pointer"
+                    />
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">{sec.label}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {/* Action Bar for Exports */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-wrap gap-2 justify-between items-center shadow-sm">
               <span className="text-xs text-slate-500 font-mono flex items-center gap-2">
@@ -1377,6 +1464,7 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
               reportRef={reportRef}
               blankPlanning={blankPlanning}
               artPdf={artPdf}
+              visibleSections={visibleSections}
             />
           </div>
         )}

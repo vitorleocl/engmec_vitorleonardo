@@ -35,7 +35,9 @@
   #laudo-nr12-printable-area,
   #laudo-nr12-printable-area *,
   #laudo-heavy-printable-area,
-  #laudo-heavy-printable-area * {
+  #laudo-heavy-printable-area *,
+  #pmoc-report-container,
+  #pmoc-report-container * {
     visibility: visible !important;
   }
 

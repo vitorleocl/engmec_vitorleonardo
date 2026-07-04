@@ -68,6 +68,7 @@ interface PMOCReportPreviewProps {
   reportRef: React.RefObject<HTMLDivElement | null>;
   blankPlanning?: boolean;
   artPdf?: { name: string; size: string; data: string } | null;
+  visibleSections?: Record<string, boolean>;
 }
 
 const DETAILED_ACTIVITIES_TEMPLATE = [
