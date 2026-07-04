@@ -292,3 +292,55 @@ export const DEFAULT_PMOC_SECOES: Record<string, string> = {
   sistemas_climatizacao: "O estabelecimento possui um sistema centralizado de climatização híbrido. A plateia principal é atendida por unidades Fan-Coil (FC-01 e FC-02) que operam em circuito fechado de água gelada, proporcionando alta capacidade de climatização e filtragem em níveis superiores com elementos do tipo G4 combinados a filtros finos F7. As demais dependências de apoio, camarins e foyer utilizam condicionadores de ar autônomos por expansão direta de alta performance, dotados de fluido refrigerante ecológico R-410A de baixa agressão ambiental.",
   conclusao_text: "Com base nas auditorias mecânicas e sanitárias conduzidas pela equipe técnica da VL Engenharia, declara-se que as instalações de climatização do estabelecimento encontram-se em perfeitas condições operacionais, adequando-se inteiramente aos requisitos impostos pela Lei Federal 13.589/2018. Fica recomendada a estrita observância das datas de execução das rotinas preventivas descritas no cronograma anual e o arquivamento sistemático dos registros para eventual fiscalização da Vigilância Sanitária (VISA)."
 };
+
+export interface PMOCCustomActivity {
+  id: string;
+  descricao: string;
+  periodicidade: "Mensal" | "Trimestral" | "Semestral";
+}
+
+export const INITIAL_PMOC_ACTIVITIES: PMOCCustomActivity[] = [
+  { id: "pact_1", descricao: "Inspeção geral na instalação do equipamento, curto circuito de ar, distribuição de insuflamento nas unidades, bloqueamento na entrada e saída de ar do condensador, unidade condensadora exposta à carga térmica.", periodicidade: "Mensal" },
+  { id: "pact_2", descricao: "Verificar instalação elétrica", periodicidade: "Mensal" },
+  { id: "pact_3", descricao: "Lavar e secar o filtro de ar (se necessário trocar)", periodicidade: "Mensal" },
+  { id: "pact_4", descricao: "Medir tensão e corrente de funcionamento e comparar com a nominal.", periodicidade: "Mensal" },
+  { id: "pact_5", descricao: "Verificar aperto de todos os terminais elétricos das unidades, evitar possíveis maus contatos", periodicidade: "Mensal" },
+  { id: "pact_6", descricao: "Verificar obstrução de sujeira e aletas amassadas", periodicidade: "Mensal" },
+  { id: "pact_7", descricao: "Verificar possíveis entupimentos ou amassamentos na mangueira do dreno.", periodicidade: "Mensal" },
+  { id: "pact_8", descricao: "Efetuar a limpeza das serpentinas do evaporador;", periodicidade: "Trimestral" },
+  { id: "pact_9", descricao: "Efetuar a limpeza do ventilador/rotor do evaporador;", periodicidade: "Trimestral" },
+  { id: "pact_10", descricao: "Efetuar a limpeza da bandeja de condensado;", periodicidade: "Trimestral" },
+  { id: "pact_11", descricao: "Fazer limpeza dos gabinetes", periodicidade: "Trimestral" },
+  { id: "pact_12", descricao: "Verificar pressão de funcionamento;", periodicidade: "Semestral" },
+  { id: "pact_13", descricao: "Efetuar a limpeza do condensador;", periodicidade: "Semestral" },
+  { id: "pact_14", descricao: "Verificar estado dos compressores;", periodicidade: "Semestral" },
+  { id: "pact_15", descricao: "Verificar operação do sensor de temperatura;", periodicidade: "Semestral" },
+  { id: "pact_16", descricao: "Verificar estado dos suportes/coxins e corrigir caso necessário;", periodicidade: "Semestral" },
+  { id: "pact_17", descricao: "Verificar posicionamento, fixação e balanceamento da hélice ou turbina;", periodicidade: "Semestral" },
+  { id: "pact_18", descricao: "Verificar e corrigir isolante térmico das linhas de cobre", periodicidade: "Semestral" },
+  { id: "pact_19", descricao: "Analise da Qualidade do Ar (Conforme a RES. /09);", periodicidade: "Semestral" }
+];
+
+export function generateActivitySchedule(act: PMOCCustomActivity) {
+  const isMensal = act.periodicidade === "Mensal";
+  const isTrimestral = act.periodicidade === "Trimestral";
+  const isSemestral = act.periodicidade === "Semestral";
+
+  return {
+    id: act.id,
+    descricao: act.descricao,
+    periodicidade: act.periodicidade,
+    statusJan: "P",
+    statusFev: isMensal ? "P" : "-",
+    statusMar: isMensal ? "P" : "-",
+    statusAbr: isMensal || isTrimestral ? "P" : "-",
+    statusMai: isMensal ? "P" : "-",
+    statusJun: isMensal ? "P" : "-",
+    statusJul: isMensal || isSemestral || isTrimestral ? "P" : "-",
+    statusAgo: isMensal ? "P" : "-",
+    statusSet: isMensal ? "P" : "-",
+    statusOut: isMensal || isTrimestral ? "P" : "-",
+    statusNov: isMensal ? "P" : "-",
+    statusDez: isMensal ? "P" : "-"
+  };
+}

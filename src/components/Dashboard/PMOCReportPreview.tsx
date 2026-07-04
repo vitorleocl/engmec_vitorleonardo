@@ -1168,22 +1168,46 @@ export default function PMOCReportPreview({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-150 leading-tight">
-                    {DETAILED_ACTIVITIES_TEMPLATE.map((act, index) => (
-                      <tr key={index} className="hover:bg-slate-50/50">
-                        <td className="p-0.5 px-1.5 text-slate-800 font-medium">
-                          {act.text}
-                        </td>
-                        <td className="p-0.5 text-center font-black text-emerald-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
-                          {act.col === "M" ? "X" : ""}
-                        </td>
-                        <td className="p-0.5 text-center font-black text-[#134074] border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
-                          {act.col === "T" ? "X" : ""}
-                        </td>
-                        <td className="p-0.5 text-center font-black text-blue-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
-                          {act.col === "S" ? "X" : ""}
-                        </td>
-                      </tr>
-                    ))}
+                    {(ap.atividades || []).length > 0 ? (
+                      ap.atividades.map((act, index) => {
+                        const isMensal = act.periodicidade === "Mensal" || act.periodicidade === "M" || (act as any).col === "M";
+                        const isTrimestral = act.periodicidade === "Trimestral" || act.periodicidade === "T" || (act as any).col === "T";
+                        const isSemestral = act.periodicidade === "Semestral" || act.periodicidade === "S" || (act as any).col === "S";
+                        return (
+                          <tr key={index} className="hover:bg-slate-50/50">
+                            <td className="p-0.5 px-1.5 text-slate-800 font-medium">
+                              {act.descricao}
+                            </td>
+                            <td className="p-0.5 text-center font-black text-emerald-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                              {blankPlanning ? "\u00A0" : (isMensal ? "X" : "")}
+                            </td>
+                            <td className="p-0.5 text-center font-black text-[#134074] border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                              {blankPlanning ? "\u00A0" : (isTrimestral ? "X" : "")}
+                            </td>
+                            <td className="p-0.5 text-center font-black text-blue-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                              {blankPlanning ? "\u00A0" : (isSemestral ? "X" : "")}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      DETAILED_ACTIVITIES_TEMPLATE.map((act, index) => (
+                        <tr key={index} className="hover:bg-slate-50/50">
+                          <td className="p-0.5 px-1.5 text-slate-800 font-medium">
+                            {act.text}
+                          </td>
+                          <td className="p-0.5 text-center font-black text-emerald-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                            {blankPlanning ? "\u00A0" : (act.col === "M" ? "X" : "")}
+                          </td>
+                          <td className="p-0.5 text-center font-black text-[#134074] border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                            {blankPlanning ? "\u00A0" : (act.col === "T" ? "X" : "")}
+                          </td>
+                          <td className="p-0.5 text-center font-black text-blue-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                            {blankPlanning ? "\u00A0" : (act.col === "S" ? "X" : "")}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

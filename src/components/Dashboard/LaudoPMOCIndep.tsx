@@ -33,7 +33,10 @@ import {
   DEFAULT_PMOC_SECOES,
   PMOCChecklistItem,
   PMOCNaoConformidade,
-  UploadedImage
+  UploadedImage,
+  PMOCCustomActivity,
+  INITIAL_PMOC_ACTIVITIES,
+  generateActivitySchedule
 } from "./pmocData";
 import PMOCReportPreview from "./PMOCReportPreview";
 import { exportToWord, copyRichText, preprocessStylesheets, restoreStylesheets } from "../../lib/pdfUtils";
@@ -49,13 +52,21 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
   // State Management
   const [laudoParams, setLaudoParams] = useState(PREFILLED_PMOC_PARAMS);
   const [environments, setEnvironments] = useState(PREFILLED_PMOC_ENVIRONMENTS);
-  const [appliances, setAppliances] = useState(PREFILLED_PMOC_APPLIANCES);
+  const [customActivities, setCustomActivities] = useState<PMOCCustomActivity[]>(INITIAL_PMOC_ACTIVITIES);
+  
+  const [appliances, setAppliances] = useState(() => {
+    return PREFILLED_PMOC_APPLIANCES.map(ap => ({
+      ...ap,
+      atividades: INITIAL_PMOC_ACTIVITIES.map(act => generateActivitySchedule(act))
+    }));
+  });
   const [checklist, setChecklist] = useState<PMOCChecklistItem[]>(DEFAULT_PMOC_CHECKLIST);
   const [naoConformidades, setNaoConformidades] = useState<PMOCNaoConformidade[]>(PREFILLED_PMOC_NAO_CONFORMIDADES);
   const [secoes, setSecoes] = useState<Record<string, string>>(DEFAULT_PMOC_SECOES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [blankPlanning, setBlankPlanning] = useState(false);
   const [artPdf, setArtPdf] = useState<{ name: string; size: string; data: string } | null>(null);
+  const [showPreCadastro, setShowPreCadastro] = useState(false);
 
   // UI state
   const [loadingAI, setLoadingAI] = useState(false);
@@ -141,11 +152,7 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
         capacidade: "12.000 BTU/h",
         localizacao: "Nova Sala de Reunião",
         tipo: "Split Hi-Wall",
-        atividades: [
-          { id: `${nextId}_act1`, descricao: "Limpar e higienizar filtros de ar", periodicidade: "Mensal", statusJan: "P", statusFev: "P", statusMar: "P", statusAbr: "P", statusMai: "P", statusJun: "P", statusJul: "P", statusAgo: "P", statusSet: "P", statusOut: "P", statusNov: "P", statusDez: "P" },
-          { id: `${nextId}_act2`, descricao: "Limpar dreno e bandeja de condensado", periodicidade: "Mensal", statusJan: "P", statusFev: "P", statusMar: "P", statusAbr: "P", statusMai: "P", statusJun: "P", statusJul: "P", statusAgo: "P", statusSet: "P", statusOut: "P", statusNov: "P", statusDez: "P" },
-          { id: `${nextId}_act3`, descricao: "Higienizar serpentina evaporadora", periodicidade: "Semestral", statusJan: "P", statusFev: "P", statusMar: "P", statusAbr: "P", statusMai: "P", statusJun: "P", statusJul: "P", statusAgo: "P", statusSet: "P", statusOut: "P", statusNov: "P", statusDez: "P" }
-        ]
+        atividades: customActivities.map(act => generateActivitySchedule(act))
       }
     ]);
   };
@@ -176,6 +183,81 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
         })
       };
     }));
+  };
+
+  // Helper to sync changes from customActivities to appliances
+  const syncCustomActivitiesToAppliances = (updatedActivities: PMOCCustomActivity[]) => {
+    setAppliances(prev => prev.map(ap => {
+      // Create a map of existing activities by ID to preserve their status
+      const existingMap = new Map<string, any>();
+      ap.atividades?.forEach(act => {
+        existingMap.set(act.id, act);
+      });
+
+      const newAtividades = updatedActivities.map((act) => {
+        const existing = existingMap.get(act.id);
+        if (existing) {
+          return {
+            ...existing,
+            descricao: act.descricao,
+            periodicidade: act.periodicidade,
+          };
+        } else {
+          // Generate new activity with default "P" or "-"
+          return generateActivitySchedule(act);
+        }
+      });
+
+      return {
+        ...ap,
+        atividades: newAtividades
+      };
+    }));
+  };
+
+  // Custom Activities CRUD
+  const addCustomActivity = () => {
+    const nextId = "pact_" + (customActivities.length + 1) + "_" + Date.now();
+    const newAct: PMOCCustomActivity = {
+      id: nextId,
+      descricao: "Nova atividade de manutenção preventiva...",
+      periodicidade: "Mensal"
+    };
+    const updated = [...customActivities, newAct];
+    setCustomActivities(updated);
+    syncCustomActivitiesToAppliances(updated);
+    showNotification("success", "Nova atividade adicionada ao pré-cadastro e distribuída aos aparelhos!");
+  };
+
+  const updateCustomActivity = (id: string, field: keyof PMOCCustomActivity, val: string) => {
+    const updated = customActivities.map(act => act.id === id ? { ...act, [field]: val } : act);
+    setCustomActivities(updated);
+    syncCustomActivitiesToAppliances(updated);
+  };
+
+  const removeCustomActivity = (id: string) => {
+    const updated = customActivities.filter(act => act.id !== id);
+    setCustomActivities(updated);
+    syncCustomActivitiesToAppliances(updated);
+    showNotification("info", "Atividade removida do pré-cadastro e dos aparelhos.");
+  };
+
+  const resetCustomActivitiesToDefault = () => {
+    if (window.confirm("Deseja realmente redefinir todas as atividades para o padrão de 19 itens da norma?")) {
+      setCustomActivities(INITIAL_PMOC_ACTIVITIES);
+      syncCustomActivitiesToAppliances(INITIAL_PMOC_ACTIVITIES);
+      showNotification("success", "Atividades de pré-cadastro redefinidas para o padrão da norma!");
+    }
+  };
+
+  const resetAllAppliancesSchedules = () => {
+    if (window.confirm("Isso irá redefinir as marcações mensais (Jan-Dez) de todos os aparelhos para o planejamento sugerido (P ou -). Continuar?")) {
+      setAppliances(prev => prev.map(ap => ({
+        ...ap,
+        atividades: customActivities.map(act => generateActivitySchedule(act))
+      })));
+      showNotification("success", "Marcações mensais de todos os aparelhos redefinidas para o padrão!");
+    }
   };
 
   // Checklist updates
@@ -873,6 +955,108 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* PRÉ-CADASTRO DE ATIVIDADES */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center border-b pb-2">
+                <div>
+                  <h3 className="font-sans font-black text-sm tracking-tight text-[#134074] dark:text-blue-400 uppercase flex items-center gap-2">
+                    <Wrench className="w-4 h-4" />
+                    Pré-Cadastro de Itens do Cronograma (Norma & Fichas)
+                  </h3>
+                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">Defina a lista de atividades que será gerada e impressa automaticamente para cada aparelho.</p>
+                </div>
+                <button 
+                  onClick={() => setShowPreCadastro(!showPreCadastro)}
+                  className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-650 text-xs font-bold transition-all"
+                >
+                  {showPreCadastro ? "Ocultar Itens" : `Ver/Editar Itens (${customActivities.length})`}
+                </button>
+              </div>
+
+              {showPreCadastro && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="p-3.5 bg-amber-500/5 border border-amber-500/15 rounded-xl text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+                    <span className="font-bold text-amber-700 dark:text-amber-400">💡 Como funciona o Pré-Cadastro:</span> Alterações nas descrições ou periodicidades das atividades são propagadas instantaneamente para a matriz de todos os aparelhos abaixo, <strong>preservando as suas marcações manuais</strong> (Executado, Bloqueado, etc.) se a atividade ainda existir. Novos itens são incluídos com o planejamento inicial sugerido (M = Mensal, T = Trimestral, S = Semestral).
+                  </div>
+
+                  <div className="overflow-x-auto max-h-[400px] overflow-y-auto border border-slate-250 dark:border-slate-800 rounded-xl">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[9px] font-mono font-bold text-slate-450 uppercase bg-slate-55 dark:bg-slate-950/40">
+                          <th className="p-2.5 w-12 text-center">Nº</th>
+                          <th className="p-2.5">Descrição da Atividade de Manutenção</th>
+                          <th className="p-2.5 w-36">Periodicidade</th>
+                          <th className="p-2.5 w-16 text-center">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-150 dark:divide-slate-800/50 font-sans">
+                        {customActivities.map((act, index) => (
+                          <tr key={act.id} className="hover:bg-slate-50/30 dark:hover:bg-slate-950/10">
+                            <td className="p-2 text-center text-[10px] font-mono font-bold text-slate-450">
+                              {String(index + 1).padStart(2, "0")}
+                            </td>
+                            <td className="p-2">
+                              <textarea
+                                value={act.descricao}
+                                rows={1}
+                                onChange={(e) => updateCustomActivity(act.id, "descricao", e.target.value)}
+                                className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-850 dark:bg-slate-950 text-xs text-slate-800 dark:text-white leading-tight focus:ring-1 focus:ring-[#134074]"
+                                style={{ resize: "vertical" }}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <select
+                                value={act.periodicidade}
+                                onChange={(e) => updateCustomActivity(act.id, "periodicidade", e.target.value as any)}
+                                className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-850 dark:bg-slate-950 text-xs font-bold text-slate-750 dark:text-white focus:ring-1 focus:ring-[#134074]"
+                              >
+                                <option value="Mensal">Mensal (M)</option>
+                                <option value="Trimestral">Trimestral (T)</option>
+                                <option value="Semestral">Semestral (S)</option>
+                              </select>
+                            </td>
+                            <td className="p-2 text-center">
+                              <button
+                                onClick={() => removeCustomActivity(act.id)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-all"
+                                title="Remover atividade"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex flex-wrap justify-between gap-2 pt-2">
+                    <button
+                      onClick={addCustomActivity}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-[#134074] hover:bg-[#134074]/95 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Adicionar Nova Atividade
+                    </button>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={resetCustomActivitiesToDefault}
+                        className="px-3 py-2 border border-slate-200 dark:border-slate-850 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-650 text-xs font-bold transition-all"
+                      >
+                        Restaurar Padrão (19 Itens)
+                      </button>
+                      <button
+                        onClick={resetAllAppliancesSchedules}
+                        className="px-3 py-2 border border-[#134074]/20 text-[#134074] hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-xs font-bold transition-all"
+                      >
+                        Resetar Planejamentos p/ Padrão
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* CRONOGRAMA ANUAL CONTROLS */}
