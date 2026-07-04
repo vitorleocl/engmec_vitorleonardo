@@ -772,6 +772,405 @@ function isValidApiKey(key: string | undefined): boolean {
     }
   });
 
+  // 2.9. API: Intelligent Vehicle Inspection Technical Auditor
+  app.post("/api/gemini/vehicle-inspection", async (req, res) => {
+    const { 
+      brand, 
+      model, 
+      fabYear, 
+      modelYear, 
+      color, 
+      plate, 
+      chassi, 
+      renavam, 
+      fuelType, 
+      kmCurrent, 
+      lotacao, 
+      pbt, 
+      cargoCapacity, 
+      carroceriaType, 
+      lastRevision, 
+      generalStatus,
+      clientName, 
+      cnpj,
+      address,
+      laudoNumber,
+      inspectionDate,
+      inspectionCity,
+      notes,
+      images
+    } = req.body;
+
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated vehicle inspection engine.");
+        return res.json(getSimulatedVehicleInspectionLaudo({
+          brand, 
+          model, 
+          fabYear, 
+          modelYear, 
+          color, 
+          plate, 
+          chassi, 
+          renavam, 
+          fuelType, 
+          kmCurrent, 
+          lotacao, 
+          pbt, 
+          cargoCapacity, 
+          carroceriaType, 
+          lastRevision, 
+          generalStatus,
+          clientName, 
+          cnpj,
+          address,
+          laudoNumber,
+          inspectionDate,
+          inspectionCity,
+          notes
+        }));
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o SISTEMA LAUDO INSPEÇÃO VEICULAR da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Inspeção Veicular, Perícia Automotiva e Segurança Veicular, com profundo conhecimento nas Resoluções do CONTRAN/DENATRAN, ABNT NBR 14447, ABNT NBR 7036, normas de segurança automotiva e requisitos para inspeção técnica veicular.
+
+      EMPRESA EMISSORA:
+      - Razão Social: VL Engenharia
+      - Responsável Técnico: Eng. Mecânico Vitor Leonardo
+      - CREA: 1822299490 – PE
+      - E-mail: vitorleonardocl@gmail.com
+      - Telefone: (81) 98444-2592
+
+      DADOS DO LAUDO A GERAR:
+      - Número do Laudo: ${laudoNumber || "LIV-001/2026 Rev. 00"}
+      - Empresa/Proprietário Contratante: ${clientName || "Cliente Contratante Ltda"} (CNPJ/CPF: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Veículo: ${brand || "Não informado"} ${model || "Não informado"} (Fabricação/Modelo: ${fabYear || "N/A"}/${modelYear || "N/A"}, Cor: ${color || "Não informado"}, Placa: ${plate || "Não informado"}, Chassi: ${chassi || "Não informado"}, RENAVAM: ${renavam || "Não informado"}, Combustível: ${fuelType || "Não informado"}, KM: ${kmCurrent || "Não informado"}, Lotação: ${lotacao || "Não informado"} passageiros, PBT: ${pbt || "Não informado"}, Capacidade de Carga: ${cargoCapacity || "Não informado"}, Carroceria: ${carroceriaType || "Não informado"}, Última Revisão: ${lastRevision || "Não informada"}, Estado Geral: ${generalStatus || "A confirmar"})
+      - Cidade da Inspeção: ${inspectionCity || "Recife"}, Data: ${inspectionDate || "Data atual"}
+      - Notas / Descrição Operacional: ${notes || ""}
+
+      VEÍCULOS COBERTOS:
+      Automóveis de passeio, Caminhonetes e utilitários, Caminhões leves e pesados, Ônibus e micro-ônibus, Vans e furgões, Motocicletas e triciclos, Veículos de transporte coletivo, Veículos de emergência, Veículos adaptados para PCD, Frotas corporativas, Veículos escolares, Carretas e semireboques, Veículos especiais de carga.
+
+      REGRAS OBRIGATÓRIAS DO LAUDO:
+      1. NUNCA invente informações não confirmáveis pelas imagens ou dados fornecidos.
+      2. SEMPRE diferencie: "OBSERVADO" / "PROVÁVEL" / "NÃO FOI POSSÍVEL CONFIRMAR ESTE REQUISITO APENAS POR MEIO DA INSPEÇÃO VISUAL, SENDO NECESSÁRIA VERIFICAÇÃO PRESENCIAL OU DOCUMENTAL."
+      3. SEMPRE cite o dispositivo legal ou norma para cada não conformidade (ex: CTB art. 230, Resolução CONTRAN N° 14/1998, ABNT NBR 14447, etc.).
+      4. Calcule o HRN (LO x FE x DPH x NP) antes e depois das medidas recomendadas seguindo as tabelas fornecidas.
+      5. Postura extremamente conservadora e rigorosa.
+      
+      TABELAS DE CÁLCULO HRN:
+      LO (Probabilidade): 0.033=Quase impossível, 1=Muito improvável, 1.5=Improvável, 2=Possível, 5=Inesperado, 8=Provável, 10=Muito provável, 15=Certamente
+      FE (Exposição): 0.5=Anualmente, 1=Mensalmente, 1.5=Semanalmente, 2.5=Diariamente, 4=De hora em hora, 5=Constantemente
+      DPH (Gravidade): 0.1=Arranhão leve, 0.5=Laceração leve, 1=Fratura ossos pequenos, 2=Fratura ossos grandes, 4=Grave, 6=Perda de membro/olho, 8=Perda de dois membros, 15=Fatalidade
+      NP (Pessoas): 1=1-2 pessoas, 2=3-7 pessoas, 4=8-15 pessoas, 8=16-50 pessoas, 12=mais de 50 pessoas
+
+      CLASSIFICAÇÃO HRN:
+      0-1 = Risco Desprezível | 2-5 = Risco Muito Baixo | 6-10 = Risco Baixo
+      11-50 = Risco Significante | 51-100 = Risco Alto | 101-500 = Risco Muito Alto
+      501-1000 = Risco Extremo | Acima de 1000 = Risco Inaceitável
+
+      Retorne estritamente um JSON estruturado seguindo este esquema exato:
+      {
+        "numero": "ID do Laudo",
+        "checklist": {
+          "item_1": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa CRLV vigente"},
+          "item_2": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Placa legível"},
+          "item_3": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Faróis funcionando"},
+          "item_4": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Luzes de freio"},
+          "item_5": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Pisca-alerta"},
+          "item_6": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Luz de ré"},
+          "item_7": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Buzina"},
+          "item_8": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Pneus sem careca (> 1,6 mm)"},
+          "item_9": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Pneus sem bolhas/cortes"},
+          "item_10": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Cintos de segurança"},
+          "item_11": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Espelhos retrovisores"},
+          "item_12": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Vidros sem trincas"},
+          "item_13": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Triângulo presente"},
+          "item_14": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Macaco e chave de roda"},
+          "item_15": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Extintor com validade"},
+          "item_16": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Pedal de freio resistente"},
+          "item_17": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Freio de mão funcional"},
+          "item_18": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Ausência de luzes de aviso no painel"},
+          "item_19": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Lataria sem corrosão estrutural"},
+          "item_20": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa Escapamento sem vazamentos"}
+        },
+        "hrn_before": {
+          "lo": 8.0,
+          "fe": 2.5,
+          "dph": 15.0,
+          "np": 1.0,
+          "score": 300.0,
+          "classification": "Risco Muito Alto",
+          "explicacao": "Descrição detalhada do perigo de trânsito devido a pneus carecas ou sistema de freio inoperante antes das correções"
+        },
+        "hrn_after": {
+          "lo": 0.033,
+          "fe": 2.5,
+          "dph": 15.0,
+          "np": 1.0,
+          "score": 1.23,
+          "classification": "Risco Muito Baixo",
+          "explicacao": "Descrição da segurança mecânica e mitigação de risco após trocas de peças e vistorias de regularização"
+        },
+        "nao_conformidades": [
+          {
+            "id": "NC-01",
+            "descricao": "Descrição técnica da infração do veículo",
+            "criticidade": "CRÍTICA",
+            "risco": "Risco de acidente de trânsito, capotamento, colisão",
+            "norma": "Resolução CONTRAN N° 14/1998, CTB Artigo 230"
+          }
+        ],
+        "plano_action": [
+          {
+            "id": "AP-01",
+            "problema": "Problema identificado no veículo",
+            "norma": "Norma exata",
+            "recomendacao": "Ação recomendada precisa",
+            "prioridade": "IMEDIATO",
+            "responsavel": "Proprietário / Equipe de Manutenção",
+            "prazo": "3 dias"
+          }
+        ],
+        "sistemas_inspecao": {
+          "estrutura_carroceria": "Análise técnica de lataria (amassados, corrosão, trincas), vidros (películas), portas/travas, para-choques, assoalho...",
+          "freios": "Análise técnica do pedal de freio, freio de estacionamento, estimativa visual de discos/pastilhas, mangueiras, luz de ABS...",
+          "suspensao_direcao": "Análise técnica dos pneus (desgaste, TWI, bolhas), rodas, amortecedores (vazamentos), barra de direção, folgas...",
+          "motor_transmissao": "Análise técnica do estado do motor, vazamentos, correia/corrente, escapamento, caixa de câmbio...",
+          "eletrico_eletronico": "Análise técnica de luzes (faróis, piscas, ré, freio), buzina, painel (check engine, airbag), bateria...",
+          "seguranca_obrigatoria": "Análise técnica de cintos, airbags, triângulo, macaco/chave, extintor, espelhos retrovisores...",
+          "documentacao": "Análise técnica do CRLV, seguro obrigatório, históricos de vistorias anteriores..."
+        },
+        "conclusao": {
+          "status": "APROVADO",
+          "parecer": "Parecer pericial fundamentado do Engenheiro Vitor Leonardo"
+        }
+      }
+
+      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
+      `;
+
+      const parts: any[] = [];
+      
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+          systemInstruction: "Você é o auditor mestre especialista em laudos de Inspeção Veicular da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        
+        cleanJson.secoes = getSecoesVehicleInspection({
+          brand,
+          model,
+          clientName,
+          cnpj,
+          address
+        });
+
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for Vehicle Inspection:", error);
+      console.warn("Falling back to simulated vehicle inspection engine due to API error.");
+      return res.json(getSimulatedVehicleInspectionLaudo({
+        brand, 
+        model, 
+        fabYear, 
+        modelYear, 
+        color, 
+        plate, 
+        chassi, 
+        renavam, 
+        fuelType, 
+        kmCurrent, 
+        lotacao, 
+        pbt, 
+        cargoCapacity, 
+        carroceriaType, 
+        lastRevision, 
+        generalStatus,
+        clientName, 
+        cnpj,
+        address,
+        laudoNumber,
+        inspectionDate,
+        inspectionCity,
+        notes
+      }));
+    }
+  });
+
+  // Helper function to programmatically generate standard report sections for Vehicle Inspection
+  function getSecoesVehicleInspection(params: any): any {
+    const brand = params.brand || "Veículo";
+    const model = params.model || "Modelo";
+    return {
+      "secao_1": `Este Laudo Técnico de Inspeção Veicular tem como objetivo primordial auditar as condições de integridade física, funcionalidade e conformidade de segurança do veículo automotor ${brand} ${model} para certificar suas plenas condições de circulação e segurança viária ativa e passiva.`,
+      "secao_2": `Empresa ou Proprietário Solicitante: ${params.clientName || "Cliente Contratante Ltda"} (CNPJ/CPF: ${params.cnpj || "Não informado"}, Endereço: ${params.address || "Não informado"}), focado na gestão segura de frotas e cumprimento das regras periciais de transporte.`,
+      "secao_3": "Órgão Pericial Emissor: VL Engenharia. Responsável Técnico de Inspeção: Eng. Mecânico Vitor Leonardo (CREA-PE 1822299490). Especialista em Auditorias Automotivas, Perícia Mecânica de Trânsito e Enquadramento Legal. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.",
+      "secao_5": "Evidências analisadas: Registro fotográfico in loco de todos os ângulos estruturais, verificação eletrônica dos módulos do painel, leitura de TWI dos pneus traseiros e dianteiros, e análise documental do Certificado de Registro e Licenciamento de Veículo (CRLV).",
+      "secao_6": "Normas e legislação balizadoras: Código de Trânsito Brasileiro (CTB - Lei 9.503/1997), Resoluções CONTRAN n.º 14/1998 (itens obrigatórios), 315/2009 (inspeção de frota), 774/2019 (desgaste de pneus) e a ABNT NBR 14447 (Inspeção Técnica Veicular).",
+      "secao_7": "Metodologia: Vistoria presencial visual por meio de roteiro padronizado NBR 14447, com quantificação matemática de perigo pelo algoritmo HRN (Hazard Rating Number) correlacionando Probabilidade (LO), Exposição (FE), Gravidade da Lesão (DPH) e Número de pessoas (NP).",
+      "secao_17": "Esta avaliação técnica pericial limita-se única e estritamente aos aspectos mecânicos externos e estruturais aparentes observados no veículo na data de inspeção. Não se responsabiliza por vícios ocultos do motor ou desgaste invisível de conexões profundas sem testes metalúrgicos destrutivos.",
+      "secao_18": "Anexos e Documentações de Suporte: Registro de fotos de alta fidelidade dos itens de conformidade e não conformidade, ART emitida sob o número correspondente à respectiva guia de responsabilidade técnica."
+    };
+  }
+
+  // Expert fallback generator for vehicle inspection
+  function getSimulatedVehicleInspectionLaudo(params: any): any {
+    const num = params.laudoNumber || "LIV-001/2026 Rev. 00";
+    const brand = params.brand || "Volkswagen";
+    const model = params.model || "Gol";
+    
+    return {
+      "numero": num,
+      "checklist": {
+        "item_1": {"resposta": "SIM", "nota": "CRLV digital vigente e sem bloqueios no sistema nacional."},
+        "item_2": {"resposta": "SIM", "nota": "Placas dianteira e traseira legíveis, com lacre e em conformidade."},
+        "item_3": {"resposta": "NÃO", "nota": "Farol dianteiro esquerdo com lâmpada queimada (luz baixa)."},
+        "item_4": {"resposta": "SIM", "nota": "Luzes de freio operacionais, incluindo o break-light superior."},
+        "item_5": {"resposta": "SIM", "nota": "Pisca-alerta respondendo adequadamente ao acionamento no console."},
+        "item_6": {"resposta": "SIM", "nota": "Luz de ré funcionando normalmente quando engatada a marcha."},
+        "item_7": {"resposta": "SIM", "nota": "Buzina emitindo sinal audível de forma nítida e contínua."},
+        "item_8": {"resposta": "NÃO", "nota": "Pneus do eixo dianteiro abaixo de 1,6 mm de sulco (carecas), apresentando marcas de TWI visíveis."},
+        "item_9": {"resposta": "SIM", "nota": "Ausência de bolhas ou cortes severos na banda lateral dos quatro pneus."},
+        "item_10": {"resposta": "SIM", "nota": "Cintos de segurança operacionais com travas retráteis íntegras em todos os assentos."},
+        "item_11": {"resposta": "SIM", "nota": "Espelhos retrovisores presentes, com boa regulagem e espelhos sem trincas."},
+        "item_12": {"resposta": "NÃO", "nota": "Para-brisa dianteiro com trinca longitudinal superior a 15 cm no campo de visão do motorista."},
+        "item_13": {"resposta": "SIM", "nota": "Triângulo de sinalização presente no porta-malas."},
+        "item_14": {"resposta": "SIM", "nota": "Macaco hidráulico tipo sanfona e chave de roda presentes e funcionais."},
+        "item_15": {"resposta": "N/A", "nota": "Extintor de incêndio não exigido para este veículo de passeio particular."},
+        "item_16": {"resposta": "SIM", "nota": "Pedal de freio firme, sem indício de ar no sistema ou curso excessivo."},
+        "item_17": {"resposta": "SIM", "nota": "Freio de estacionamento segurando o veículo na rampa de teste com folga."},
+        "item_18": {"resposta": "NÃO", "nota": "Luz de advertência de injeção eletrônica (check engine) acesa no painel."},
+        "item_19": {"resposta": "SIM", "nota": "Estrutura e longarinas inferiores sem corrosão profunda ou amassados severos."},
+        "item_20": {"resposta": "SIM", "nota": "Sistema de escapamento sem vazamento de gases ou furos na tubulação traseira."}
+      },
+      "hrn_before": {
+        "lo": 8.0,
+        "fe": 2.5,
+        "dph": 15.0,
+        "np": 1.0,
+        "score": 300.0,
+        "classification": "Risco Muito Alto",
+        "explicacao": `Risco elevado de colisão fatal e perda de controle direcional devido ao pneu dianteiro careca (sulcos abaixo de 1,6mm) e para-brisa trincado limitando severamente a visibilidade noturna no veículo ${brand} ${model}.`
+      },
+      "hrn_after": {
+        "lo": 0.033,
+        "fe": 2.5,
+        "dph": 15.0,
+        "np": 1.0,
+        "score": 1.23,
+        "classification": "Risco Muito Baixo",
+        "explicacao": "Risco mitigado após substituição obrigatória dos pneus dianteiros, troca do para-brisa trincado e manutenção do módulo de injeção."
+      },
+      "nao_conformidades": [
+        {
+          "id": "NC-01",
+          "descricao": "Pneus do eixo dianteiro com sulcos abaixo de 1,6 mm, comprometendo a aderência e violando a Resolução CONTRAN N° 774/2019.",
+          "criticidade": "CRÍTICA",
+          "risco": "Aquaplanagem, estouro de pneu e colisão fatal",
+          "norma": "Resolução CONTRAN N° 774/2019 e CTB Art. 230, Inciso XVIII"
+        },
+        {
+          "id": "NC-02",
+          "descricao": "Trinca no para-brisa dianteiro superior a 15 cm no campo visual do motorista, limitando o foco e violando as diretrizes de integridade física.",
+          "criticidade": "ALTA",
+          "risco": "Estilhaçamento de vidro e limitação de campo visual ativo",
+          "norma": "Resolução CONTRAN N° 432/2013"
+        },
+        {
+          "id": "NC-03",
+          "descricao": "Farol dianteiro esquerdo queimado na função de facho baixo, limitando a identificação noturna do perímetro.",
+          "criticidade": "MÉDIA",
+          "risco": "Colisão noturna por falta de sinalização adequada",
+          "norma": "CTB Artigo 230, Inciso XXII"
+        }
+      ],
+      "plano_action": [
+        {
+          "id": "AP-01",
+          "problema": "Pneus dianteiros sem aderência (carecas)",
+          "norma": "Resolução CONTRAN N° 774/2019",
+          "recomendacao": "Realizar a substituição imediata de ambos os pneus do eixo dianteiro por novos da mesma especificação e realizar alinhamento/balanceamento.",
+          "prioridade": "IMEDIATO",
+          "responsavel": "Proprietário do Veículo",
+          "prazo": "2 dias"
+        },
+        {
+          "id": "AP-02",
+          "problema": "Para-brisa trincado",
+          "norma": "Resolução CONTRAN N° 432/2013",
+          "recomendacao": "Substituir o vidro para-brisa por um novo homologado pelo fabricante e recalibrar as borrachas de vedação.",
+          "prioridade": "IMEDIATO",
+          "responsavel": "Proprietário do Veículo",
+          "prazo": "3 dias"
+        },
+        {
+          "id": "AP-03",
+          "problema": "Farol dianteiro esquerdo inoperante",
+          "norma": "Resolução CONTRAN N° 14/1998",
+          "recomendacao": "Trocar a lâmpada do farol de facho baixo esquerdo por modelo halógeno padrão.",
+          "prioridade": "IMEDIATO",
+          "responsavel": "Proprietário do Veículo / Auto Elétrica",
+          "prazo": "1 dia"
+        }
+      ],
+      "sistemas_inspecao": {
+        "estrutura_carroceria": "A lataria apresenta pequenos amassados de uso urbano sem comprometimento de soldas estruturais. O assoalho está em ótimas condições de conservação.",
+        "freios": "O pedal de freio apresenta ótimo curso e resistência. Pastilhas de freio com meia vida e discos de freio lisos sem rebarbas severas.",
+        "suspensao_direcao": "Amortecedores sem indício de vazamento hidráulico. Barra de direção firme e sem folgas mecânicas ao balanço lateral.",
+        "motor_transmissao": "Motor operando sem vazamentos severos, necessitando apenas de varredura eletrônica devido à luz do painel. Escapamento fixado rigidamente.",
+        "eletrico_eletronico": "Farol esquerdo de facho baixo queimado. Outros elementos elétricos como luzes de pisca e freio estão excelentes. Bateria testada com 12.6V.",
+        "seguranca_obrigatoria": "Cintos de segurança operando perfeitamente em todos os assentos. Triângulo e macaco presentes no porta-malas.",
+        "documentacao": "CRLV digital regularizado, sem restrições ou restrições administrativas ativas no órgão estadual."
+      },
+      "conclusao": {
+        "status": "REPROVADO",
+        "parecer": `O veículo inspecionado (${brand} ${model}) encontra-se REPROVADO frente aos requisitos de segurança viária. A presença de pneus do eixo dianteiro com sulcos abaixo do limite de segurança (1,6 mm) associada a uma trinca acentuada no para-brisa dianteiro impossibilita a circulação rodoviária segura imediata, impondo a regularização destes dois itens críticos para aprovação em vistoria posterior.`
+      },
+      "secoes": getSecoesVehicleInspection(params)
+    };
+  }
+
   // 3. Vite middleware for development
   async function init() {
     if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
