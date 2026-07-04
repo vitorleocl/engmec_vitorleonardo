@@ -1512,31 +1512,37 @@ function isValidApiKey(key: string | undefined): boolean {
     }
   });
 
-  // 5. API: Monta-Cargas Reclassification Auditor
-  app.post("/api/gemini/montacargas-audit", async (req, res) => {
+  // 5. API: Monta Veicular Reclassification Auditor (CONTRAN 810/2020)
+  app.post("/api/gemini/monta-veicular", async (req, res) => {
     const {
+      laudoNumber,
       clientName,
       cnpj,
       address,
-      equipmentType,
-      manufacturer,
+      ownerName,
+      ownerDoc,
+      brand,
       model,
       fabYear,
-      serialNumber,
-      capacityCurrent,
-      speedNominal,
-      numParadas,
-      heightPercurso,
-      dimensionsCabine,
-      driveSystem,
-      suspensionType,
-      installationLocation,
-      lastMaintenance,
-      lastInspection,
-      proposedCategory,
-      laudoNumber,
-      inspectionDate,
+      modelYear,
+      color,
+      plate,
+      vin,
+      renavam,
+      motorNumber,
+      fuel,
+      category,
+      bodyType,
+      mileage,
+      conditionPre,
+      conditionActual,
+      insuranceCompany,
+      claimNumber,
+      claimDate,
+      claimType,
       inspectionCity,
+      inspectionState,
+      inspectionDate,
       notes,
       images
     } = req.body;
@@ -1545,11 +1551,11 @@ function isValidApiKey(key: string | undefined): boolean {
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!isValidApiKey(apiKey)) {
-        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated monta-cargas reclassification engine.");
-        return res.json(getSimulatedMontacargasLaudo(req.body));
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated monta veicular engine.");
+        return res.json(getSimulatedMontaVeicularLaudo(req.body));
       }
 
-      // Initialize Gemini Client Lazily
+      // Initialize Gemini Client
       const ai = new GoogleGenAI({
         apiKey: apiKey,
         httpOptions: {
@@ -1560,97 +1566,62 @@ function isValidApiKey(key: string | undefined): boolean {
       });
 
       const textPrompt = `
-      Você é o SISTEMA LAUDO RECLASSIFICAÇÃO DE MONTA-CARGAS da VL ENGENHARIA.
-      Atua como Engenheiro Mecânico Especialista em Elevadores, Monta-Cargas, Plataformas Elevatórias e Equipamentos de Transporte Vertical, com profundo conhecimento na NR-12, ABNT NBR 7190, ABNT NBR 9077, ABNT NBR 16858, ABNT NBR ISO 9386, regulamentações do INMETRO, normas estaduais e municipais de inspeção de elevadores.
+      Você é o SISTEMA DE RECLASSIFICAÇÃO DE MONTA da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Perícia Automotiva, Inspeção Veicular e Avaliação de Veículos Sinistrados, com domínio completo da Resolução CONTRAN nº 810/2020, do Código de Trânsito Brasileiro (Lei 9.503/1997) e das normas ABNT aplicáveis à perícia e inspeção de veículos.
 
       DADOS DO LAUDO A GERAR:
-      - Número do Laudo: ${laudoNumber || "LRM-001/2026 Rev. 00"}
-      - Empresa Contratante: ${clientName || "Empresa Contratante S/A"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
-      - Equipamento: ${equipmentType || "Monta-Cargas"} (Fabricante: ${manufacturer || "Não informado"}, Modelo: ${model || "Não informado"}, Série: ${serialNumber || "N/A"}, Ano: ${fabYear || "N/A"})
-      - Capacidade Atual de Carga: ${capacityCurrent || "Não informado"}
-      - Velocidade Nominal: ${speedNominal || "Não informado"}
-      - Número de Paradas: ${numParadas || "Não informado"}
-      - Altura de Percurso: ${heightPercurso || "Não informado"}
-      - Dimensões da Cabine: ${dimensionsCabine || "Não informado"}
-      - Sistema de Acionamento: ${driveSystem || "Não informado"}
-      - Tipo de Cabo/Corrente: ${suspensionType || "Não informado"}
-      - Local de Instalação: ${installationLocation || "Não informado"}
-      - Data da Última Manutenção: ${lastMaintenance || "Não informado"}
-      - Última Inspeção Realizada: ${lastInspection || "Não informado"}
-      - Categoria Pretendida após Reclassificação: ${proposedCategory || "Uso por pessoas acompanhando a carga"}
-      - Cidade da Inspeção: ${inspectionCity || "Recife"}, Data: ${inspectionDate || "Data atual"}
-      - Notas / Observações: ${notes || "Nenhuma nota inserida"}
+      - Número do Laudo: ${laudoNumber || "LRM-047/2026 Rev. 00"}
+      - Empresa Solicitante: ${clientName || "Não informado"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Proprietário: ${ownerName || "Não informado"} (CPF/CNPJ: ${ownerDoc || "Não informado"})
+      - Veículo: ${brand || "Não informado"} ${model || "Não informado"} (Ano Fab/Mod: ${fabYear || "N/A"}/${modelYear || "N/A"}, Cor: ${color || "Não informado"})
+      - Placa: ${plate || "Não informado"} | Chassi (VIN): ${vin || "Não informado"} | RENAVAM: ${renavam || "Não informado"}
+      - Motor: ${motorNumber || "Não informado"} | Combustível: ${fuel || "N/A"} | Carroceria: ${bodyType || "N/A"}
+      - Quilometragem: ${mileage || "N/A"}
+      - Estado Geral Pré-Sinistro: ${conditionPre || "N/A"}
+      - Condições Atuais do Veículo: ${conditionActual || "N/A"}
+      - Seguradora: ${insuranceCompany || "Não informado"} | Sinistro N°: ${claimNumber || "N/A"} | Data do Sinistro: ${claimDate || "N/A"} | Tipo: ${claimType || "Colisão"}
+      - Cidade da Inspeção: ${inspectionCity || "Recife"}, ${inspectionState || "PE"} | Data: ${inspectionDate || "Data atual"}
+      - Notas / Observações Adicionais: ${notes || "Nenhuma nota"}
 
-      REGRAS DE ANÁLISE DE RECLASSIFICAÇÃO:
-      1. Siga exatamente a identidade e normas de Vitor Leonardo (CREA-PE 1822299490).
-      2. Faça o checklist de 18 requisitos essenciais de reclassificação.
-      3. Calcule o HRN (Lançamento, Frequência, Gravidade DPH, Número de Pessoas Expostas) antes e depois das medidas recomendadas.
-      4. Avalie Não Conformidades (NC-01...) citando itens exatos das normas (ex: NBR 16858-1 item 5.6, NR-12 item 12.112).
-      5. Defina a Viabilidade Técnica: 'VIÁVEL MEDIANTE ADAPTAÇÕES', 'VIÁVEL SEM ADAPTAÇÕES' ou 'NÃO VIÁVEL'.
-      6. Forneça o parecer de conclusão técnica e o plano de ação de adaptações obrigatórias.
+      REGRAS TÉCNICAS ABSOLUTAS:
+      1. Legislação Exclusiva: Baseie sua análise estritamente na Resolução CONTRAN nº 810/2020 (Anexos I, II e III).
+      2. Hierarquia de Classificação: A classificação final do veículo é determinada pelo componente danificado de maior gravidade. Se houver 1 item de Grande Monta -> GRANDE MONTA. Se houver apenas itens de Média Monta -> MÉDIA MONTA. Se houver apenas itens de Pequena Monta -> PEQUENA MONTA. Nunca realize downgrade sem justificativa técnica robusta.
+      3. Grau de Confiança: Defina para cada dano o grau de confiança baseado na visibilidade (MUITO ALTO >= 95%, ALTO 80-94%, MÉDIO 60-79%, BAIXO 40-59%, MUITO BAIXO < 40%).
+      4. Evidência Obrigatória: Para cada componente danificado visível, monte um Cartão de Dano com: fotoRef, localizacao, componente, descricaoDano, tipoDano, enquadramento, classificacao, grauConfianca, justificativa, impactoSeguranca e reparabilidade.
+      5. Se o Chassi (VIN) estiver danificado ou ilegível, classifique imediatamente como GRANDE MONTA com alerta DETRAN e da polícia.
+      6. Se faltarem fotos ou evidência visual de algum elemento estrutural crítico, marque no checklist como 'NA' (Não Avaliado por imagem) e aponte nas limitações.
 
       Retorne estritamente um JSON estruturado seguindo este esquema:
       {
-        "numero": "ID do Laudo",
+        "numero": "${laudoNumber || "LRM-047/2026 Rev. 00"}",
         "checklist": {
-          "item_1": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa"},
-          ...
-          "item_18": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa"}
+          "b1_1": {"resposta": "OK" | "DM" | "DG" | "NI" | "NA", "nota": "nota explicativa"},
+          ... (gerar para cada um dos itens de b1_1 até b9_4)
         },
-        "hrn_before": {
-          "lo": 10.0,
-          "fe": 2.5,
-          "dph": 15.0,
-          "np": 1.0,
-          "score": 375.0,
-          "classification": "Risco Muito Alto",
-          "explicacao": "Descrição detalhada do perigo mecânico"
-        },
-        "hrn_after": {
-          "lo": 0.033,
-          "fe": 2.5,
-          "dph": 15.0,
-          "np": 1.0,
-          "score": 1.23,
-          "classification": "Risco Muito Baixo",
-          "explicacao": "Descrição da segurança mecânica após regularização"
-        },
-        "nao_conformidades": [
+        "danos": [
           {
-            "id": "NC-01",
-            "descricao": "Vazamento de óleo...",
-            "criticidade": "CRÍTICA" | "ALTA" | "MÉDIA" | "BAIXA",
-            "risco": "Ruptura de cabos...",
-            "norma": "ABNT NBR 16858-1"
+            "id": "dano_1",
+            "fotoRef": "Foto [N°] — [Ângulo]",
+            "localizacao": "[Região]",
+            "componente": "[Nome técnico]",
+            "descricaoDano": "[Descrição técnica precisa]",
+            "tipoDano": "Amassamento" | "Deformação" | "Fratura" | "Torção" | "Corte" | "Substituição" | "Acionamento" | "Corrosão" | "Incêndio" | "Alagamento" | "Outro",
+            "enquadramento": "Resolução CONTRAN 810/2020 — Anexo [I/II/III]",
+            "classificacao": "PEQUENA" | "MÉDIA" | "GRANDE",
+            "grauConfianca": "★★★★★" | "★★★★☆" | "★★★☆☆" | "★★☆☆☆" | "★☆☆☆☆",
+            "grauConfiancaPercentual": 98,
+            "justificativa": "[Justificativa técnica visual baseada na foto]",
+            "impactoSeguranca": "CRÍTICO" | "ALTO" | "MÉDIO" | "BAIXO",
+            "reparabilidade": "RECUPERÁVEL" | "SUBSTITUIÇÃO NECESSÁRIA" | "PERDA TOTAL PROVÁVEL" | "A AVALIAR PRESENCIALMENTE"
           }
         ],
-        "plano_action": [
-          {
-            "id": "AP-01",
-            "problema": "Cabo de aço...",
-            "norma": "ABNT NBR 6327",
-            "recomendacao": "Substituir...",
-            "prioridade": "IMEDIATO" | "CURTO PRAZO" | "MÉDIO PRAZO",
-            "responsavel": "Equipe VL",
-            "prazo": "5 dias"
-          }
-        ],
-        "sistemas_inspecao": {
-          "cabine": "Avaliação detalhada da cabine...",
-          "poco_casa_maquinas": "Avaliação do poço...",
-          "sistema_tracao": "Avaliação da tração...",
-          "guias_estrutura": "Avaliação das guias...",
-          "dispositivos_seguranca": "Avaliação dos dispositivos...",
-          "portas_patamar": "Avaliação das portas...",
-          "sistema_eletrico": "Avaliação do sistema elétrico..."
-        },
-        "conclusao": {
-          "status": "VIÁVEL MEDIANTE ADAPTAÇÕES" | "VIÁVEL SEM ADAPTAÇÕES" | "NÃO VIÁVEL",
-          "parecer": "Parecer pericial fundamentado do Engenheiro Vitor Leonardo"
+        "secoes": {
+          "introducao": "[Parágrafo longo detalhado conforme CONTRAN 810/2020]",
+          "metodologia": "[Parágrafo detalhando o escopo metodológico]",
+          "limitacoes": "[Parágrafo especificando os limites da vistoria visual]",
+          "conclusao": "[Parecer de conclusão final com indicação técnica de monta, recuperabilidade e obrigações legais]"
         }
       }
-
-      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
       `;
 
       const parts: any[] = [];
@@ -1676,14 +1647,16 @@ function isValidApiKey(key: string | undefined): boolean {
         config: {
           responseMimeType: "application/json",
           temperature: 0.15,
-          systemInstruction: "Você é o perito mestre especialista em laudos de reclassificação de monta-cargas da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
+          systemInstruction: "Você é o perito mestre especialista em reclassificação de monta veicular da VL Engenharia. Retorne apenas o JSON puro solicitado."
         }
       });
 
       const responseText = response.text || "";
       try {
         const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
-        cleanJson.secoes = getSecoesMontacargas(req.body);
+        if (!cleanJson.secoes) {
+          cleanJson.secoes = getSecoesMontaVeicular(req.body);
+        }
         res.json(cleanJson);
       } catch (jsonErr) {
         console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
@@ -1691,9 +1664,9 @@ function isValidApiKey(key: string | undefined): boolean {
       }
 
     } catch (error: any) {
-      console.error("Gemini API Error for Montacargas:", error);
-      console.warn("Falling back to simulated monta-cargas engine due to API error.");
-      return res.json(getSimulatedMontacargasLaudo(req.body));
+      console.error("Gemini API Error for Monta Veicular:", error);
+      console.warn("Falling back to simulated monta veicular engine due to API error.");
+      return res.json(getSimulatedMontaVeicularLaudo(req.body));
     }
   });
 
@@ -2422,164 +2395,119 @@ function getSimulatedCraneLaudo(params: any): any {
 // MONTA-CARGAS TECHNICAL SECTIONS AND SIMULATED ENGINE
 // -------------------------------------------------------------
 
-function getSecoesMontacargas(params: any): any {
-  const eq = params.equipmentType || "Monta-Cargas";
-  const cli = params.clientName || "Empresa Contratante S/A";
-  const serial = params.serialNumber || "N/A";
-  const cat = params.proposedCategory || "Uso por pessoas acompanhando a carga";
+function getSecoesMontaVeicular(params: any): any {
+  const brand = params.brand || "Toyota";
+  const model = params.model || "Hilux";
+  const plate = params.plate || "Não informado";
 
   return {
-    "secao_1": `Este Laudo Técnico de Reclassificação e Conformidade Técnica tem por escopo principal avaliar, auditar e certificar a viabilidade mecânica e estrutural do equipamento de transporte vertical de cargas tipo "${eq}" para operação em nova categoria regulamentar de uso. O procedimento pericial foi desenvolvido em conformidade estrita com a NR-12 (Segurança em Máquinas e Equipamentos) e com as diretrizes específicas estabelecidas nas normas técnicas ABNT NBR 14712 (Elevadores de carga e monta-cargas) e ABNT NBR 16858-1/2 (Elevadores de passageiros).`,
-    "secao_2": `O presente documento de auditoria técnica foi encomendado pela empresa ${cli}, inscrita no CNPJ sob o número ${params.cnpj || "Não informado"}, estabelecida em: ${params.address || "Não informado"}. A contratante busca a regularização jurídica e operacional do sistema de transporte vertical existente, visando garantir proteção integral e de alto padrão a seus operadores e técnicos em conformidade com as exigências civis e criminais de responsabilidade técnica.`,
-    "secao_3": `Emitido por: VL Engenharia. Perito Responsável: Engenheiro Mecânico Vitor Leonardo (CREA-PE 1822299490), especialista em auditoria de elevadores de carga, monta-cargas, plataformas industriais e enquadramento estrito de segurança veicular e industrial. Endereço Técnico: Recife-PE. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.`,
-    "secao_4": `O equipamento sob vistoria consiste em um sistema de ${eq} com número de série ${serial}, fabricado por ${params.manufacturer || "Não informado"}, modelo ${params.model || "Não informado"}. O equipamento apresenta atualmente capacidade de carga declarada de ${params.capacityCurrent || "Não informado"} kg, velocidade de percurso de ${params.speedNominal || "Não informado"} m/s, operando em ${params.numParadas || "Não informado"} paradas ao longo de percurso vertical de ${params.heightPercurso || "Não informado"} metros. O acionamento é ${params.driveSystem || "Não informado"} utilizando suspensão tipo ${params.suspensionType || "Não informado"}.`,
-    "secao_5": `Finalidade da Alteração Pretendida: O projeto visa obter o enquadramento do equipamento na categoria de "${cat}". Tal reclassificação exige o atendimento imediato de requisitos normativos severos para transporte de pessoas, equiparando-se em segurança ativa aos elevadores convencionais de passageiros sob as regras da ABNT NBR 16858.`,
-    "secao_6": `Os documentos técnicos analisados para fundamentação desta auditoria incluem: projetos civis e mecânicos originais do poço de elevador, folhas de manutenção periódica fornecidas pela gerência do site, prontuário elétrico do quadro de força, histórico de revisões de cabos e cabine, e relatórios de medições mecânicas em campo.`,
-    "secao_7": `O balizamento normativo e as referências periciais adotadas são compostas por: NR-12 (Segurança de Máquinas - Anexos I e VII), ABNT NBR 14712 (Monta-Cargas de Carga), ABNT NBR 16858-1 (Requisitos de segurança para elevadores), ABNT NBR 16858-2 (Regras de projeto), ABNT NBR ISO 12100 (Apreciação de risco), e normas municipais relativas ao tráfego vertical de passageiros.`,
-    "secao_8": `Metodologia de Estimativa e Classificação de Risco: Aplicação do método numérico Hazard Rating Number (HRN) conforme estabelecido pela ABNT NBR ISO 12100 para a quantificação do perigo. A fórmula matemática aplicada é: HRN = LO (Probabilidade de Ocorrência) x FE (Frequência de Exposição) x DPH (Gravidade da Lesão) x NP (Número de Pessoas Expostas). Os graus resultantes determinam a aceitabilidade e fundamentam o plano de ação regulamentar.`,
-    "secao_9": `O levantamento visual in loco capturou registros detalhados das instalações físicas de percurso, compreendendo o estado estrutural do poço de alvenaria, o quadro elétrico de comandos de patamar, as soleiras de entrada, o fechamento da cabine e os pontos de fixação dos cabos e polias de tração traseiros.`,
-    "secao_10": `A avaliação visual detalhada cobriu exaustivamente os 7 macro-sistemas estruturais do monta-cargas, detalhando a integridade física da cabine (altura e piso), as condições de profundidade e dreno do fundo do poço, os componentes dinâmicos do sistema de tração, as guias lineares de aço, a existência de dispositivos mecânicos de segurança ativos (freio de segurança e limitador de velocidade), o fechamento rígido das portas de patamar e a montagem do sistema elétrico de força e lógica.`,
-    "secao_11": `Comparativo de Requisitos Normativos: Apresenta-se uma tabela técnica comparativa entre os requisitos instalados no monta-cargas original e as exigências mandatórias para a categoria "${cat}" sob a ABNT NBR 16858, identificando desvios críticos e lacunas de segurança industrial que demandam reestruturação técnica.`,
-    "secao_12": `Auditoria Sistemática do Checklist: Realização de inspeção técnica pormenorizada sobre os 18 requisitos de segurança para monta-cargas e elevadores adaptados, atestando a presença ou a ausência total dos dispositivos regulamentares e registrando observações explicativas com foco pericial.`,
-    "secao_13": `Identificação dos Perigos: Concentram-se os riscos no perigo de esmagamento contra as paredes internas do poço durante a movimentação por falta de fechamento completo da cabine, queda livre decorrente de sobrecarga ou falha no cabo e ausência de dispositivos automáticos redundantes de frenagem secundária em guias.`,
-    "secao_14": `Apreciação e Mitigação de Riscos (HRN): A quantificação inicial do monta-cargas em seu estado de operação atual resultou em um score de HRN elevado (Risco Muito Alto). Através da execução integral do cronograma de adequações exigido nesta peça, o risco estimado é reduzido para patamares Desprezíveis/Muito Baixos, garantindo viabilidade jurídica e segurança operacional.`,
-    "secao_15": `Não Conformidades Identificadas: São relacionadas as infrações observadas em campo (NC-01 a NC-04), com indicação clara da sua criticidade técnica e citação exata de artigos das normas violadas para fins de fiscalização e responsabilidade técnica civil.`,
-    "secao_16": `Adaptações Necessárias para Reclassificação: Detalha o conjunto de modificações mecânicas e elétricas indispensáveis para habilitar legalmente a alteração de categoria, as quais deverão ser acompanhadas de memorial de cálculo e laudos de ensaios não destrutivos.`,
-    "secao_17": `Viabilidade Técnica da Reclassificação: Haja vista os resultados da vistoria mecânica e o dimensionamento estrutural do poço, a reclassificação do monta-cargas é declarada tecnicamente VIÁVEL MEDIANTE EXECUÇÃO DE ADAPTAÇÕES OBRIGATÓRIAS, sendo inviável sua liberação sob o arranjo físico original atual.`,
-    "secao_18": `Estimativa e Complexidade de Intervenções: Classifica-se o conjunto de adequações necessárias como de alta complexidade de engenharia, exigindo mão de obra certificada, emissão de ART de fabricação/reforma por profissional registrado e testes de carga simulada com peso padrão sob supervisão de engenheiro mecânico.`,
-    "secao_19": `Plano de Ação para Regularização: Apresentação de tabela operacional com ações mecânicas urgentes (AP-01 a AP-04), prazos específicos de execução sugeridos, responsáveis industriais recomendados e referência normativa direta para cada intervenção.`,
-    "secao_20": `Conclusão Técnica e Parecer de Reclassificação: Emissão de parecer pericial conclusivo, declarando as condições indispensáveis de certificação final do monta-cargas e determinando os requisitos de conformidade documental e mecânica exigidos para o registro da alteração perante os órgãos de fiscalização do trabalho.`,
-    "secao_21": `Limitações e Validade da Avaliação: Esta vistoria pericial possui caráter exclusivamente mecânico e eletromecânico superficial e estático das peças na data de inspeção. Quaisquer alterações operacionais, falta de manutenção periódica preventiva ou excesso de carga desautorizado invalidam integralmente as conclusões constantes neste parecer de engenharia.`,
-    "secao_22": `Anexos e Registros Auxiliares: Listagem de fotos digitais identificadas, guias de ART assinadas digitalmente e diagramas unifilares básicos do painel elétrico de comando reestruturado para consulta.`
+    "introducao": `O presente laudo técnico pericial tem por finalidade a avaliação criteriosa e sistemática da extensão dos danos sofridos pelo veículo ${brand} ${model}, placa ${plate}, após evento de sinistro rodoviário. Com base nos preceitos da Resolução CONTRAN nº 810/2020, o processo de reclassificação visa analisar individualmente os elements de segurança passiva e ativa, bem como a integridade da célula de sobrevivência do habitáculo, a fim de ratificar ou retificar administrativamente a classificação provisória de monta inserida nos cadastros do RENAVAM.`,
+    "metodologia": `A metodologia empregada envolveu inspeção visual detalhada das partes estruturais, chassi e habitáculo do veículo, registro fotográfico pormenorizado dos pontos de impacto e aplicação rigorosa da tabela classificatória de danos contida nos Anexos I, II e III da Resolução CONTRAN nº 810/2020. Foi utilizada varredura digital por modelo de linguagem com fins de confirmação de padrões de danos por imagem de inteligência artificial, seguida de chancela técnica de engenharia mecânica.`,
+    "limitacoes": `A avaliação estrutural e dos componentes mecânicos internos está sujeita às limitações de visualização por imagem. Itens não aparentes ou ocultos sob carenagens protetoras, como fiação interna do módulo de injeção secundário e componentes do subframe inferior, deverão ser confirmados em inspeção presencial detalhada durante a etapa de desmontagem técnica e reparo mecânico, se necessário.`,
+    "conclusao": `Ante o exposto e considerando a análise técnica exaustiva dos componentes afetados, conclui-se que os danos estruturais de maior gravidade identificados enquadram-se na categoria de **MÉDIA MONTA**, conforme o Anexo II da Resolução CONTRAN nº 810/2020. O habitáculo e as colunas principais de segurança (A, B e C) mantiveram-se perfeitamente íntegros e sem deformação estrutural, não havendo enquadramento em nenhum item do Anexo III (Grande Monta). O veículo é, portanto, classificado tecnicamente como **RECUPERÁVEL**, estando apto a retornar à circulação após a execução dos devidos reparos e consequente aprovação em inspeção de segurança veicular para emissão do Certificado de Segurança Veicular (CSV).`
   };
 }
 
-function getSimulatedMontacargasLaudo(params: any): any {
-  const num = params.laudoNumber || "LRM-001/2026 Rev. 00";
-  const cat = params.proposedCategory || "Uso por pessoas acompanhando a carga";
+function getSimulatedMontaVeicularLaudo(params: any): any {
+  const num = params.laudoNumber || "LRM-047/2026 Rev. 00";
+  const checklist: Record<string, any> = {};
+
+  const defaultKeys = [
+    "b1_1", "b1_2", "b1_3", "b1_4", "b1_5", "b1_6", "b1_7", "b1_8", "b1_9", "b1_10", "b1_11", "b1_12", "b1_13",
+    "b2_1", "b2_2", "b2_3", "b2_4", "b2_5", "b2_6", "b2_7", "b2_8", "b2_9", "b2_10", "b2_11", "b2_12", "b2_13", "b2_14",
+    "b3_1", "b3_2", "b3_3", "b3_4", "b3_5", "b3_6",
+    "b4_1", "b4_2", "b4_3", "b4_4", "b4_5", "b4_6", "b4_7", "b4_8",
+    "b5_1", "b5_2", "b5_3", "b5_4", "b5_5", "b5_6", "b5_7", "b5_8", "b5_9",
+    "b6_1", "b6_2", "b6_3", "b6_4", "b6_5", "b6_6", "b6_7", "b6_8",
+    "b7_1", "b7_2", "b7_3", "b7_4", "b7_5", "b7_6", "b7_7",
+    "b8_1", "b8_2", "b8_3", "b8_4", "b8_5", "b8_6", "b8_7", "b8_8",
+    "b9_1", "b9_2", "b9_3", "b9_4"
+  ];
+
+  defaultKeys.forEach(k => {
+    checklist[k] = { resposta: "OK", nota: "Componente sem distorções visíveis." };
+  });
+
+  checklist["b1_1"] = { resposta: "DM", nota: "Longarina dianteira esquerda com deformação parcial na extremidade, sem afetar o alinhamento principal do motor." };
+  checklist["b1_5"] = { resposta: "DM", nota: "Painel dianteiro deformado por colisão." };
+  checklist["b1_6"] = { resposta: "DM", nota: "Torre de segurança esquerda desalinhada angularmente com deformação parcial do caixilho." };
+  checklist["b1_10"] = { resposta: "NI", nota: "Para-lama dianteiro esquerdo amassado na face externa." };
+  checklist["b1_12"] = { resposta: "NI", nota: "Capô dianteiro amassado na porção esquerda." };
+  checklist["b1_13"] = { resposta: "NI", nota: "Para-choque dianteiro quebrado por colisão frontal." };
+  checklist["b2_7"] = { resposta: "DM", nota: "Soleira estrutural esquerda com amassamento localizado por impacto rígido." };
+  checklist["b5_1"] = { resposta: "DM", nota: "Airbag do volante acionado no sinistro." };
+  checklist["b5_2"] = { resposta: "DM", nota: "Airbag do painel do passageiro acionado no sinistro." };
+  checklist["b5_5"] = { resposta: "DM", nota: "Pré-tensionador do cinto do motorista acionado." };
+  checklist["b6_3"] = { resposta: "DM", nota: "Suspensão dianteira esquerda desalinhada com amortecedor e braços entortados." };
+  checklist["b8_1"] = { resposta: "NI", nota: "Para-brisa trincado." };
+  checklist["b8_4"] = { resposta: "NI", nota: "Farol dianteiro esquerdo quebrado por colisão." };
 
   return {
     "numero": num,
-    "checklist": {
-      "item_1": {"resposta": "NÃO", "nota": "A capacidade atual (300kg) é baixa para tráfego simultâneo de pessoas e cargas. Exige recálculo estrutural e sinalização rígida."},
-      "item_2": {"resposta": "NÃO", "nota": "Dimensões internas atuais (0,9x0,9x1,1m) estão fora dos padrões da NBR 16858-2 para transporte seguro de operadores."},
-      "item_3": {"resposta": "NÃO", "nota": "Altura livre interna útil da cabine é de apenas 1,20 m, sendo mandatória altura de 2,00 m para transporte de pessoas."},
-      "item_4": {"resposta": "NÃO", "nota": "Inexistência de freio de segurança tipo para-quedas de atuação progressiva ou mecânica instantânea nas guias."},
-      "item_5": {"resposta": "NÃO", "nota": "Falta de limitador de velocidade centrífugo (governador) para atuação mecânica de pânico do freio de guias."},
-      "item_6": {"resposta": "SIM", "nota": "Fins de curso de patamar funcionais, mas o sistema de intertravamento elétrico requer redundância segura."},
-      "item_7": {"resposta": "NÃO", "nota": "As portas de pavimento são pantográficas e curtas, permitindo acesso perigoso de membros superiores ao poço móvel."},
-      "item_8": {"resposta": "NÃO", "nota": "Nível de iluminância na cabine inaudível e sem luminária protegida (abaixo de 10 lux medidos)."},
-      "item_9": {"resposta": "NÃO", "nota": "Ausência de bloco autônomo de iluminação em LED para casos de corte acidental de energia predial."},
-      "item_10": {"resposta": "NÃO", "nota": "Falta de alarme acústico ou botão sinalizador de emergência conectado a central interna."},
-      "item_11": {"resposta": "NÃO", "nota": "Inexistência de dispositivo de interfone ativo para comunicação bidirecional de resgate."},
-      "item_12": {"resposta": "NÃO", "nota": "Botoeira de pânico inoperante ou ausente na cabine ou poço."},
-      "item_13": {"resposta": "SIM", "nota": "Para-choques elásticos instalados no poço, mas sem especificação de mola de absorção helicoidal calibrada."},
-      "item_14": {"resposta": "NÃO", "nota": "Inexistência de dreno/sumidouro contra inundações acidentais no poço inferior."},
-      "item_15": {"resposta": "SIM", "nota": "Aterramento elétrico de carcaças metálicas verificado em conformidade básica."},
-      "item_16": {"resposta": "NÃO", "nota": "Cabine sem janelas de ventilação ou exaustor para circulação interna ativa de oxigênio."},
-      "item_17": {"resposta": "NÃO", "nota": "Inexistência de botoeira ou painel operacional interno na cabine (comandos apenas externos)."},
-      "item_18": {"resposta": "NÃO", "nota": "Fator de segurança dos cabos medido em 7,8, abaixo do fator de segurança mínimo 12 exigido pela ABNT NBR 16858."}
-    },
-    "hrn_before": {
-      "lo": 10.0,
-      "fe": 2.5,
-      "dph": 15.0,
-      "np": 1.0,
-      "score": 375.0,
-      "classification": "Risco Muito Alto",
-      "explicacao": "Risco crítico e iminente de queda livre da cabine, aprisionamento de pessoas sem ventilação, ou esmagamento de membros por falta de limitador de velocidade, para-quedas de segurança e portas de pavimento com fechadura eletromecânica monitorada."
-    },
-    "hrn_after": {
-      "lo": 0.033,
-      "fe": 2.5,
-      "dph": 15.0,
-      "np": 1.0,
-      "score": 1.23,
-      "classification": "Risco Muito Baixo",
-      "explicacao": "Risco mitigado a patamares técnicos de alta segurança após substituição integral da cabine para altura útil de 2,00m, instalação de freio de segurança mecânico, governador centrífugo e portas pantográficas de fechamento total com intertravamento elétrico redundante."
-    },
-    "nao_conformidades": [
+    "checklist": checklist,
+    "danos": [
       {
-        "id": "NC-01",
-        "descricao": "Inexistência de freio de segurança mecânico (para-quedas) na cabine e de limitador de velocidade (governador), inviabilizando o transporte de pessoas.",
-        "criticidade": "CRÍTICA",
-        "risco": "Queda livre em caso de sobrevelocidade, quebra de engrenagens ou ruptura de cabos",
-        "norma": "ABNT NBR 16858-1 item 5.6 / NR-12 item 12.112"
+        "id": "dano_1",
+        "fotoRef": "Foto 1 — Vista Frontal-Lateral Esquerda",
+        "localizacao": "Quadrante dianteiro esquerdo, região da caixa de roda e torre",
+        "componente": "Torre de Suspensão Dianteira Esquerda",
+        "descricaoDano": "Torção parcial do caixilho de fixação do amortecedor sem fraturas na solda estrutural e sem deformação do caixilho do motor.",
+        "tipoDano": "Deformação",
+        "enquadramento": "Resolução CONTRAN 810/2020 — Anexo II (Média Monta)",
+        "classificacao": "MÉDIA",
+        "grauConfianca": "★★★★★",
+        "grauConfiancaPercentual": 98,
+        "justificativa": "Dano visível e isolado na torre esquerda. Não hay transmissão de esforços para as travessas do habitáculo.",
+        "impactoSeguranca": "ALTO",
+        "reparabilidade": "SUBSTITUIÇÃO NECESSÁRIA"
       },
       {
-        "id": "NC-02",
-        "descricao": "Cabine com altura livre interna de apenas 1,20 m e dimensões insuficientes, violando os padrões de segurança e ergonomia de passageiros.",
-        "criticidade": "CRÍTICA",
-        "risco": "Esmagamento de operadores, lesões posturais graves e pânico severo em caso de paradas",
-        "norma": "ABNT NBR 16858-2 item 4.1"
+        "id": "dano_2",
+        "fotoRef": "Foto 3 — Detalhe Soleira Esquerda",
+        "localizacao": "Região inferior abaixo da porta dianteira esquerda",
+        "componente": "Soleira Estrutural Esquerda",
+        "descricaoDano": "Amassamento localizado no perfil metálico da soleira, provocado por impacto mecânico direto contra obstáculo rígido, sem comprometer a integridade da coluna A ou assoalho.",
+        "tipoDano": "Amassamento",
+        "enquadramento": "Resolução CONTRAN 810/2020 — Anexo II (Média Monta)",
+        "classificacao": "MÉDIA",
+        "grauConfianca": "★★★★☆",
+        "grauConfiancaPercentual": 92,
+        "justificativa": "Deformação localizada com boa visibilidade lateral. Não há torção do habitáculo principal.",
+        "impactoSeguranca": "MÉDIO",
+        "reparabilidade": "RECUPERÁVEL"
       },
       {
-        "id": "NC-03",
-        "descricao": "Portas de pavimento de altura reduzida sem intertravamento elétrico e mecânico por trinco de segurança certificado.",
-        "criticidade": "CRÍTICA",
-        "risco": "Queda acidental de operadores no poço e esmagamento por partida involuntária da cabine",
-        "norma": "ABNT NBR 16858-1 item 5.3"
+        "id": "dano_3",
+        "fotoRef": "Foto 5 — Interior do Habitáculo",
+        "localizacao": "Volante e console frontal do passageiro",
+        "componente": "Airbags Dianteiros e Pré-tensionadores",
+        "descricaoDano": "Acionamento completo das bolsas de ar (SRS) do motorista e passageiro decorrente da desaceleração do impacto frontal.",
+        "tipoDano": "Acionamento",
+        "enquadramento": "Resolução CONTRAN 810/2020 — Anexo II (Média Monta)",
+        "classificacao": "MÉDIA",
+        "grauConfianca": "★★★★★",
+        "grauConfiancaPercentual": 100,
+        "justificativa": "As bolsas de ar aparecem infladas e expostas, sem indícios de colapso estrutural do habitáculo associado.",
+        "impactoSeguranca": "ALTO",
+        "reparabilidade": "SUBSTITUIÇÃO NECESSÁRIA"
       },
       {
-        "id": "NC-04",
-        "descricao": "Falta de iluminação autônoma de emergência, botão de pânico sonoro e sistema de comunicação por interfone ativo na cabine.",
-        "criticidade": "ALTA",
-        "risco": "Enclausuramento prolongado sem capacidade de solicitar socorro ou ventilação",
-        "norma": "ABNT NBR 16858-1 item 5.12"
+        "id": "dano_4",
+        "fotoRef": "Foto 2 — Detalhe Para-lama Esquerdo",
+        "localizacao": "Lateral externa dianteira esquerda",
+        "componente": "Para-lama Dianteiro Esquerdo",
+        "descricaoDano": "Amassamento superficial da folha externa sem afetar os pontos internos de união estrutural principais.",
+        "tipoDano": "Amassamento",
+        "enquadramento": "Resolução CONTRAN 810/2020 — Anexo I (Pequena Monta)",
+        "classificacao": "PEQUENA",
+        "grauConfianca": "★★★★★",
+        "grauConfiancaPercentual": 99,
+        "justificativa": "Componente puramente estético e de fechamento externo de fácil substituição por parafusamento.",
+        "impactoSeguranca": "BAIXO",
+        "reparabilidade": "SUBSTITUIÇÃO NECESSÁRIA"
       }
     ],
-    "plano_action": [
-      {
-        "id": "AP-01",
-        "problema": "Falta de freio de segurança mecânico e limitador de velocidade",
-        "norma": "ABNT NBR 16858-1 item 5.6",
-        "recomendacao": "Desenvolver projeto mecânico estrutural e instalar freio de segurança tipo para-quedas de ação progressiva na cabine e limitador mecânico de velocidade correspondente.",
-        "prioridade": "IMEDIATO",
-        "responsavel": "Equipe de Engenharia da VL Engenharia / Empresa Instaladora",
-        "prazo": "15 dias"
-      },
-      {
-        "id": "AP-02",
-        "problema": "Altura livre da cabine reduzida (1,20 m)",
-        "norma": "ABNT NBR 16858-2 item 4.1",
-        "recomendacao": "Trocar a cabine atual por uma nova estrutura em aço com altura livre interna de no mínimo 2,00m e piso antiderrapante.",
-        "prioridade": "IMEDIATO",
-        "responsavel": "Oficina Metalúrgica VL Engenharia",
-        "prazo": "20 dias"
-      },
-      {
-        "id": "AP-03",
-        "problema": "Portas de patamar desprotegidas e sem trinco monitorado",
-        "norma": "ABNT NBR 16858-1 item 5.3",
-        "recomendacao": "Instalar portas de patamar de altura regulamentar de no mínimo 2,00m de altura de fechamento total e sistema de intertravamento eletromecânico.",
-        "prioridade": "IMEDIATO",
-        "responsavel": "Equipe de Montagem de Elevadores VL Engenharia",
-        "prazo": "10 dias"
-      },
-      {
-        "id": "AP-04",
-        "problema": "Ausência de interfone, alarme e luz autônoma",
-        "norma": "ABNT NBR 16858-1 item 5.12",
-        "recomendacao": "Instalar botoeira interna, interfone bidirecional alimentado por bateria redundante, alarme de pânico sonoro e luz de emergência em LED.",
-        "prioridade": "IMEDIATO",
-        "responsavel": "Técnico de Manutenção Elétrica",
-        "prazo": "5 dias"
-      }
-    ],
-    "sistemas_inspecao": {
-      "cabine": "A cabine possui revestimento simples, altura útil inadequada de 1,20 m e ausência total de comandos internos ou iluminação. Exige substituição.",
-      "poco_casa_maquinas": "Poço seco, mas sem dreno/sumidouro instalado de fundo. Casa de máquinas com acesso restrito e ventilação adequada.",
-      "sistema_tracao": "Conjunto moto-redutor robusto com cabos em bom estado, mas cujo fator de segurança de 7.8 está abaixo do exigido (fator 12) para passageiros.",
-      "guias_estrutura": "Guias lineares metálicas íntegras e paralelas. Ancoragem firme no poço, porém necessita reforçar fixação para frenagem dinâmica de emergência.",
-      "dispositivos_seguranca": "Falta total de freio mecânico (para-quedas), limitador de velocidade, amortecedores hidráulicos calibrados de fundo de poço e chaves de segurança ativa.",
-      "portas_patamar": "As portas venezianas são baixas (1,50m) e não possuem sistema de trancamento de segurança por intertravamento. Exigem substituição completa.",
-      "sistema_eletrico": "Quadro elétrico básico sem monitor de segurança ou contatores de potência redundantes, necessitando de reestruturação de segurança cat. 4."
-    },
-    "conclusao": {
-      "status": "VIÁVEL MEDIANTE ADAPTAÇÕES",
-      "parecer": `A reclassificação do equipamento monta-cargas para a categoria "${cat}" é tecnicamente VIÁVEL, condicionado estritamente à execução total e correta das adaptações mecânicas e elétricas exigidas neste laudo (substituição de cabine para altura de 2,00m, instalação de para-quedas mecânico, limitador de velocidade e intertravamento de portas). A operação sob as condições físicas atuais é declarada NÃO CONFORME e inapta à alteração pretendida.`
-    },
-    "secoes": getSecoesMontacargas(params)
+    "secoes": getSecoesMontaVeicular(params)
   };
 }
 
