@@ -4,7 +4,7 @@ import LaudoNR12Indep from './LaudoNR12Indep';
 import LaudoMaquinasPesadasIndep from './LaudoMaquinasPesadasIndep';
 import LaudoCaminhaoMunckGuindasteIndep from './LaudoCaminhaoMunckGuindasteIndep';
 import LaudoInspecaoVeicularIndep from './LaudoInspecaoVeicularIndep';
-import LaudoMontacargasIndep from './LaudoMontacargasIndep';
+import LaudoMontaVeicularIndep from './LaudoMontaVeicularIndep';
 import LaudoPlaygroundIndep from './LaudoPlaygroundIndep';
 import LaudoPMOCIndep from './LaudoPMOCIndep';
 import LaudoArtManutencaoIndep from './LaudoArtManutencaoIndep';
@@ -36,7 +36,7 @@ export default function LaudoGenerators() {
   }
 
   if (selected === 'montacargas') {
-    return <LaudoMontacargasIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
+    return <LaudoMontaVeicularIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   if (selected === 'playground') {
@@ -125,8 +125,8 @@ export default function LaudoGenerators() {
               className="flex items-center justify-between gap-3 px-6 py-4 bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-indigo-800"
             >
               <div className="flex items-center gap-2.5">
-                <Layers className="w-5 h-5 text-sky-400" />
-                <span className="font-sans text-left">Exemplo: Reclassificação Monta-Cargas</span>
+                <Car className="w-5 h-5 text-sky-400" />
+                <span className="font-sans text-left">Exemplo: Reclassificação Monta Veicular</span>
               </div>
               <ArrowRight className="w-4 h-4 text-slate-200" />
             </button>
@@ -329,29 +329,29 @@ export default function LaudoGenerators() {
           </div>
         </div>
 
-        {/* Reclassificação de Monta-Cargas Card */}
+        {/* Reclassificação de Monta Veicular Card */}
         <div 
           onClick={() => setSelected('montacargas')}
           className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Layers className="w-36 h-36 text-indigo-600" />
+            <Car className="w-36 h-36 text-indigo-600" />
           </div>
 
           <div className="space-y-6">
             <div className="p-4 bg-indigo-600/5 dark:bg-indigo-500/5 border border-indigo-500/15 rounded-2xl w-fit text-indigo-600 dark:text-indigo-400">
-              <Layers className="w-8 h-8" />
+              <Car className="w-8 h-8" />
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors font-sans">
-                  Reclassificação de Monta-Cargas
+                  Reclassificação de Monta Veicular
                 </h3>
                 <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
-                Laudos e auditorias de reclassificação técnica de monta-cargas para transporte de pessoas (operador) sob a NR-12, NBR 14712 e NBR 16858-1/2.
+                Laudos e auditorias de reclassificação técnica de monta de veículos sinistrados (Pequena, Média ou Grande Monta) sob a Resolução CONTRAN nº 810/2020.
               </p>
             </div>
           </div>
@@ -361,7 +361,7 @@ export default function LaudoGenerators() {
               Iniciar Auditoria →
             </span>
             <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
-              18 Requisitos
+              9 Blocos / CONTRAN
             </span>
           </div>
         </div>
