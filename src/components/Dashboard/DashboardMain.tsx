@@ -306,15 +306,6 @@ export default function DashboardMain() {
                 </svg>
                 <span>Entrar com o Google</span>
               </button>
-
-              {/* Sandbox toggle fallback for cookie blockers / iframe sandbox previews */}
-              <button
-                onClick={() => setRealFirebaseEnabled(false)}
-                className="w-full flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 p-3 rounded-xl text-[11px] font-bold font-mono uppercase tracking-wide transition-all cursor-pointer"
-              >
-                <Layers className="w-4 h-4 text-[#134074]" />
-                <span>Usar Modo Sandbox Offline (Banco Local)</span>
-              </button>
             </div>
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center gap-1.5 text-[10px] font-mono text-slate-400">
