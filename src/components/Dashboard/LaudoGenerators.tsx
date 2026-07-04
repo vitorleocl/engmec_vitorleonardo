@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Shield, Cpu, Sparkles, Wand2, Truck, FileText, ArrowRight, Car } from 'lucide-react';
+import { Shield, Cpu, Sparkles, Wand2, Truck, FileText, ArrowRight, Car, Layers } from 'lucide-react';
 import LaudoNR12Indep from './LaudoNR12Indep';
 import LaudoMaquinasPesadasIndep from './LaudoMaquinasPesadasIndep';
 import LaudoCaminhaoMunckGuindasteIndep from './LaudoCaminhaoMunckGuindasteIndep';
 import LaudoInspecaoVeicularIndep from './LaudoInspecaoVeicularIndep';
+import LaudoMontacargasIndep from './LaudoMontacargasIndep';
 
 export default function LaudoGenerators() {
-  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane' | 'vehicle'>('none');
+  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane' | 'vehicle' | 'montacargas'>('none');
   const [prefilled, setPrefilled] = useState(false);
 
-  const selectPrefilled = (type: 'heavy' | 'crane' | 'vehicle') => {
+  const selectPrefilled = (type: 'heavy' | 'crane' | 'vehicle' | 'montacargas') => {
     setPrefilled(true);
     setSelected(type);
   };
@@ -28,6 +29,10 @@ export default function LaudoGenerators() {
 
   if (selected === 'vehicle') {
     return <LaudoInspecaoVeicularIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
+  }
+
+  if (selected === 'montacargas') {
+    return <LaudoMontacargasIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   return (
@@ -94,12 +99,23 @@ export default function LaudoGenerators() {
               </div>
               <ArrowRight className="w-4 h-4 text-slate-200" />
             </button>
+
+            <button 
+              onClick={() => selectPrefilled('montacargas')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-indigo-800"
+            >
+              <div className="flex items-center gap-2.5">
+                <Layers className="w-5 h-5 text-sky-400" />
+                <span className="font-sans text-left">Exemplo: Reclassificação Monta-Cargas</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-200" />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Grid of generators */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
         
         {/* NR-12 Card */}
         <div 
@@ -245,6 +261,43 @@ export default function LaudoGenerators() {
             </span>
             <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
               20 Requisitos
+            </span>
+          </div>
+        </div>
+
+        {/* Reclassificação de Monta-Cargas Card */}
+        <div 
+          onClick={() => setSelected('montacargas')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Layers className="w-36 h-36 text-indigo-600" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-indigo-600/5 dark:bg-indigo-500/5 border border-indigo-500/15 rounded-2xl w-fit text-indigo-600 dark:text-indigo-400">
+              <Layers className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors font-sans">
+                  Reclassificação de Monta-Cargas
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Laudos e auditorias de reclassificação técnica de monta-cargas para transporte de pessoas (operador) sob a NR-12, NBR 14712 e NBR 16858-1/2.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+              Iniciar Auditoria →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              18 Requisitos
             </span>
           </div>
         </div>
