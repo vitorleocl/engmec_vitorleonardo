@@ -54,6 +54,8 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
   const [naoConformidades, setNaoConformidades] = useState<PMOCNaoConformidade[]>(PREFILLED_PMOC_NAO_CONFORMIDADES);
   const [secoes, setSecoes] = useState<Record<string, string>>(DEFAULT_PMOC_SECOES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [blankPlanning, setBlankPlanning] = useState(false);
+  const [artPdf, setArtPdf] = useState<{ name: string; size: string; data: string } | null>(null);
 
   // UI state
   const [loadingAI, setLoadingAI] = useState(false);
@@ -577,6 +579,65 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
                   </div>
                 </div>
               </div>
+
+              {/* ART PDF Upload block */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="font-sans font-black text-sm tracking-tight text-[#134074] dark:text-blue-400 border-b pb-2 uppercase flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-red-600" />
+                  Anexar ART (Anotação de Responsabilidade Técnica)
+                </h3>
+                <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                  Faça o upload do arquivo PDF da ART correspondente a este PMOC para que seja anexado e exibido ao final do relatório oficial.
+                </p>
+
+                {!artPdf ? (
+                  <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors cursor-pointer relative">
+                    <input 
+                      type="file" 
+                      accept=".pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setArtPdf({
+                            name: file.name,
+                            size: (file.size / 1024).toFixed(1) + " KB",
+                            data: reader.result as string
+                          });
+                          showNotification("success", `Arquivo PDF de ART "${file.name}" carregado com sucesso!`);
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Escolha ou arraste o arquivo PDF da ART</p>
+                    <p className="text-[9px] text-slate-400 font-mono mt-1">Apenas formato PDF</p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-red-50/30 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/40 rounded-xl">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 bg-red-100/60 dark:bg-red-900/30 text-red-600 rounded-lg">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{artPdf.name}</p>
+                        <p className="text-[9px] text-slate-400 font-mono">{artPdf.size}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setArtPdf(null);
+                        showNotification("info", "ART removida do memorial.");
+                      }}
+                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950 text-slate-500 hover:text-red-600 rounded-lg animate-pulse"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -832,6 +893,26 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
                 </div>
               </div>
 
+              {/* Interativo Toggle para deixar campos em branco */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl gap-4 font-sans">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Deixar campos da Matriz em branco no relatório</p>
+                  <p className="text-[10px] text-slate-500">Ao ativar esta opção, a tabela de cronograma mensal será gerada totalmente limpa para que o próprio cliente possa preencher e assinar manualmente no material impresso.</p>
+                </div>
+                <button
+                  onClick={() => setBlankPlanning(!blankPlanning)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    blankPlanning ? "bg-emerald-600" : "bg-slate-200 dark:bg-slate-800"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      blankPlanning ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
               {appliances.map(ap => (
                 <div key={ap.id} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-sm">
                   <div className="bg-slate-50 dark:bg-slate-900/60 p-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center flex-wrap gap-2">
@@ -1052,6 +1133,25 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
         {/* TAB 6: PREVIEW & ACTIONS */}
         {activeTab === "preview" && (
           <div className="space-y-4">
+            {/* Quick Options Bar for Matrix Blanking */}
+            <div className="bg-slate-50 dark:bg-slate-900/45 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm font-sans">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="blank-planning-preview" 
+                  checked={blankPlanning}
+                  onChange={(e) => setBlankPlanning(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-850 text-[#134074] focus:ring-[#134074] cursor-pointer"
+                />
+                <label htmlFor="blank-planning-preview" className="text-xs font-bold text-slate-750 dark:text-slate-300 cursor-pointer">
+                  Deixar campos da Matriz de Planejamento em branco para preenchimento manual do cliente
+                </label>
+              </div>
+              <div className="text-[10px] font-mono text-slate-500 font-bold">
+                {blankPlanning ? "⚠️ MODO IMPRESSÃO EM BRANCO ATIVO" : "ℹ️ EXIBINDO STATUS PLANEJADOS (P, E...)"}
+              </div>
+            </div>
+
             {/* Action Bar for Exports */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-wrap gap-2 justify-between items-center shadow-sm">
               <span className="text-xs text-slate-500 font-mono flex items-center gap-2">
@@ -1091,6 +1191,8 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
               secoes={secoes}
               uploadedImages={uploadedImages}
               reportRef={reportRef}
+              blankPlanning={blankPlanning}
+              artPdf={artPdf}
             />
           </div>
         )}

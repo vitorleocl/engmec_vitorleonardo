@@ -1,6 +1,7 @@
 import React from "react";
 import Logo from "../Logo";
 import { PMOCChecklistItem, PMOCNaoConformidade, UploadedImage } from "./pmocData";
+import { FileText } from "lucide-react";
 
 interface PMOCReportPreviewProps {
   laudoParams: {
@@ -65,7 +66,31 @@ interface PMOCReportPreviewProps {
   secoes: Record<string, string>;
   uploadedImages: UploadedImage[];
   reportRef: React.RefObject<HTMLDivElement | null>;
+  blankPlanning?: boolean;
+  artPdf?: { name: string; size: string; data: string } | null;
 }
+
+const DETAILED_ACTIVITIES_TEMPLATE = [
+  { text: "Inspeção geral na instalação do equipamento, curto circuito de ar, distribuição de insuflamento nas unidades, bloqueamento na entrada e saída de ar do condensador, unidade condensadora exposta à carga térmica.", col: "M" },
+  { text: "Verificar instalação elétrica", col: "M" },
+  { text: "Lavar e secar o filtro de ar (se necessário trocar)", col: "M" },
+  { text: "Medir tensão e corrente de funcionamento e comparar com a nominal.", col: "M" },
+  { text: "Verificar aperto de todos os terminais elétricos das unidades, evitar possíveis maus contatos", col: "M" },
+  { text: "Verificar obstrução de sujeira e aletas amassadas", col: "M" },
+  { text: "Verificar possíveis entupimentos ou amassamentos na mangueira do dreno.", col: "M" },
+  { text: "Efetuar a limpeza das serpentinas do evaporador;", col: "T" },
+  { text: "Efetuar a limpeza do ventilador/rotor do evaporador;", col: "T" },
+  { text: "Efetuar a limpeza da bandeja de condensado;", col: "T" },
+  { text: "Fazer limpeza dos gabinetes", col: "T" },
+  { text: "Verificar pressão de funcionamento;", col: "S" },
+  { text: "Efetuar a limpeza do condensador;", col: "S" },
+  { text: "Verificar estado dos compressores;", col: "S" },
+  { text: "Verificar operação do sensor de temperatura;", col: "S" },
+  { text: "Verificar estado dos suportes/coxins e corrigir caso necessário;", col: "S" },
+  { text: "Verificar posicionamento, fixação e balanceamento da hélice ou turbina;", col: "S" },
+  { text: "Verificar e corrigir isolante térmico das linhas de cobre", col: "S" },
+  { text: "Analise da Qualidade do Ar (Conforme a RES. /09);", col: "S" }
+];
 
 export default function PMOCReportPreview({
   laudoParams,
@@ -75,7 +100,9 @@ export default function PMOCReportPreview({
   naoConformidades,
   secoes,
   uploadedImages,
-  reportRef
+  reportRef,
+  blankPlanning = false,
+  artPdf = null
 }: PMOCReportPreviewProps) {
   return (
     <div className="bg-slate-300 dark:bg-slate-950/80 p-4 md:p-8 min-h-screen flex justify-center overflow-x-auto print:p-0 print:bg-white">
@@ -678,18 +705,18 @@ export default function PMOCReportPreview({
                             <tr key={act.id} className="hover:bg-slate-55">
                               <td className="p-1.5 text-left font-sans text-slate-700 leading-snug">{act.descricao}</td>
                               <td className="p-1.5 text-center font-bold text-slate-500 border-r border-slate-200">{act.periodicidade.substring(0, 3)}.</td>
-                              <td className={`p-1 font-bold ${act.statusJan === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusJan || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusFev === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusFev || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusMar === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusMar || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusAbr === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusAbr || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusMai === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusMai || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusJun === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusJun || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusJul === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusJul || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusAgo === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusAgo || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusSet === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusSet || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusOut === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusOut || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusNov === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusNov || "P"}</td>
-                              <td className={`p-1 font-bold ${act.statusDez === 'E' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-500'}`}>{act.statusDez || "P"}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusJan === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusJan || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusFev === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusFev || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusMar === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusMar || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusAbr === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusAbr || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusMai === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusMai || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusJun === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusJun || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusJul === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusJul || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusAgo === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusAgo || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusSet === 'E' ? 'text-[#134074] bg-slate-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusSet || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusOut === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusOut || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusNov === 'E' ? 'text-[#134074] bg-slate-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusNov || "P")}</td>
+                              <td className={`p-1 font-bold ${!blankPlanning && act.statusDez === 'E' ? 'text-emerald-600 bg-emerald-50' : !blankPlanning ? 'text-blue-500' : ''}`}>{blankPlanning ? "\u00A0" : (act.statusDez || "P")}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1076,6 +1103,242 @@ export default function PMOCReportPreview({
 
           <div className="text-center text-[9px] font-mono text-slate-400 border-t border-slate-200 pt-3">
             Página 14 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia | FIM DO MEMORIAL
+          </div>
+        </div>
+
+        {/* =========================================================================
+            DETAILED PLAN AND CONTROL SHEETS PER APPLIANCE
+           ========================================================================= */}
+        {appliances.map((ap, idx) => (
+          <div key={`sheet-${ap.id}`} className="h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans text-[10px]">
+            <div className="space-y-3">
+              {/* Page Title & Appliance Info */}
+              <div className="flex justify-between items-center border-b-2 border-slate-900 pb-2">
+                <div className="flex items-center gap-1.5">
+                  <Logo className="w-8 h-8 text-[#134074]" />
+                  <div>
+                    <span className="font-sans font-black text-xs tracking-wider text-[#134074]">VL ENGENHARIA</span>
+                    <p className="text-[7px] uppercase font-mono text-slate-400">PMOC - Plano de Manutenção Individual</p>
+                  </div>
+                </div>
+                <div className="text-right font-mono text-[8px] text-slate-500">
+                  <p className="font-bold text-[#134074] text-[9px]">FICHA INDIVIDUAL DE CONTROLE</p>
+                  <p className="text-[10px]">TAG: <span className="font-bold text-slate-900 text-xs">{ap.tag}</span></p>
+                </div>
+              </div>
+
+              {/* Title Block */}
+              <div className="bg-[#134074] text-white p-1.5 text-center uppercase tracking-wider text-[11px] font-black rounded">
+                PLANO DE MANUTENÇÃO E CONTROLE
+              </div>
+
+              {/* Appliance Metadata Table */}
+              <div className="grid grid-cols-4 gap-2 text-[9px] bg-slate-50 border border-slate-200 p-2 rounded">
+                <div>
+                  <p className="text-[7.5px] font-bold text-slate-400 uppercase font-mono">TAG DO EQUIPAMENTO</p>
+                  <p className="font-bold text-slate-900 font-mono text-xs">{ap.tag}</p>
+                </div>
+                <div>
+                  <p className="text-[7.5px] font-bold text-slate-400 uppercase font-mono">FABRICANTE / MODELO</p>
+                  <p className="font-bold text-slate-900 truncate">{ap.marca} / {ap.modelo || "S/M"}</p>
+                </div>
+                <div>
+                  <p className="text-[7.5px] font-bold text-slate-400 uppercase font-mono">CAPACIDADE / TIPO</p>
+                  <p className="font-bold text-slate-900">{ap.capacidade} ({ap.tipo})</p>
+                </div>
+                <div>
+                  <p className="text-[7.5px] font-bold text-slate-400 uppercase font-mono">LOCALIZAÇÃO FÍSICA</p>
+                  <p className="font-bold text-slate-900 truncate">{ap.localizacao}</p>
+                </div>
+              </div>
+
+              <p className="text-[8.5px] italic text-slate-500 font-bold leading-none">
+                Atividades conforme estabelecido na norma NBR 13971, Resolução n° 09 e Portaria MS- n° 3523
+              </p>
+
+              {/* The Activities Table */}
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <table className="w-full text-left border-collapse text-[8px] font-sans">
+                  <thead>
+                    <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase text-[7px]">
+                      <th className="p-1 px-1.5">ATIVIDADES (MENSAL / TRIMESTRAL / SEMESTRAL)</th>
+                      <th className="p-1 w-10 text-center border-l border-slate-200">M</th>
+                      <th className="p-1 w-10 text-center border-l border-slate-200">T</th>
+                      <th className="p-1 w-10 text-center border-l border-slate-200">S</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-150 leading-tight">
+                    {DETAILED_ACTIVITIES_TEMPLATE.map((act, index) => (
+                      <tr key={index} className="hover:bg-slate-50/50">
+                        <td className="p-0.5 px-1.5 text-slate-800 font-medium">
+                          {act.text}
+                        </td>
+                        <td className="p-0.5 text-center font-black text-emerald-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                          {act.col === "M" ? "X" : ""}
+                        </td>
+                        <td className="p-0.5 text-center font-black text-[#134074] border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                          {act.col === "T" ? "X" : ""}
+                        </td>
+                        <td className="p-0.5 text-center font-black text-blue-600 border-l border-slate-200 bg-slate-50/20 text-[8.5px]">
+                          {act.col === "S" ? "X" : ""}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Section: CONTROLE DAS MANUTENÇÕES */}
+              <div className="space-y-1 pt-1">
+                <h4 className="font-black text-[8px] text-slate-900 uppercase font-mono tracking-wider border-b pb-0.5">
+                  CONTROLE DAS MANUTENÇÕES (REGISTRO EXECUTIVO MANUAL)
+                </h4>
+                <div className="border border-slate-200 rounded overflow-hidden">
+                  <table className="w-full text-left border-collapse text-[7.5px] font-mono">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[7px]">
+                        <th className="p-0.5 px-1.5 w-24">MÊS/ANO</th>
+                        <th className="p-0.5 w-36 border-l border-slate-200">REALIZADA EM:</th>
+                        <th className="p-0.5 border-l border-slate-200">TÉCNICO RESP.</th>
+                        <th className="p-0.5 border-l border-slate-200 w-44">ASSINATURA</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {[1, 2, 3].map((row) => (
+                        <tr key={row} className="h-5">
+                          <td className="p-0.5 px-1.5 border-r border-slate-200 font-bold text-slate-300">_____ / _____</td>
+                          <td className="p-0.5 border-r border-slate-200 font-bold text-slate-300">____/____/____</td>
+                          <td className="p-0.5 border-r border-slate-200"></td>
+                          <td className="p-0.5"></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Section: OCORRÊNCIAS EM SITUAÇÕES DE FALHA E OUTRAS EMERGÊNCIAS */}
+              <div className="space-y-1">
+                <h4 className="font-black text-[8px] text-slate-900 uppercase font-mono tracking-wider border-b pb-0.5">
+                  OCORRÊNCIAS EM SITUAÇÕES DE FALHA DO EQUIPAMENTO E OUTRAS EMERGÊNCIAS
+                </h4>
+                <div className="border border-slate-200 rounded overflow-hidden">
+                  <table className="w-full text-left border-collapse text-[7.5px] font-mono">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[7px]">
+                        <th className="p-0.5 px-1.5 w-32">DATA</th>
+                        <th className="p-0.5 border-l border-slate-200">DESCRIÇÃO DO PROBLEMA E SOLUÇÃO</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {[1, 2].map((row) => (
+                        <tr key={row} className="h-5">
+                          <td className="p-0.5 px-1.5 border-r border-slate-200 font-bold text-slate-300">____/____/____</td>
+                          <td className="p-0.5"></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Signatures & Footer block at bottom of the page */}
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-4 text-[8px]">
+                <div className="space-y-1">
+                  <p className="font-bold text-slate-800">
+                    RESPONSÁVEL TÉCNICO MANUTENÇÃO: <span className="font-normal text-slate-400">______________________________________</span>
+                  </p>
+                  <p className="font-bold text-slate-800">
+                    ASSINATURA: <span className="font-normal text-slate-400">___________________________________________________</span>
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-bold text-slate-800">
+                    RESPONSÁVEL TÉCNICO( PH): <span className="font-normal text-slate-400">__________________________________________</span>
+                  </p>
+                  <p className="font-bold text-slate-800">
+                    ASSINATURA: <span className="font-normal text-slate-400">___________________________________________________</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center font-mono text-[7px] text-slate-400 pt-1 flex justify-between">
+                <span>Anexo A • Ficha Técnica de Campo: {ap.tag} | PMOC Nº {laudoParams.laudoNumber}</span>
+                <span>VL Engenharia • Responsabilidade Técnica: Vitor Leonardo</span>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* =========================================================================
+            ART PDF ATTACHMENT PAGE
+           ========================================================================= */}
+        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans">
+          <div className="space-y-6">
+            <div className="flex justify-between items-start border-b border-slate-200 pb-3">
+              <span className="font-sans font-black text-sm tracking-widest text-[#134074]">ANEXO DE ENGENHARIA</span>
+              <span className="font-mono text-[9px] text-slate-400">ART DE RESPONSABILIDADE TÉCNICA</span>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-black text-xs text-[#134074] uppercase font-mono border-l-4 border-[#134074] pl-2">
+                ANOTAÇÃO DE RESPONSABILIDADE TÉCNICA (ART)
+              </h3>
+              <p className="text-slate-700 font-sans text-xs">
+                Em estrita obediência à <strong>Lei Federal nº 6.496/1977</strong>, apresenta-se a ART correspondente a este memorial do PMOC, formalmente registrada perante o Conselho Regional de Engenharia e Agronomia (CREA-PE).
+              </p>
+
+              {artPdf ? (
+                <div className="border-2 border-dashed border-red-200 rounded-2xl p-8 bg-red-50/5 text-center space-y-4 mt-8">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-bold text-slate-900 font-sans">Documento PDF Anexado com Sucesso</p>
+                    <p className="text-xs text-slate-500 font-mono">Nome do arquivo: {artPdf.name}</p>
+                    <p className="text-xs text-slate-400 font-mono">Tamanho: {artPdf.size} | Status: Integrado ao PDF de Impressão</p>
+                  </div>
+                  
+                  <div className="max-w-md mx-auto p-4 bg-white border border-slate-200 rounded-xl shadow-xs text-left text-[9px] text-slate-600 font-mono space-y-1">
+                    <p className="font-bold text-slate-800 uppercase text-[8px]">Metadados de Autenticidade da ART:</p>
+                    <p>• Número de Registro: <span className="font-bold text-slate-950">{laudoParams.rtArt}</span></p>
+                    <p>• Responsável Técnico: <span className="font-bold text-slate-950">{laudoParams.rtName}</span></p>
+                    <p>• CREA de Origem: <span className="font-bold text-slate-950">{laudoParams.rtCrea}</span></p>
+                    <p>• Certificado de Validade: <span className="font-bold text-emerald-600">ATIVO & VINCULADO</span></p>
+                  </div>
+
+                  {/* PDF preview inside frame if base64 pdf is available */}
+                  {artPdf.data.startsWith("data:application/pdf") && (
+                    <div className="pt-4 print:hidden">
+                      <object 
+                        data={artPdf.data} 
+                        type="application/pdf" 
+                        className="w-full h-[120mm] rounded-xl border border-slate-200 shadow-sm"
+                      >
+                        <p className="text-xs text-slate-400">Seu navegador não consegue pré-visualizar este PDF de forma embutida, mas ele será integrado e impresso corretamente.</p>
+                      </object>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-slate-300 rounded-2xl p-12 text-center text-slate-400 font-mono italic space-y-3">
+                  <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-slate-600">Nenhum arquivo PDF de ART anexado.</p>
+                    <p className="text-[10px] text-slate-400 font-sans leading-relaxed">Você pode anexar a ART em PDF na primeira aba (Estabelecimento & RT) para que os dados do arquivo e a pré-visualização apareçam automaticamente aqui.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="text-center text-[9px] font-mono text-slate-400 border-t border-slate-200 pt-3 flex justify-between print:pt-2">
+            <span>Anexo B • ART de Climatização</span>
+            <span>PMOC Nº {laudoParams.laudoNumber} | FIM DO DOCUMENTO</span>
           </div>
         </div>
 
