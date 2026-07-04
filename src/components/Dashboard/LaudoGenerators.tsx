@@ -1,16 +1,20 @@
 import { useState } from 'react';
-import { Shield, Cpu, Sparkles, Wand2, Truck, FileText, ArrowRight, Car, Layers } from 'lucide-react';
+import { Shield, Cpu, Sparkles, Wand2, Truck, FileText, ArrowRight, Car, Layers, Wrench, Activity, BarChart3 } from 'lucide-react';
 import LaudoNR12Indep from './LaudoNR12Indep';
 import LaudoMaquinasPesadasIndep from './LaudoMaquinasPesadasIndep';
 import LaudoCaminhaoMunckGuindasteIndep from './LaudoCaminhaoMunckGuindasteIndep';
 import LaudoInspecaoVeicularIndep from './LaudoInspecaoVeicularIndep';
 import LaudoMontacargasIndep from './LaudoMontacargasIndep';
+import LaudoPlaygroundIndep from './LaudoPlaygroundIndep';
+import LaudoPMOCIndep from './LaudoPMOCIndep';
+import LaudoArtManutencaoIndep from './LaudoArtManutencaoIndep';
+import LaudoPCMIndep from './LaudoPCMIndep';
 
 export default function LaudoGenerators() {
-  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane' | 'vehicle' | 'montacargas'>('none');
+  const [selected, setSelected] = useState<'none' | 'nr12' | 'heavy' | 'crane' | 'vehicle' | 'montacargas' | 'playground' | 'pmoc' | 'art_manutencao' | 'pcm'>('none');
   const [prefilled, setPrefilled] = useState(false);
 
-  const selectPrefilled = (type: 'heavy' | 'crane' | 'vehicle' | 'montacargas') => {
+  const selectPrefilled = (type: 'heavy' | 'crane' | 'vehicle' | 'montacargas' | 'playground' | 'pmoc' | 'art_manutencao' | 'pcm') => {
     setPrefilled(true);
     setSelected(type);
   };
@@ -33,6 +37,22 @@ export default function LaudoGenerators() {
 
   if (selected === 'montacargas') {
     return <LaudoMontacargasIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
+  }
+
+  if (selected === 'playground') {
+    return <LaudoPlaygroundIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
+  }
+
+  if (selected === 'pmoc') {
+    return <LaudoPMOCIndep onBack={() => { setSelected('none'); setPrefilled(false); }} />;
+  }
+
+  if (selected === 'art_manutencao') {
+    return <LaudoArtManutencaoIndep onBack={() => { setSelected('none'); setPrefilled(false); }} />;
+  }
+
+  if (selected === 'pcm') {
+    return <LaudoPCMIndep onBack={() => { setSelected('none'); setPrefilled(false); }} initialPrefilled={prefilled} />;
   }
 
   return (
@@ -109,6 +129,50 @@ export default function LaudoGenerators() {
                 <span className="font-sans text-left">Exemplo: Reclassificação Monta-Cargas</span>
               </div>
               <ArrowRight className="w-4 h-4 text-slate-200" />
+            </button>
+
+            <button 
+              onClick={() => selectPrefilled('playground')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-amber-500"
+            >
+              <div className="flex items-center gap-2.5">
+                <Shield className="w-5 h-5 text-amber-200" />
+                <span className="font-sans text-left">Exemplo: Inspeção de Playground</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-100" />
+            </button>
+
+            <button 
+              onClick={() => selectPrefilled('pmoc')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-teal-600"
+            >
+              <div className="flex items-center gap-2.5">
+                <Activity className="w-5 h-5 text-teal-200" />
+                <span className="font-sans text-left">Exemplo: Auditoria e Plano de PMOC</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-100" />
+            </button>
+
+            <button 
+              onClick={() => selectPrefilled('art_manutencao')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-indigo-600"
+            >
+              <div className="flex items-center gap-2.5">
+                <Wrench className="w-5 h-5 text-indigo-200" />
+                <span className="font-sans text-left">Exemplo: ART de Manutenção</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-100" />
+            </button>
+
+            <button 
+              onClick={() => selectPrefilled('pcm')}
+              className="flex items-center justify-between gap-3 px-6 py-4 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-2xl shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border border-amber-600"
+            >
+              <div className="flex items-center gap-2.5">
+                <BarChart3 className="w-5 h-5 text-amber-200" />
+                <span className="font-sans text-left">Exemplo: Gestão de Manutenção (PCM)</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-100" />
             </button>
           </div>
         </div>
@@ -298,6 +362,154 @@ export default function LaudoGenerators() {
             </span>
             <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
               18 Requisitos
+            </span>
+          </div>
+        </div>
+
+        {/* Inspeção de Playgrounds Card */}
+        <div 
+          onClick={() => setSelected('playground')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Shield className="w-36 h-36 text-amber-600" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/15 rounded-2xl w-fit text-amber-600 dark:text-amber-400">
+              <Shield className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors font-sans">
+                  Laudo de Playground
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Laudos técnicos de segurança em áreas de recreação infantil e playgrounds sob a ABNT NBR 16071 partes 1 a 7. Checklist, análise de perigo, prioridades e ART.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+              Iniciar Auditoria →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              18 Requisitos
+            </span>
+          </div>
+        </div>
+
+        {/* Plano de PMOC Card */}
+        <div 
+          onClick={() => setSelected('pmoc')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Activity className="w-36 h-36 text-teal-600" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-teal-600/5 dark:bg-teal-500/5 border border-teal-500/15 rounded-2xl w-fit text-teal-600 dark:text-teal-400">
+              <Activity className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors font-sans">
+                  Plano de PMOC
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Plano de Manutenção, Operação e Controle (Lei 13.589/2018). Inclui inventário físico, cronograma mensal de rotinas, checklist técnico sanitário de 18 itens e formulários prontos para uso.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+              Iniciar Auditoria →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              18 Requisitos
+            </span>
+          </div>
+        </div>
+
+        {/* ART de Manutenção Card */}
+        <div 
+          onClick={() => setSelected('art_manutencao')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Wrench className="w-36 h-36 text-indigo-600" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-indigo-600/5 dark:bg-indigo-500/5 border border-indigo-500/15 rounded-2xl w-fit text-indigo-600 dark:text-indigo-400">
+              <Wrench className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors font-sans">
+                  ART de Manutenção
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Gere o pacote completo para serviços de manutenção técnica de máquinas, climatização e equipamentos industriais: Memorial Descritivo, Checklist Pré-ART e Relatório Técnico.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+              Iniciar Emissão →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              Completo
+            </span>
+          </div>
+        </div>
+
+        {/* Consultoria em Gestão de Manutenção (PCM) Card */}
+        <div 
+          onClick={() => setSelected('pcm')}
+          className="group relative bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <BarChart3 className="w-36 h-36 text-amber-600" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="p-4 bg-amber-600/5 dark:bg-amber-500/5 border border-amber-500/15 rounded-2xl w-fit text-amber-600 dark:text-amber-400">
+              <BarChart3 className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors font-sans">
+                  Consultoria PCM
+                </h3>
+                <span className="text-[9px] bg-emerald-500 text-white font-mono px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Ativo</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                Gere o Plano Diretor PCM completo: Diagnóstico de Maturidade ISO 55001, Cronograma PMP de 52 Semanas, Matriz FMEA de ativos e Painel de Indicadores (MTBF, MTTR, Backlog).
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-8 flex items-center justify-between">
+            <span className="text-xs font-bold font-mono uppercase text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+              Iniciar Consultoria →
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-900 font-mono font-bold px-2.5 py-1 rounded text-slate-500">
+              Completo
             </span>
           </div>
         </div>

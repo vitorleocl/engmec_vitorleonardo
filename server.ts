@@ -1038,6 +1038,480 @@ function isValidApiKey(key: string | undefined): boolean {
     }
   });
 
+  // 4.5. API: Playground Inspection Technical Auditor
+  app.post("/api/gemini/playground-audit", async (req, res) => {
+    const { 
+      laudoNumber,
+      clientName,
+      cnpj,
+      address,
+      laudoDate,
+      city,
+      targetAgeGroup,
+      totalArea,
+      numEquipments,
+      materialType,
+      installYearEst,
+      floorType,
+      fencingStatus,
+      lightingStatus,
+      shadowStatus,
+      maintenanceStatus,
+      notes,
+      images
+    } = req.body;
+
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated playground inspection engine.");
+        return res.json(getSimulatedPlaygroundLaudo(req.body));
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o SISTEMA LAUDO PLAYGROUND da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Segurança de Equipamentos de Playground, Áreas de Recreação Infantil e Espaços de Lazer, com profundo conhecimento nas normas ABNT NBR 16071 (partes 1 a 7), ABNT NBR 14350, legislação de proteção à criança e ao adolescente, e melhores práticas internacionais de segurança em playgrounds (EN 1176 e ASTM F1487).
+
+      EMPRESA EMISSORA:
+      - Razão Social: VL Engenharia
+      - Responsável Técnico: Eng. Mecânico Vitor Leonardo
+      - CREA: 1822299490 – PE
+      - E-mail: vitorleonardocl@gmail.com
+      - Telefone: (81) 98444-2592
+
+      DADOS DO LAUDO A GERAR:
+      - Número do Laudo: ${laudoNumber || "LPG-101/2026 Rev. 00"}
+      - Empresa/Condomínio Contratante: ${clientName || "Cliente Contratante Ltda"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Data da Inspeção: ${laudoDate || "Data atual"}, Cidade: ${city || "Recife"}
+      - Faixa Etária Alvo: ${targetAgeGroup || "02 a 12 anos"}
+      - Área Total do Playground: ${totalArea || "Não informado"}
+      - Quantidade de Brinquedos: ${numEquipments || "Não informado"}
+      - Tipo de Material predominante: ${materialType || "Não informado"}
+      - Ano Estimado de Instalação: ${installYearEst || "Não informado"}
+      - Tipo de Piso Amortecedor: ${floorType || "Não informado"}
+      - Estado do Cercamento/Gradis: ${fencingStatus || "Não informado"}
+      - Estado da Iluminação: ${lightingStatus || "Não informado"}
+      - Nível de Sombreamento: ${shadowStatus || "Não informado"}
+      - Histórico de Manutenção: ${maintenanceStatus || "Não informado"}
+      - Notas / Observações de Campo: ${notes || ""}
+
+      REGRAS OBRIGATÓRIAS DO LAUDO PLAYGROUND:
+      1. NUNCA invente informações não confirmáveis pelas imagens ou dados de campo.
+      2. Siga de forma rigorosa as exigências de segurança infantil da ABNT NBR 16071. Em caso de perigo de aprisionamento de cabeça/pescoço (aberturas entre 89mm e 230mm) ou falta de amortecimento adequado do piso sob altura crítica de queda, reprove o playground imediatamente.
+      3. Cite exatamente o item correspondente da NBR 16071 (ex: NBR 16071-1 item 4.2.1.2) para todas as não conformidades indicadas.
+      4. Retorne a classificação técnica individual dos equipamentos avaliados e a planilha de riscos.
+
+      Retorne estritamente um JSON estruturado seguindo este esquema exato:
+      {
+        "numero": "ID do Laudo",
+        "checklist": {
+          "item_1": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre abertura entre 89mm e 230mm"},
+          "item_2": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre pontas/bordas afiadas"},
+          "item_3": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre parafusos salientes"},
+          "item_4": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre cordas livres"},
+          "item_5": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre espessura do piso amortecedor"},
+          "item_6": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre cobertura da Área de Queda Crítica"},
+          "item_7": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre distância de 2m entre brinquedos"},
+          "item_8": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre placas de faixa etária"},
+          "item_9": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre ausência de corrosão metalúrgica"},
+          "item_10": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre integridade de eucalipto/madeiras"},
+          "item_11": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre plásticos sem trincas ou ressecamento"},
+          "item_12": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre parafusos soltos ou folgas"},
+          "item_13": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre correntes e cabos de balanços"},
+          "item_14": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre saídas/bordas de escorregadores"},
+          "item_15": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre pneus amortecedores de gangorras"},
+          "item_16": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre cerca > 1,20m e mola no portão"},
+          "item_17": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre visibilidade/tutela de adultos"},
+          "item_18": {"resposta": "SIM" | "NÃO" | "N/A", "nota": "nota explicativa sobre registro/livro de manutenção preventiva"}
+        },
+        "classificacao_equipamentos": [
+          {
+            "id": "C-01",
+            "name": "Nome do brinquedo",
+            "estado": "Descrição do estado atual e falhas detectadas",
+            "condicao": "VERDE" | "AMARELO" | "LARANJA" | "VERMELHO",
+            "acaoRecomendada": "Ação recomendada de manutenção"
+          }
+        ],
+        "perigos": [
+          {
+            "id": "P-01",
+            "equipamento": "Brinquedo associado",
+            "perigo": "O perigo mecânico detectado",
+            "risco": "O risco associado (ex: asfixia, fratura, laceração)",
+            "gravidade": "ALTA" | "MÉDIA" | "BAIXA"
+          }
+        ],
+        "nao_conformidades": [
+          {
+            "id": "NC-01",
+            "equipamento": "Equipamento associado",
+            "problema": "Problema pericial normativo detectado",
+            "norma": "Item exato da norma ABNT NBR 16071 violado",
+            "recomendacao": "Solução de engenharia para correção",
+            "prioridade": "IMEDIATO" | "CURTO PRAZO" | "MÉDIO PRAZO" | "LONGO PRAZO",
+            "responsavel": "Equipe de Manutenção / Síndico / VL Engenharia",
+            "prazo": "Prazo de execução (ex: 5 dias)"
+          }
+        ],
+        "conclusao": {
+          "status": "APROVADO" | "REPROVADO" | "APROVADO COM RESTRIÇÕES",
+          "parecer": "Parecer conclusivo pericial fundamentado do Engenheiro Vitor Leonardo"
+        }
+      }
+
+      ATENÇÃO: Não inclua as seções do laudo ('secoes') no JSON de resposta. Elas serão geradas pelo sistema localmente para economizar banda e tempo.
+      `;
+
+      const parts: any[] = [];
+
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.15,
+          systemInstruction: "Você é o perito mestre especialista em laudos de inspeção técnica de playgrounds da VL Engenharia. Retorne apenas o JSON puro sem as seções de texto repetitivo ('secoes')."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        cleanJson.secoes = getSecoesPlayground(req.body);
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for Playground:", error);
+      console.warn("Falling back to simulated playground engine due to API error.");
+      return res.json(getSimulatedPlaygroundLaudo(req.body));
+    }
+  });
+
+  // 4.6. API: PMOC Technical Auditor
+  app.post("/api/gemini/pmoc-audit", async (req, res) => {
+    const {
+      laudoNumber,
+      clientName,
+      cnpj,
+      address,
+      buildingType,
+      climatizedArea,
+      estimatedUsers,
+      refrigerantType,
+      rtName,
+      rtCrea,
+      rtArt,
+      notes,
+      environments,
+      appliances,
+      checklist,
+      images
+    } = req.body;
+
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated PMOC engine.");
+        return res.json(getSimulatedPmocLaudo(req.body));
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o SISTEMA PMOC da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Sistemas de Ar-Condicionado, Climatização, Ventilação e Qualidade do Ar Interior, com profundo conhecimento na Lei 13.589/2018, Portaria MS 3.523/1998, ABNT NBR 16401, ANVISA RE 09/2003, e ASHRAE 62.1.
+
+      DADOS DO ESTABELECIMENTO E INSPEÇÃO:
+      - Número do Laudo: ${laudoNumber || "LPM-001/2026"}
+      - Empresa Contratante: ${clientName || "Cliente Contratante Ltda"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Responsável Técnico: ${rtName || "Eng. Mecânico Vitor Leonardo"} (CREA: ${rtCrea || "1822299490 – PE"}, ART: ${rtArt || "ART-PE-XXXX"})
+      - Fluido Refrigerante Padrão: ${refrigerantType || "R-410A"}
+      - Notas / Observações de Campo: ${notes || "Nenhuma nota adicional."}
+
+      INVENTÁRIO DOS AMBIENTES:
+      ${JSON.stringify(environments, null, 2)}
+
+      INVENTÁRIO DOS APARELHOS:
+      ${JSON.stringify(appliances, null, 2)}
+
+      CHECKLIST ENVIADO:
+      ${JSON.stringify(checklist, null, 2)}
+
+      REGRAS DE AUDITORIA PMOC:
+      1. Se houver desvio higiênico, como filtros muito sujos, vazamento de condensado, ou acúmulo de poeira nas serpentinas, altere o checklist do item correspondente para "NOK" e justifique na nota.
+      2. Gere uma lista de Não Conformidades detalhadas ("nao_conformidades"), identificando qual equipamento violou a Portaria 3.523/1998 ou NBR 16401, o problema técnico, a norma infringida, a recomendação de solução e o prazo de adequação.
+      3. Sugira textos formais periciais de introdução, metodologia, análise e parecer conclusivo nos campos correspondentes ("secoes").
+
+      Retorne estritamente um JSON estruturado seguindo este esquema:
+      {
+        "checklist": {
+          "item_1": {"resposta": "OK" | "NOK" | "N/A", "nota": "nota explicativa"},
+          ...
+          "item_18": {"resposta": "OK" | "NOK" | "N/A", "nota": "nota explicativa"}
+        },
+        "nao_conformidades": [
+          {
+            "id": "NC-01",
+            "equipamento": "TAG do equipamento ou Geral",
+            "problema": "Irregularidade descrita em detalhes",
+            "norma": "Portaria MS 3.523/1998 Requisito...",
+            "recomendacao": "Solução de engenharia recomendada",
+            "prioridade": "IMEDIATO" | "CURTO PRAZO" | "MÉDIO PRAZO",
+            "responsavel": "Equipe de Manutenção",
+            "prazo": "10 dias"
+          }
+        ],
+        "secoes": {
+          "introducao": "Texto pericial mestre de introdução...",
+          "metodologia": "Metodologia técnica detalhada baseada em normas brasileiras...",
+          "sistemas_climatizacao": "Descrição analítica dos sistemas e inventário auditado...",
+          "conclusao_text": "Parecer técnico de conclusão fundamentado..."
+        }
+      }
+      `;
+
+      const parts: any[] = [];
+
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.15,
+          systemInstruction: "Você é o perito mestre especialista em auditorias de PMOC da VL Engenharia. Retorne apenas o JSON puro solicitado."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for PMOC:", error);
+      console.warn("Falling back to simulated PMOC engine due to API error.");
+      return res.json(getSimulatedPmocLaudo(req.body));
+    }
+  });
+
+  // 4.7. API: ART Manutenção Technical Auditor
+  app.post("/api/gemini/art-manutencao-audit", async (req, res) => {
+    const {
+      documentNumber,
+      artNumber,
+      clientName,
+      cnpj,
+      address,
+      bairro,
+      city,
+      uf,
+      email,
+      telefone,
+      serviceType,
+      equipmentName,
+      equipmentType,
+      equipmentTag,
+      problemDescription,
+      issueDate,
+      validityDate,
+      startDate,
+      endDate,
+      contractValue,
+      localExecucao,
+      cepExecucao,
+      durationHours,
+      codigoAtividadeConfea,
+      areaAtuacao,
+      modalidade,
+      escopo,
+      materiais,
+      medicoes,
+      naoConformidades,
+      images
+    } = req.body;
+
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("GEMINI_API_KEY is not defined or is placeholder. Falling back to simulated ART Manutenção engine.");
+        return res.json(getSimulatedArtManutencao(req.body));
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o SISTEMA ART MANUTENÇÃO da VL ENGENHARIA.
+      Atua como Engenheiro Mecânico Especialista em Gestão de Serviços de Manutenção Industrial, Predial e de Equipamentos, com profundo conhecimento na Lei 6.496/1977 (ART), Resolução CONFEA 1.025/2009, e normas correlatas de manutenção técnica (NR-10, NR-12, NR-13, NBR 5462, etc.).
+
+      DADOS DO SERVIÇO E DO CLIENTE:
+      - Número do Documento: ${documentNumber || "MDM-2026-042"}
+      - ART de Referência: ${artNumber || "PE20261198422"}
+      - Empresa Contratante: ${clientName || "Cliente"} (CNPJ: ${cnpj || "Não informado"}, Endereço: ${address || "Não informado"})
+      - Responsável Técnico: Eng. Mecânico Vitor Leonardo (CREA: 1822299490 – PE, ART: ${artNumber || "Não informada"})
+      - Tipo de Serviço: ${serviceType || "PREVENTIVA"}
+      - Equipamento / Sistema: ${equipmentName || "Equipamento Técnico"} (Tipo: ${equipmentType || "Mecânico"}, TAG: ${equipmentTag || "TAG-01"})
+      - Descrição do Problema / Escopo Inicial: ${problemDescription || "Não informado."}
+      - Datas: Início ${startDate || "Não informada"} | Término ${endDate || "Não informada"}
+      - Valor do Contrato: ${contractValue || "R$ 0,00"}
+      - Local de Execução: ${localExecucao || "Não informado"} (CEP: ${cepExecucao || "Não informado"})
+
+      ESCOPO DOS SERVIÇOS DISPONÍVEIS:
+      ${JSON.stringify(escopo, null, 2)}
+
+      PEÇAS E MATERIAIS UTILIZADOS:
+      ${JSON.stringify(materiais, null, 2)}
+
+      MEDIÇÕES ENCONTRADAS (ANTES vs DEPOIS):
+      ${JSON.stringify(medicoes, null, 2)}
+
+      IRREGULARIDADES / NÃO CONFORMIDADES:
+      ${JSON.stringify(naoConformidades, null, 2)}
+
+      SUA TAREFA:
+      Gere textos formais e peritamente redigidos em português do Brasil para compor o Memorial Descritivo e o Relatório Técnico de Manutenção. Retorne textos extremamente detalhados, formais, objetivos e rigorosos do ponto de vista de engenharia mecânica.
+
+      Gere também o procedimento LOTO (Lockout/Tagout) completo e detalhado e integre na seção de requisitos de segurança.
+
+      Retorne estritamente um JSON estruturado seguindo este esquema:
+      {
+        "introducao": "Texto pericial mestre de introdução detalhado, contextualizando a empresa Contratante, a Contratada (VL Engenharia), o Responsável Técnico Vitor Leonardo, as normas legais de ART (Lei 6.496/77) e as obrigatoriedades envolvidas.",
+        "objetivo": "Objetivos técnicos claros e mensuráveis da intervenção de manutenção no equipamento.",
+        "justificativa": "Justificativa técnica rigorosa fundamentada em confiabilidade, vida útil, mitigação de falhas catastróficas e segurança humana.",
+        "conclusao": "Parecer técnico conclusivo fundamentado, declarando as condições finais do equipamento (plena operação, operação com restrição, etc.) sob o CREA do Engenheiro Vitor Leonardo.",
+        "ferramentas": "Descrição técnica e calibragem das ferramentas e instrumentos utilizados na manutenção (ex: torquímetros, termovisores, manifolds digitais calibrados, etc.).",
+        "qualificacaoEquipe": "Descrição das competências técnicas necessárias para a execução deste serviço de engenharia de forma segura, incluindo treinamentos de NR-10, NR-12, NR-13 e LOTO.",
+        "criteriosAceitacao": "Critérios de aceitação técnica estritos baseados em normas e limites operacionais de temperatura, pressão, corrente elétrica e integridade mecânica.",
+        "proximaManutencao": "Plano e recomendações detalhadas para a próxima parada preventiva ou rotina de monitoramento preditivo.",
+        "pendencias": "Relato formal sobre pendências operacionais ou melhorias não executadas e seus respectivos impactos técnicos.",
+        "testesComissionamento": "Protocolo de testes de comissionamento realizados passo a passo (ex: testes em vazio, carga, teste hidrostático, simulação de falhas de segurança) e os respectivos resultados satisfatórios.",
+        "escopo": [
+          {
+            "id": "id_do_item",
+            "ordem": 1,
+            "atividade": "Atividade refinada técnicamente",
+            "metodologia": "Metodologia técnica de engenharia detalhada, explicando o 'como' de forma robusta e precisa."
+          }
+        ],
+        "naoConformidades": [
+          {
+            "id": "id_do_item",
+            "problema": "Irregularidade descrita detalhadamente com jargão de engenharia",
+            "norma": "Norma regulamentadora infringida (NR-10, NR-12, NR-13, CONAMA, etc.)",
+            "tratamento": "Ação corretiva definitiva executada ou recomendada",
+            "prazo": "Prazo técnico apropriado"
+          }
+        ]
+      }
+      `;
+
+      const parts: any[] = [];
+
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.15,
+          systemInstruction: "Você é o perito mestre especialista em engenharia de manutenção e emissão de ARTs da VL Engenharia. Retorne apenas o JSON puro solicitado."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON for ART:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for ART:", error);
+      console.warn("Falling back to simulated ART engine due to API error.");
+      return res.json(getSimulatedArtManutencao(req.body));
+    }
+  });
+
   // 5. API: Monta-Cargas Reclassification Auditor
   app.post("/api/gemini/montacargas-audit", async (req, res) => {
     const {
@@ -1220,6 +1694,158 @@ function isValidApiKey(key: string | undefined): boolean {
       console.error("Gemini API Error for Montacargas:", error);
       console.warn("Falling back to simulated monta-cargas engine due to API error.");
       return res.json(getSimulatedMontacargasLaudo(req.body));
+    }
+  });
+
+  // API Route for PCM Consulting
+  app.post("/api/gemini/pcm-consulting", async (req, res) => {
+    try {
+      const {
+        clientName,
+        facilityName,
+        pcmAnalyst,
+        totalAssets,
+        deliveryType,
+        diagnostico,
+        pmp,
+        fmea,
+        kpis,
+        images
+      } = req.body;
+
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!isValidApiKey(apiKey)) {
+        console.warn("Valid GEMINI_API_KEY environment variable not found or is placeholder. Falling back to simulated PCM consulting.");
+        return res.json(getSimulatedPcmLaudo(req.body));
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+
+      const textPrompt = `
+      Você é o Engenheiro Vitor Leonardo da VL Engenharia, especialista de campo em Planejamento e Controle de Manutenção (PCM) e Engenharia de Confiabilidade.
+      Analise os dados fornecidos e as fotos do cliente para produzir um parecer técnico de excelência consultiva para o Plano Diretor de PCM do cliente.
+
+      DADOS DO CLIENTE E INSTALAÇÃO:
+      - Empresa Solicitante: ${clientName || "Siderúrgica Pernambucana S/A"}
+      - Planta/Instalação: ${facilityName || "Planta Central"}
+      - Analista Responsável: ${pcmAnalyst || "Eng. Vitor Leonardo"}
+      - Escopo de Ativos Críticos: ${totalAssets || "Todos os ativos operacionais"}
+      - Tipo de Entrega Solicitado: ${deliveryType || "E"}
+
+      DADOS DE ENTRADA ATUAIS (Checklists e Tabelas Parciais):
+      - Diagnóstico ISO 55001 atual: ${JSON.stringify(diagnostico || [])}
+      - Programação de Preventivas (PMP) atual: ${JSON.stringify(pmp || [])}
+      - Análise de Modos de Falha (FMEA) atual: ${JSON.stringify(fmea || [])}
+      - Indicadores e Metas Atuais (KPIs): ${JSON.stringify(kpis || [])}
+
+      INSTRUÇÕES DE ENGENHARIA DE CONFIABILIDADE (RCM / TPM / ISO 55001):
+      1. Avalie a maturidade geral do plano de manutenção do cliente comparando com as melhores práticas mundiais.
+      2. Melhore a coerência técnica dos itens de diagnóstico, sugerindo melhorias na matriz de criticidade.
+      3. Enriqueça a programação preventiva (PMP) de 52 semanas com etapas operacionais detalhadas e frequências adequadas.
+      4. Para os componentes mecânicos e elétricos, gere análises qualitativas de Modos e Efeitos de Falha (FMEA) realistas, com valores precisos de S (Severidade), O (Ocorrência) e D (Detecção), calculando e reduzindo o RPN.
+      5. Estabeleça metas e ações práticas de engenharia de confiabilidade para melhorar o MTBF e reduzir o MTTR, otimizando a disponibilidade e reduzindo o backlog acumulado de ordens de serviço.
+
+      Retorne estritamente um JSON estruturado seguindo este esquema exato:
+      {
+        "numero": "ID único do laudo consultivo de PCM (ex: LPCM-2026-X)",
+        "diagnostico": {
+          "matriz_criticidade": [
+            {
+              "categoria": "Categoria (ex: Cadastro de Ativos, Planejamento (PMP), Engenharia de Confiabilidade, Controle de Indicadores, Capacitação)",
+              "item": "Item auditado",
+              "status": "CONFORME" | "NÃO CONFORME" | "PARCIAL" | "N/A",
+              "critica": "CRÍTICA" | "ALTA" | "MÉDIA" | "BAIXA",
+              "observacao": "Descrição detalhada do desvio ou situação observada no local",
+              "recomendacao": "Recomendação técnica específica de melhoria de engenharia fundamentada nas normas ISO 55001 / NBR 5462"
+            }
+          ]
+        },
+        "pmp": [
+          {
+            "equipamento": "Nome do equipamento/ativo",
+            "tag": "TAG técnica (ex: VL-CMP-01)",
+            "rotina": "Nome curto da rotina preventiva sugerida",
+            "frequencia": "Diária" | "Semanal" | "Quinzenal" | "Mensal" | "Trimestral" | "Semestral" | "Anual",
+            "procedimento": "Procedimento passo a passo para execução segura da atividade",
+            "tempoEstimado": "Estimativa de tempo (ex: 30 min, 2 horas)",
+            "executante": "Mecânico" | "Eletricista" | "Lubrificador" | "Operador" | "Equipe VL"
+          }
+        ],
+        "fmea": [
+          {
+            "equipamento": "Nome do equipamento",
+            "componente": "Componente crítico analisado",
+            "modo_falha": "Modo de falha física esperado ou observado",
+            "efeito": "Efeito operacional direto na produção ou segurança do trabalho",
+            "causa": "Causa mecânica ou elétrica primária da falha",
+            "s": 1, // Número de 1 a 10 para Severidade
+            "o": 1, // Número de 1 a 10 para Ocorrência
+            "d": 1, // Número de 1 a 10 para Detecção
+            "acao": "Ação recomendada de confiabilidade ou preditiva para mitigar o RPN"
+          }
+        ],
+        "kpis": {
+          "metas_sugeridas": [
+            {
+              "indicador": "Nome do KPI (ex: MTBF, MTTR, Disponibilidade, Backlog)",
+              "descricao": "O que o indicador mede e relevância para a planta",
+              "valor_atual": "Valor atual estimado (ex: 180h, 12h, 88%)",
+              "meta": "Nova meta sugerida fundamentada (ex: >= 450h, <= 4h, >= 97%)",
+              "acao": "Plano de ação operacional de engenharia focado para bater essa meta"
+            }
+          ]
+        }
+      }
+      `;
+
+      const parts: any[] = [];
+
+      if (images && images.length > 0) {
+        images.slice(0, 3).forEach((imgObj: any) => {
+          if (imgObj.data && imgObj.mimeType) {
+            parts.push({
+              inlineData: {
+                data: imgObj.data.split(",")[1] || imgObj.data,
+                mimeType: imgObj.mimeType
+              }
+            });
+          }
+        });
+      }
+
+      parts.push({ text: textPrompt });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: { parts: parts },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.15,
+          systemInstruction: "Você é o mestre especialista em PCM e Engenharia de Confiabilidade da VL Engenharia. Retorne apenas o JSON puro solicitado sem qualquer markdown externo."
+        }
+      });
+
+      const responseText = response.text || "";
+      try {
+        const cleanJson = JSON.parse(responseText.trim().replace(/^```json/, "").replace(/```$/, ""));
+        res.json(cleanJson);
+      } catch (jsonErr) {
+        console.error("Failed to parse Gemini output as JSON, raw response:", responseText);
+        res.status(500).json({ error: "Gemini response parse error. Falling back to simulation.", raw: responseText });
+      }
+
+    } catch (error: any) {
+      console.error("Gemini API Error for PCM Consulting:", error);
+      console.warn("Falling back to simulated PCM engine due to API error.");
+      return res.json(getSimulatedPcmLaudo(req.body));
     }
   });
 
@@ -1956,6 +2582,376 @@ function getSimulatedMontacargasLaudo(params: any): any {
     "secoes": getSecoesMontacargas(params)
   };
 }
+
+// Helper function to programmatically generate standard report sections for Playgrounds
+function getSecoesPlayground(params: any): any {
+  const clientName = params.clientName || "Condomínio Residencial Bella Vista";
+  return {
+    "secao_1": `Este Laudo Técnico de Inspeção de Segurança e Conformidade tem por escopo principal auditar e avaliar as condições físicas, de integridade estrutural e segurança do playground do contratante, visando salvaguardar a integridade de seus usuários infantes sob os preceitos rigorosos de engenharia mecânica preventiva.`,
+    "secao_2": `O presente documento foi encomendado pela administração de ${clientName}, inscrita sob o CNPJ ${params.cnpj || "Não informado"}, situada no endereço: ${params.address || "Não informado"}. A contratante busca a conformidade regulamentar e pericial de suas áreas infantis comuns de lazer.`,
+    "secao_3": "Órgão Emissor e Perito Responsável: VL Engenharia. Inspetor Técnico: Eng. Mecânico Vitor Leonardo (CREA-PE 1822299490), atuando com dedicação profissional em inspeções de segurança em áreas comuns residenciais e escolares. Tel: (81) 98444-2592, E-mail: vitorleonardocl@gmail.com.",
+    "secao_5": "Evidências e registros técnicos analisados: Registros fotográficos em campo, medições mecânicas de folgas e diâmetro de vãos com gabaritos circulares normatizados de aprisionamento de cabeça, e análise da base estrutural de ancoragem dos equipamentos.",
+    "secao_6": "Normas e legislação balizadoras de engenharia: ABNT NBR 16071 (Partes 1 a 7 - Brinquedos de Playground), Portarias Federais vigentes, Código de Defesa do Consumidor e normas internacionais aplicáveis de mitigação de risco infantil.",
+    "secao_7": "Metodologia: Inspeção visual e sensitiva direta com base nos requisitos dimensionais estabelecidos na NBR 16071. A classificação individual de perigo para cada brinquedo foi realizada com base em critérios de segurança ativa e passiva do usuário infantil.",
+    "secao_17": "Fica terminantemente recomendada a interdição física de quaisquer áreas recreativas que apresentem não conformidades graves, especialmente aquelas relacionadas à ausência de atenuação mecânica de impacto de queda no piso ou vãos de aprisionamento cefálico ativo.",
+    "secao_18": "Limitações técnicas da auditoria: A vistoria pericial foi baseada unicamente no exame superficial visual e dimensional estático de campo na data da inspeção. Não foram realizados ensaios destrutivos de tração interna de madeiras ou ensaios ultrassônicos de ligas metálicas internas dos pórticos."
+  };
+}
+
+// Expert fallback generator for Playground Inspections
+function getSimulatedPlaygroundLaudo(params: any): any {
+  const num = params.laudoNumber || "LPG-101/2026 Rev. 00";
+  const age = params.targetAgeGroup || "02 a 12 anos";
+  const floor = params.floorType || "Grama sintética sobre asfalto rígido (12mm)";
+  
+  return {
+    "numero": num,
+    "checklist": {
+      "item_1": {"resposta": "NÃO", "nota": "Vão vertical livre entre os corrimãos da escada de acesso mede exatamente 140 mm, apresentando risco grave de aprisionamento de cabeça/pescoço (limite normativo seguro: menor que 89mm ou maior que 230mm)."},
+      "item_2": {"resposta": "NÃO", "nota": "Seção final da lateral do escorregador em chapa metálica de inox possui rebarba pontiaguda ativa por desgaste mecânico, necessitando lixamento estrutural urgente."},
+      "item_3": {"resposta": "NÃO", "nota": "Diversos parafusos passantes no brinquedo combinado estão salientes em até 20 mm sem proteção plástica de cabeça redonda, apresentando potencial de corte."},
+      "item_4": {"resposta": "SIM", "nota": "Corda de escalada de nylon instalada encontra-se tensionada e perfeitamente ancorada nas duas extremidades de fixação."},
+      "item_5": {"resposta": "NÃO", "nota": "O piso atual (" + floor + ") possui base rígida de asfalto/concreto sem manta elástica amortecedora integrada de borracha. A altura de queda livre crítica do brinquedo combinada é de 1,60 m, o que exige piso com espessura mínima de mitigação NBR 16071-4."},
+      "item_6": {"resposta": "NÃO", "nota": "A cobertura do piso decorativo com grama estende-se por apenas 1,0 m ao final da rampa do escorregador, contrariando a Área de Queda Crítica (AQC) de no mínimo 1,5 m livres em todo o contorno."},
+      "item_7": {"resposta": "SIM", "nota": "A distância de espaçamento físico livre entre o brinquedo combinado e o pórtico do balanço atende ao limite mínimo de 2,00 metros de separação de zonas de impacto."},
+      "item_8": {"resposta": "NÃO", "nota": "Ausência completa de placas visíveis na entrada do playground informando faixas etárias permitidas, capacidade e telefone de contato de socorro."},
+      "item_9": {"resposta": "SIM", "nota": "Estruturas e eixos tubulares metálicos estão livres de fadiga profunda ou pontos críticos de corrosão galvânica."},
+      "item_10": {"resposta": "NÃO", "nota": "Viga superior em eucalipto autoclavado do balanço apresenta fendilhamento longitudinal com profundidade de 25 mm e infiltração ativa de água, exigindo tratamento."},
+      "item_11": {"resposta": "SIM", "nota": "Peças plásticas rotomoldadas e fechamentos de casinha estão intactos, sem rachaduras."},
+      "item_12": {"resposta": "NÃO", "nota": "Constatada a falta de porcas e arruelas de pressão em duas fixações de parabolt da sapata de suporte no solo."},
+      "item_13": {"resposta": "SIM", "nota": "Correntes galvanizadas de 6 mm com elos íntegros e eixos de giro superior lubrificados e estáveis."},
+      "item_14": {"resposta": "SIM", "nota": "Borda lateral do escorregador com altura correspondente de 180 mm e seção de saída perfeitamente horizontalizada."},
+      "item_15": {"resposta": "NÃO", "nota": "Batentes de amortecimento sob os assentos das gangorras estão rasgados e inativos, causando impacto mecânico seco contra o piso rígido."},
+      "item_16": {"resposta": "NÃO", "nota": "Cercamento com altura de apenas 1,10 m e portão de acesso livre sem fechadura automática ou mola hidráulica de auto-fechamento."},
+      "item_17": {"resposta": "SIM", "nota": "Área totalmente visível a partir do bloco administrativo e de bancos externos de supervisão ativa de adultos."},
+      "item_18": {"resposta": "NÃO", "nota": "Administração local não apresentou livro de registro ou cronograma de inspeções preventivas semanais exigidas na NBR 16071-7."}
+    },
+    "classificacao_equipamentos": [
+      {
+        "id": "C-01",
+        "name": "Brinquedo Combinado Multiplay (Torre, Escada, Escorregador)",
+        "estado": "Vão livre de escada perigoso (140 mm), parafusos pontiagudos expostos na ponte, e parabolts frouxos na ancoragem.",
+        "condicao": "LARANJA",
+        "acaoRecomendada": "Ajustar o distanciamento de vãos na escada para < 89 mm, instalar protetores em parafusos e reapertar os parabolts de fundação."
+      },
+      {
+        "id": "C-02",
+        "name": "Balanço de Eucalipto Autoclavado (2 Lugares)",
+        "estado": "Rachaduras profundas na madeira da viga suspensa horizontal de carga superior.",
+        "condicao": "AMARELO",
+        "acaoRecomendada": "Efetuar preenchimento de fendas com mástique elástico selante de poliuretano e monitorar progressão estrutural mensalmente."
+      },
+      {
+        "id": "C-03",
+        "name": "Gangorras Duplas de Madeira",
+        "estado": "Ausência absoluta de pneus ou limitadores de borracha de amortecimento sob os assentos extremos.",
+        "condicao": "VERMELHO",
+        "acaoRecomendada": "INTERDIÇÃO IMEDIATA. Fixar pneus de absorção no piso inferior para atenuar o impacto de fim de curso e proteger a coluna dos usuários."
+      },
+      {
+        "id": "C-04",
+        "name": "Piso de Recreação (Grama sintética de 12mm sobre laje rígida)",
+        "estado": "Completa ausência de manta amortecedora. Absorção de energia de queda livre inexistente.",
+        "condicao": "VERMELHO",
+        "acaoRecomendada": "INTERDIÇÃO INTEGRAL DO PLAYGROUND. Instalar manta elástica de borracha de alta densidade sob toda a extensão do revestimento decorativo sintético."
+      }
+    ],
+    "perigos": [
+      {
+        "id": "P-01",
+        "equipamento": "Escada do Multiplay",
+        "perigo": "Vão vertical livre de 140 mm entre corrimão e base",
+        "risco": "Risco de aprisionamento de cabeça e pescoço com asfixia física mecânica por suspensão corporal.",
+        "gravidade": "ALTA"
+      },
+      {
+        "id": "P-02",
+        "equipamento": "Escorregador Metálico",
+        "perigo": "Rebarba em chapa metálica inferior de saída de deslizamento",
+        "risco": "Perigo de ferimentos de corte e laceração severa de pele na ponta dos dedos dos usuários.",
+        "gravidade": "ALTA"
+      },
+      {
+        "id": "P-03",
+        "equipamento": "Piso do Playground",
+        "perigo": "Piso de grama sem manta elástica sob queda de h = 1.60m",
+        "risco": "Risco gravíssimo de traumatismo cranioencefálico (TCE) em caso de queda livre acidental das torres do brinquedo.",
+        "gravidade": "ALTA"
+      }
+    ],
+    "nao_conformidades": [
+      {
+        "id": "NC-01",
+        "equipamento": "Piso de Recreação",
+        "problema": "Grama sintética assentada diretamente sobre concreto asfáltico duro, com zero propriedades elásticas de atenuação de impacto.",
+        "norma": "ABNT NBR 16071-4 item 4.2 (Ensaios de atenuação de impacto de queda)",
+        "recomendacao": "Instalar manta de borracha reciclada amortecedora SBR de no mínimo 40 mm de espessura antes de reassentar o carpete de grama.",
+        "prioridade": "IMEDIATO",
+        "responsavel": "VL Engenharia / Instalador Técnico Credenciado",
+        "prazo": "10 dias"
+      },
+      {
+        "id": "NC-02",
+        "equipamento": "Escada do Multiplay",
+        "problema": "Abertura no corrimão com largura livre de 140 mm, situando-se no intervalo de perigo normativo de 89 a 230 mm.",
+        "norma": "ABNT NBR 16071-1 item 4.2.1.2 (Aprisionamento cefálico e de pescoço)",
+        "recomendacao": "Inserir travessas verticais adicionais soldadas para reduzir o espaçamento para valor estritamente inferior a 89 mm.",
+        "prioridade": "IMEDIATO",
+        "responsavel": "Oficina Metalúrgica da VL Engenharia",
+        "prazo": "5 dias"
+      },
+      {
+        "id": "NC-03",
+        "equipamento": "Gangorras de Madeira",
+        "problema": "Falta de batentes amortecedores de impacto na base inferior do brinquedo de gangorra articulada.",
+        "norma": "ABNT NBR 16071-6 item 4.6 (Gangorras - Batentes amortecedores inferiores obrigatórios)",
+        "recomendacao": "Instalar meio pneu de borracha de alta resistência sob a parte inferior de cada assento da gangorra de eucalipto.",
+        "prioridade": "IMEDIATO",
+        "responsavel": "Oficina de Playgrounds VL Engenharia",
+        "prazo": "3 dias"
+      }
+    ],
+    "conclusao": {
+      "status": "REPROVADO",
+      "parecer": `A área de recreação infantil (playground, com faixa etária para ${age}) do condomínio foi classificada como REPROVADA e recomendada para INTERDIÇÃO FÍSICA INTEGRAL IMEDIATA. Constatou-se perigo crítico de asfixia por aprisionamento de cabeça na escada do Multiplay, associado à completa falta de amortecimento do piso ("${floor}") sob altura crítica de queda acentuada (1,60 m). A liberação técnica segura fica condicionada à execução total do plano de ação corretivo de engenharia.`
+    },
+    "secoes": getSecoesPlayground(params)
+  };
+}
+
+// Expert fallback generator for PMOC
+function getSimulatedPmocLaudo(params: any): any {
+  return {
+    checklist: {
+      "item_1": { "resposta": "OK", "nota": "Filtros de ar do tipo classe G4, limpos e higienizados na fita técnica." },
+      "item_2": { "resposta": "OK", "nota": "Bandejas e linhas de condensado fluindo sem qualquer entupimento." },
+      "item_3": { "resposta": "NOK", "nota": "Marcas de fuligem no duto de captação de ar externo devido a tráfego urbano intenso próximo." },
+      "item_4": { "resposta": "OK", "nota": "Motores e polias com tensionamento adequado e sem ruídos anômalos." },
+      "item_5": { "resposta": "OK", "nota": "Gabinete íntegro, sem oxidação ativa ou vazamentos térmicos na carcaça." },
+      "item_6": { "resposta": "OK", "nota": "Ausência de poeira ou fuligem depositada na face de sopro das grelhas de ar." },
+      "item_7": { "resposta": "OK", "nota": "Dispositivos de captação em conformidade com o layout original." },
+      "item_8": { "resposta": "OK", "nota": "Captação de ar externo limpa, distante de fontes de contaminação ativa." },
+      "item_9": { "resposta": "OK", "nota": "Quadro de distribuição elétrica limpo, com barramento isolado e fiação identificada." },
+      "item_10": { "resposta": "OK", "nota": "Sensores de temperatura calibrados e indicando valores corretos na automação." },
+      "item_11": { "resposta": "OK", "nota": "Isolamento térmico de dutos e tubulações íntegro, sem condensação superficial." },
+      "item_12": { "resposta": "OK", "nota": "Amortecedores de vibração operando perfeitamente e absorvendo oscilações." },
+      "item_13": { "resposta": "OK", "nota": "Diferencial de pressão nos filtros dentro da faixa operacional recomendada." },
+      "item_14": { "resposta": "OK", "nota": "Portas de inspeção com fechos estanques e sem vazamentos de ar." },
+      "item_15": { "resposta": "OK", "nota": "Serpentina higienizada, livre de incrustações minerais e biofilme." },
+      "item_16": { "resposta": "OK", "nota": "Renovação de ar garantindo a taxa mínima de 27 m³/h/pessoa." },
+      "item_17": { "resposta": "OK", "nota": "Controle rígido de ruído nas salas de reuniões em conformidade com NBR 16401." },
+      "item_18": { "resposta": "OK", "nota": "Identificação e sinalização visual de dutos, setas de fluxo e TAGs de equipamentos completa." }
+    },
+    nao_conformidades: [
+      {
+        id: "NC-01",
+        equipamento: "Geral (Captação de Ar Externo)",
+        problema: "Presença de fuligem escura acumulada na fita de filtragem primária por excesso de tráfego de veículos pesados na avenida externa.",
+        norma: "Portaria MS 3.523/1998 Art. 5º e ANVISA RE 09/2003",
+        recomendacao: "Instalar sistema de pré-filtragem classe G3 adicional ou antecipar cronograma de substituição de filtros para intervalos quinzenais.",
+        prioridade: "MÉDIO PRAZO",
+        responsavel: "Equipe de Manutenção Predial",
+        prazo: "15 dias"
+      },
+      {
+        id: "NC-02",
+        equipamento: "SP-03 (Split Hi-Wall Diretoria)",
+        problema: "Pequeno gotejamento de condensado na parede posterior por desalinhamento do nível físico da evaporadora no suporte de parede.",
+        norma: "Portaria MS 3.523/1998 Item 4 (Garantia de livre escoamento sem estagnação)",
+        recomendacao: "Ajustar o alinhamento horizontal do chassi da evaporadora utilizando nível de bolha pericial e limpar dreno com ar comprimido.",
+        prioridade: "IMEDIATO",
+        responsavel: "Técnico Climatização Credenciado",
+        prazo: "5 dias"
+      }
+    ],
+    secoes: {
+      introducao: `Este laudo e o Plano de Manutenção, Operação e Controle (PMOC) referem-se à auditoria técnica pericial das instalações de condicionamento de ar da empresa \${params.clientName || "Cliente Contratante Ltda"}, elaborado em cumprimento irrestrito à Lei Federal nº 13.589/2018 e à Portaria GM/MS nº 3.523/1998. Os sistemas de climatização foram inventariados e vistoriados minuciosamente para garantir a saúde, segurança sanitária e bem-estar térmico de todos os colaboradores e ocupantes frequentes.`,
+      metodologia: "A metodologia de inspeção baseia-se na verificação visual direta in loco da integridade e higienização das evaporadoras, fancoils e redes de dutos de distribuição. Adicionalmente, avaliou-se qualitativamente a conformidade da taxa de renovação de ar frente aos limites preconizados na ABNT NBR 16401 e na Resolução RE nº 09/2003 da ANVISA. Todos os parâmetros operacionais foram tabulados no cronograma de rotinas da VL Engenharia.",
+      sistemas_climatizacao: `As unidades climatizadoras consistem majoritariamente em equipamentos do tipo Split Hi-Wall e K7 de alta eficiência térmica utilizando fluido ecológico \${params.refrigerantType || "R-410A"}. As áreas climatizadas cobrem salas diretivas, escritórios de engenharia, salas de reunião e copa, com ocupação flutuante sob regime de trabalho contínuo.`,
+      conclusao_text: `Consideramos as instalações de climatização do estabelecimento comercial de \${params.clientName || "Cliente Contratante Ltda"} como APROVADAS COM RESTRIÇÕES, sob a égide técnica da Lei 13.589/2018. O parecer pericial indica que, ressalvadas as pequenas inconformidades pontuais de drenagem e substituição preventiva de filtros no cronograma (conforme descritos no quadro de desvios deste memorial), as condições higiênico-sanitárias encontram-se operando em níveis satisfatórios de conformidade e segurança respiratória.`
+    }
+  };
+}
+
+// Expert fallback generator for ART de Manutenção
+function getSimulatedArtManutencao(params: any): any {
+  const client = params.clientName || "Indústrias Metalúrgicas Nordeste S.A.";
+  const eqName = params.equipmentName || "Compressor de Parafuso Rotativo 75HP";
+  const tag = params.equipmentTag || "CMP-04";
+  const docNum = params.documentNumber || "MDM-2026-042";
+  const artNum = params.artNumber || "PE20261198422";
+
+  return {
+    introducao: `Este Memorial Descritivo e Memorial de Execução referem-se aos serviços especializados de manutenção mecânica executados no equipamento ${eqName} (TAG: ${tag}) de propriedade da contratante ${client}. Os serviços técnicos foram concebidos e liderados pela VL Engenharia sob responsabilidade do Engenheiro Vitor Leonardo, registrado sob a ART de Manutenção nº ${artNum}, visando estabelecer estrito alinhamento com as normas de segurança do trabalho e diretrizes do fabricante.`,
+    objetivo: `O objetivo fundamental desta intervenção técnica consiste em restaurar os parâmetros nominais de trabalho do equipamento ${eqName}, otimizando a vazão volumétrica de descarga de ar comprimido, equalizando os diferenciais de pressão do elemento coalescente e eliminando pontos térmicos que possam comprometer a segurança operacional da planta industrial.`,
+    justificativa: `A execução da manutenção preventiva de 4.000 horas do ${eqName} justifica-se pela necessidade crítica de mitigar o desgaste acelerado dos perfis assimétricos dos parafusos rotativos por acúmulo de partículas sólidas. O óleo sintético saturado perde viscosidade e capacidade de dissipação de calor, de modo que a intervenção técnica periódica é o principal meio de prevenir danos de elevado impacto financeiro e paradas não programadas da linha fabril.`,
+    conclusao: `Concluímos formalmente que o equipamento ${eqName} (TAG: ${tag}) da contratante ${client} foi submetido com pleno sucesso a todos os procedimentos técnicos de manutenção descritos neste instrumento. Os testes dinâmicos de operação em regime severo comprovaram a estabilidade térmica, pressórica e elétrica do sistema. Declaramos o equipamento em PERFEITO ESTADO DE OPERAÇÃO E CONSERVAÇÃO, apto para retornar ao serviço contínuo com total segurança técnica e sanitária.`,
+    ferramentas: "Instrumentação calibrada utilizada: Torquímetro estalador (0 a 200 Nm), termovisor infravermelho pericial FLIR, multímetro True-RMS Fluke, megômetro digital, manifold para expansão direta e kit completo de ferramentas manuais isoladas conforme NR-10.",
+    qualificacaoEquipe: "A equipe técnica executora é composta exclusivamente por profissionais habilitados e qualificados, sob a supervisão técnica direta do Engenheiro Mecânico Vitor Leonardo (CREA 1822299490-PE). Os operadores detêm certificações válidas em NR-10 (Segurança em Instalações Elétricas), NR-12 (Segurança em Máquinas e Equipamentos) e LOTO (Lockout/Tagout).",
+    criteriosAceitacao: "Os critérios para homologação técnica e entrega dos serviços foram:\n- Pressão estática final estabilizada em 8.5 bar em carga contínua.\n- Temperatura máxima do óleo na descarga do compressor estabilizada em 84.2ºC após 1 hora de operação em regime nominal.\n- Ausência absoluta de estagnação ou refluxo de condensado.\n- Nível de vibração residual dentro dos limites aceitáveis estabelecidos pela ISO 10816-3 (Classe I).",
+    proximaManutencao: "Recomenda-se realizar a próxima rotina preventiva em 1.000 horas (ou 3 meses), focando na inspeção do tensionamento das correias de transmissão, verificação de entupimentos no dreno purgador automático e limpeza física do trocador de calor de placas.",
+    pendencias: "Não restaram pendências técnicas ou de peças sobressalentes. Todas as atividades propostas foram integralmente validadas e executadas na planta do cliente.",
+    testesComissionamento: "Protocolo de comissionamento realizado:\n1. Teste de sentido de rotação livre em vazio (OK);\n2. Teste dinâmico de comutação carga/alívio e controle de modulação (OK);\n3. Simulação de falha por sobreaquecimento da unidade injetando sinal termo-resistivo (Disparo seguro a 110ºC - OK);\n4. Verificação de estanqueidade em todas as vedações sob pressão máxima de 9.0 bar (OK).",
+    escopo: params.escopo || [
+      { id: "esc_1", ordem: 1, atividade: "Mobilização de Equipe e Execução de LOTO (Bloqueio)", metodologia: "Bloqueio elétrico e pneumático nos pontos de isolamento de energia com aplicação de cadeados de alta segurança e cartões de advertência pericial da VL Engenharia." },
+      { id: "esc_2", ordem: 2, atividade: "Drenagem e Substituição do Óleo Lubrificante", metodologia: "Aquecimento prévio, despressurização total do reservatório de ar/óleo, drenagem completa do fluido saturado e preenchimento com óleo lubrificante sintético para alto desempenho." },
+      { id: "esc_3", ordem: 3, atividade: "Substituição do Elemento Separador de Ar/Óleo", metodologia: "Remoção do cabeçote do vaso de pressão (NR-13), substituição do cartucho coalescente desgastado e alinhamento do anel de vedação metálico com fita de aterramento contra cargas eletrostáticas." }
+    ],
+    naoConformidades: params.naoConformidades || [
+      { id: "nc_1", problema: "Ponto quente (85ºC) por mau contato na conexão de potência do contator principal.", norma: "NR-10 Segurança em Instalações Elétricas", tratamento: "Substituição e reaperto mecânico com torque controlado dos contatos elétricos.", prazo: "Resolvido no ato" }
+    ]
+  };
+}
+
+// Expert fallback generator for PCM
+function getSimulatedPcmLaudo(params: any): any {
+  const num = params.laudoNumber || "LPCM-2026-009 Rev. 00";
+  return {
+    "numero": num,
+    "diagnostico": {
+      "matriz_criticidade": [
+        {
+          "categoria": "Cadastro de Ativos",
+          "item": "Inventário físico, árvore lógica e codificação (TAGs) de equipamentos",
+          "status": "PARCIAL",
+          "critica": "ALTA",
+          "observacao": "Os compressores principais possuem TAGs físicas, porém o restante do circuito de distribuição e instrumentação de utilidades não está catalogado de forma estruturada no sistema.",
+          "recomendacao": "Elaborar o recadastro geral estruturado por nível hierárquico (Planta -> Setor -> Sistema -> Ativo -> Componente) seguindo a norma ABNT NBR ISO 14224."
+        },
+        {
+          "categoria": "Planejamento (PMP)",
+          "item": "Cronogramas de preventivas sistemáticas de 52 semanas estruturados",
+          "status": "NÃO CONFORME",
+          "critica": "CRÍTICA",
+          "observacao": "As manutenções preventivas ocorrem de forma reativa, disparadas por contatos informais ou alarmes do painel dos equipamentos, sem cronograma anual ou balanceamento de carga de trabalho.",
+          "recomendacao": "Implementar o cronograma sistemático anual de 52 semanas para as rotinas mecânicas e elétricas de utilidades, balanceando os recursos homens-hora (HH)."
+        },
+        {
+          "categoria": "Engenharia de Confiabilidade",
+          "item": "Execução de análises estruturadas de modos de falha (FMEA/RCFA)",
+          "status": "NÃO CONFORME",
+          "critica": "ALTA",
+          "observacao": "Inexistência de reuniões de análise de causa de falha após quebras catastróficas. Desgaste recorrente de rolamentos e sobreaquecimento são tratados apenas com troca rápida sem investigação de causa raiz.",
+          "recomendacao": "Adotar e treinar a equipe operacional na metodologia de análise de falhas FMEA, priorizando os ativos com maior RPN (Risk Priority Number)."
+        },
+        {
+          "categoria": "Controle de Indicadores",
+          "item": "Coleta e acompanhamento de indicadores de confiabilidade (MTBF, MTTR, Backlog)",
+          "status": "PARCIAL",
+          "critica": "ALTA",
+          "observacao": "O tempo de indisponibilidade é anotado em planilhas informais, porém não há cálculo formal do tempo médio entre falhas (MTBF) ou tempo médio para reparo (MTTR).",
+          "recomendacao": "Estruturar o cálculo automatizado dos indicadores fundamentais de manutenção via ordens de serviço eletrônicas, parametrizando metas auditáveis."
+        }
+      ]
+    },
+    "pmp": [
+      {
+        "equipamento": "Compressor de Parafuso CP-01 (Caterpillar/Atlas Copco)",
+        "tag": "VL-CMP-01",
+        "rotina": "Verificação visual de vazamentos de óleo e leitura de parâmetros nos manômetros",
+        "frequencia": "Diária",
+        "procedimento": "Inspecionar juntas de vedação, mangueiras flexíveis e visor de nível. Registrar temperatura do elemento e pressão de descarga no painel.",
+        "tempoEstimado": "15 min",
+        "executante": "Operador"
+      },
+      {
+        "equipamento": "Compressor de Parafuso CP-01 (Caterpillar/Atlas Copco)",
+        "tag": "VL-CMP-01",
+        "rotina": "Limpeza mecânica do trocador de calor de placas de ar/óleo com ar comprimido",
+        "frequencia": "Mensal",
+        "procedimento": "Com o equipamento desligado e bloqueado (LOTO), remover grades externas e soprar as aletas no sentido contrário ao fluxo de exaustão.",
+        "tempoEstimado": "1 hora",
+        "executante": "Mecânico"
+      },
+      {
+        "equipamento": "Secador de Ar por Refrigeração SEC-02",
+        "tag": "VL-SEC-02",
+        "rotina": "Teste funcional do purgador automático capacitivo de condensado",
+        "frequencia": "Semanal",
+        "procedimento": "Ativar purga manual para verificar vazão de descarga. Inspecionar sensor de nível de condensado e desmontar filtro Y de proteção se necessário.",
+        "tempoEstimado": "20 min",
+        "executante": "Mecânico"
+      },
+      {
+        "equipamento": "Motor Elétrico Principal M-01 (WEG 150HP)",
+        "tag": "VL-MTR-01",
+        "rotina": "Lubrificação por graxa de alta velocidade nos rolamentos dianteiro e traseiro",
+        "frequencia": "Trimestral",
+        "procedimento": "Limpar bicos de graxeira, aplicar graxa polireia com bomba manual seguindo a quantidade em gramas especificada na placa WEG.",
+        "tempoEstimado": "45 min",
+        "executante": "Lubrificador"
+      }
+    ],
+    "fmea": [
+      {
+        "equipamento": "Compressor de Parafuso CP-01",
+        "componente": "Válvula Termostática",
+        "modo_falha": "Travada fechada",
+        "efeito": "Não circulação de óleo pelo radiador, levando a disparo térmico imediato por sobreaquecimento (>110ºC) com parada de produção.",
+        "causa": "Contaminação do fluido lubrificante por borras e desgaste do elemento expansor de cera interna.",
+        "s": 8,
+        "o": 4,
+        "d": 3,
+        "acao": "Substituição sistemática do cartucho interno da válvula termostática a cada 8.000 horas de operação nas preventivas de grande porte."
+      },
+      {
+        "equipamento": "Compressor de Parafuso CP-01",
+        "componente": "Elemento Separador de Ar/Óleo",
+        "modo_falha": "Saturação prematura / Ruptura",
+        "efeito": "Passagem excessiva de névoa de óleo lubrificante para a rede de distribuição fabril, arruinando a qualidade do ar e baixando nível de óleo.",
+        "causa": "Não cumprimento do prazo de troca (vencido) ou contaminação por óleo não homologado oxidado.",
+        "s": 7,
+        "o": 5,
+        "d": 2,
+        "acao": "Substituição preventiva do elemento separador com no máximo 4.000 horas, integrada a monitoramento por sensor de diferencial de pressão."
+      },
+      {
+        "equipamento": "WEG Motor Elétrico Principal M-01",
+        "componente": "Rolamento Dianteiro",
+        "modo_falha": "Fadiga / Desgaste mecânico das esferas",
+        "efeito": "Travamento mecânico do eixo em carga, causando quebra estática catastrófica do cabeçote e sobrecarga severa no circuito elétrico.",
+        "causa": "Falta de lubrificação sistemática periódica ou contaminação por partículas de poeira abrasiva.",
+        "s": 9,
+        "o": 3,
+        "d": 5,
+        "acao": "Implementar rota de análise preditiva de vibração mensal por envelope de aceleração e redefinição de ciclo rigoroso de relubrificação."
+      }
+    ],
+    "kpis": {
+      "metas_sugeridas": [
+        {
+          "indicador": "MTBF (Tempo Médio Entre Falhas)",
+          "descricao": "Mede a confiabilidade geral do sistema calculando o tempo operado dividido pelas paradas não programadas.",
+          "valor_atual": "180 horas",
+          "meta": ">= 450 horas",
+          "acao": "Iniciar rota de inspeção preventiva sistemática de 52 semanas e calibração fina dos sensores térmicos das unidades."
+        },
+        {
+          "indicador": "MTTR (Tempo Médio para Reparo)",
+          "descricao": "Mede a manutenibilidade do sistema, avaliando o tempo de intervenção corretiva.",
+          "valor_atual": "12.4 horas",
+          "meta": "<= 4.0 horas",
+          "acao": "Estruturar o kit de peças sobressalentes críticas no almoxarifado (kit de válvulas, vedações e fusíveis) e criar procedimentos de reparo rápido."
+        },
+        {
+          "indicador": "Disponibilidade Operacional",
+          "descricao": "Percentual do tempo em que as utilidades de ar comprimido estiveram aptas a suprir a planta de produção.",
+          "valor_atual": "88.5%",
+          "meta": ">= 97.5%",
+          "acao": "Instalação física de tubulação redundante tipo bypass inteligente para manutenção paralela sem corte de fluxo produtivo."
+        },
+        {
+          "indicador": "Backlog de Manutenção",
+          "descricao": "Mede a carga de trabalho acumulada e pendente, expressa em semanas de HH do time.",
+          "valor_atual": "4.8 semanas",
+          "meta": "1.5 a 2.5 semanas",
+          "acao": "Mutirão focado para encerramento de ordens de serviço preventivas atrasadas e eliminação de pequenos desvios prediais cadastrados."
+        }
+      ]
+    }
+  };
+}
+
 
 
 
