@@ -1403,8 +1403,8 @@ export default function LaudoPMOCIndep({ onBack }: LaudoPMOCIndepProps) {
                   { key: "secao11", label: "Seção 11: Ficha Mensal Manual (Pág. 10)" },
                   { key: "secao12", label: "Seção 12: Checklist Geral do PMOC (Pág. 11)" },
                   { key: "secao13", label: "Seção 13: Relatório de Não Conformidades (Pág. 12)" },
-                  { key: "secao14", label: "Seção 14: Registro Fotográfico (Pág. 13)" },
-                  { key: "secao15", label: "Seção 15: Parecer e Conclusão (Pág. 14)" },
+                  { key: "secao14", label: "Seção 14 & 15: Parecer e Conclusão (Pág. 13)" },
+                  { key: "secao15", label: "Seção 16: Registro Fotográfico (Pág. 14)" },
                   { key: "fichasIndividuais", label: "Anexo A: Fichas Técnicas Individuais" },
                   { key: "anexoArt", label: "Anexo B: Cópia da ART de Engenharia" }
                 ].map(sec => (

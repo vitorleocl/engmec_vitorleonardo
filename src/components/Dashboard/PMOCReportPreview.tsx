@@ -103,7 +103,8 @@ export default function PMOCReportPreview({
   uploadedImages,
   reportRef,
   blankPlanning = false,
-  artPdf = null
+  artPdf = null,
+  visibleSections = {}
 }: PMOCReportPreviewProps) {
   return (
     <div className="bg-slate-300 dark:bg-slate-950/80 p-4 md:p-8 min-h-screen flex justify-center overflow-x-auto print:p-0 print:bg-white">
@@ -116,7 +117,8 @@ export default function PMOCReportPreview({
         {/* =========================================================================
             PAGE 1: CAPA
            ========================================================================= */}
-        <div className="flex flex-col justify-between h-[255mm] border-4 border-slate-900 p-8 md:p-12 relative overflow-hidden page-break-after-always">
+        {visibleSections.capa !== false && (
+          <div className="flex flex-col justify-between min-h-[255mm] border-4 border-slate-900 p-8 md:p-12 relative overflow-hidden page-break-after-always">
           <div className="flex justify-between items-center border-b-2 border-slate-950 pb-4">
             <div className="flex items-center gap-2">
               <Logo className="w-12 h-12 text-[#134074]" />
@@ -171,11 +173,13 @@ export default function PMOCReportPreview({
             </div>
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 2: CARTA DE APRESENTAÇÃO
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.apresentacao !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">CARTA DE APRESENTAÇÃO</span>
@@ -229,11 +233,13 @@ export default function PMOCReportPreview({
             <p className="text-slate-400 text-[9px] font-mono">vitorleonardocl@gmail.com | (81) 98444-2592</p>
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 3: SUMÁRIO
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.sumario !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SUMÁRIO DE SEÇÕES</span>
@@ -315,11 +321,13 @@ export default function PMOCReportPreview({
             </p>
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 4: INTRODUÇÃO, BASE LEGAL E DADOS DO ESTABELECIMENTO
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secoes1_2 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÕES 1 & 2</span>
@@ -392,11 +400,13 @@ export default function PMOCReportPreview({
             Página 04 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 5: DADOS DO RESPONSÁVEL E INVENTÁRIO DOS SISTEMAS
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secoes3_4_5 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÕES 3 & 4</span>
@@ -485,11 +495,13 @@ export default function PMOCReportPreview({
             Página 05 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 6: DESCRIÇÃO DO SISTEMA E PARÂMETROS DE OPERAÇÃO
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao6 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÕES 5 & 6</span>
@@ -583,11 +595,13 @@ export default function PMOCReportPreview({
             Página 06 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 7: PLANO DE MANUTENÇÃO PREVENTIVA POR COMPONENTE
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao7 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 7</span>
@@ -654,11 +668,13 @@ export default function PMOCReportPreview({
             Página 07 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 8: CRONOGRAMA ANUAL DE MANUTENÇÃO (PLANILHA DE LANÇAMENTO)
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao8 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 8</span>
@@ -674,7 +690,7 @@ export default function PMOCReportPreview({
               </p>
 
               <div className="space-y-5 text-[9px]">
-                {appliances.slice(0, 3).map((ap) => (
+                {appliances.map((ap) => (
                   <div key={ap.id} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
                     <div className="bg-slate-50 p-2 border-b border-slate-200 flex justify-between items-center">
                       <span className="font-bold text-[#134074] font-mono">EQUIPAMENTO: {ap.tag} ({ap.localizacao} - {ap.tipo})</span>
@@ -733,11 +749,13 @@ export default function PMOCReportPreview({
             Página 08 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 9: MONITORAMENTO DE QAI E PROCEDIMENTOS OPERACIONAIS
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secoes9_10 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÕES 9 & 10</span>
@@ -787,11 +805,13 @@ export default function PMOCReportPreview({
             Página 09 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 10: REGISTROS E FORMULÁRIOS OBRIGATÓRIOS (PRONTOS PARA USO)
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao11 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 11</span>
@@ -831,41 +851,59 @@ export default function PMOCReportPreview({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-150">
-                      <tr>
-                        <td className="p-1">1. Filtros de ar higienizados e borrifados com sanitizante?</td>
-                        <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">___/___</td>
-                        <td className="p-1">_________________________________</td>
-                      </tr>
-                      <tr>
-                        <td className="p-1">2. Bandeja de condensado e dreno desobstruídos e lavados?</td>
-                        <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">___/___</td>
-                        <td className="p-1">_________________________________</td>
-                      </tr>
-                      <tr>
-                        <td className="p-1">3. Serpentinas evaporadoras livres de biofilmes/bolores?</td>
-                        <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">___/___</td>
-                        <td className="p-1">_________________________________</td>
-                      </tr>
-                      <tr>
-                        <td className="p-1">4. Compressor testado contra vibrações mecânicas/ruídos?</td>
-                        <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">___/___</td>
-                        <td className="p-1">_________________________________</td>
-                      </tr>
-                      <tr>
-                        <td className="p-1">5. Grelhas e difusores de ar limpos, sem fuligem visível?</td>
-                        <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">[  ]</td>
-                        <td className="p-1 text-center border-r border-slate-200">___/___</td>
-                        <td className="p-1">_________________________________</td>
-                      </tr>
+                      {appliances.length > 0 ? (
+                        appliances.flatMap((ap) => 
+                          (ap.atividades || []).map((act, actIdx) => (
+                            <tr key={`${ap.id}-${act.id || actIdx}`}>
+                              <td className="p-1 font-sans text-slate-800">
+                                <span className="font-bold text-[#134074]">[{ap.tag}]</span> {act.descricao} ({act.periodicidade})
+                              </td>
+                              <td className="p-1 text-center border-l border-r border-slate-200 font-mono text-[8px]">[  ]</td>
+                              <td className="p-1 text-center border-r border-slate-200 font-mono text-[8px]">[  ]</td>
+                              <td className="p-1 text-center border-r border-slate-200 font-mono text-[8.5px]">___/___</td>
+                              <td className="p-1 font-mono text-[8.5px]">_________________________________</td>
+                            </tr>
+                          ))
+                        )
+                      ) : (
+                        <>
+                          <tr>
+                            <td className="p-1">1. Filtros de ar higienizados e borrifados com sanitizante?</td>
+                            <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">___/___</td>
+                            <td className="p-1">_________________________________</td>
+                          </tr>
+                          <tr>
+                            <td className="p-1">2. Bandeja de condensado e dreno desobstruídos e lavados?</td>
+                            <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">___/___</td>
+                            <td className="p-1">_________________________________</td>
+                          </tr>
+                          <tr>
+                            <td className="p-1">3. Serpentinas evaporadoras livres de biofilmes/bolores?</td>
+                            <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">___/___</td>
+                            <td className="p-1">_________________________________</td>
+                          </tr>
+                          <tr>
+                            <td className="p-1">4. Compressor testado contra vibrações mecânicas/ruídos?</td>
+                            <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">___/___</td>
+                            <td className="p-1">_________________________________</td>
+                          </tr>
+                          <tr>
+                            <td className="p-1">5. Grelhas e difusores de ar limpos, sem fuligem visível?</td>
+                            <td className="p-1 text-center border-l border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">[  ]</td>
+                            <td className="p-1 text-center border-r border-slate-200">___/___</td>
+                            <td className="p-1">_________________________________</td>
+                          </tr>
+                        </>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -882,11 +920,13 @@ export default function PMOCReportPreview({
             Página 10 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 11: RESULTADOS DA INSPEÇÃO SANITÁRIA E CHECKLIST
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao12 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 12</span>
@@ -940,11 +980,13 @@ export default function PMOCReportPreview({
             Página 11 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 12: NÃO CONFORMIDADES IDENTIFICADAS E PLANO DE AÇÃO
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao13 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 13</span>
@@ -1006,11 +1048,13 @@ export default function PMOCReportPreview({
             Página 12 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 13: CONCLUSÃO PERICIAL E VALIDADE LEGAL
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
+        {visibleSections.secao14 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-after-always">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÕES 14 & 15</span>
@@ -1056,11 +1100,13 @@ export default function PMOCReportPreview({
             <p className="text-slate-400 text-[9px] font-mono">Próxima Revisão Compulsória: {laudoParams.validityDate}</p>
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             PAGE 14: ANEXOS (IMAGENS DE CAMPO)
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6">
+        {visibleSections.secao15 !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">SEÇÃO 16</span>
@@ -1106,12 +1152,13 @@ export default function PMOCReportPreview({
             Página 14 de 14 | PMOC Nº {laudoParams.laudoNumber} | VL Engenharia | FIM DO MEMORIAL
           </div>
         </div>
+        )}
 
         {/* =========================================================================
             DETAILED PLAN AND CONTROL SHEETS PER APPLIANCE
            ========================================================================= */}
-        {appliances.map((ap, idx) => (
-          <div key={`sheet-${ap.id}`} className="h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans text-[10px]">
+        {visibleSections.fichasIndividuais !== false && appliances.map((ap, idx) => (
+          <div key={`sheet-${ap.id}`} className="min-h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans text-[10px]">
             <div className="space-y-3">
               {/* Page Title & Appliance Info */}
               <div className="flex justify-between items-center border-b-2 border-slate-900 pb-2">
@@ -1300,7 +1347,8 @@ export default function PMOCReportPreview({
         {/* =========================================================================
             ART PDF ATTACHMENT PAGE
            ========================================================================= */}
-        <div className="h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans">
+        {visibleSections.anexoArt !== false && (
+          <div className="min-h-[255mm] flex flex-col justify-between py-6 page-break-before-always font-sans">
           <div className="space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3">
               <span className="font-sans font-black text-sm tracking-widest text-[#134074]">ANEXO DE ENGENHARIA</span>
@@ -1366,6 +1414,7 @@ export default function PMOCReportPreview({
             <span>PMOC Nº {laudoParams.laudoNumber} | FIM DO DOCUMENTO</span>
           </div>
         </div>
+        )}
 
       </div>
     </div>
